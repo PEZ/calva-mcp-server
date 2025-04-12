@@ -1,6 +1,6 @@
-# VSC-ET
+# Calva MCP Server
 
-A VS Code Extension Template. Or an automated [VS Code](https://code.visualstudio.com) **extension development** workflow, with support for [coding](#coding), [building](#building), [testing](#testing), [end-to-end testing](#end-to-end-testing), and [publishing the extension](#publishing-the-extension) to the [VS Code Marketplace](https://marketplace.visualstudio.com/vscode) and the [Open VSX Registry](https://open-vsx.org/).
+A Model Context Protocol server extension for Calva, the Clojure/ClojureScript extension for VS Code. Built on the VS Code Extension Template with support for [coding](#coding), [building](#building), [testing](#testing), [end-to-end testing](#end-to-end-testing), and [publishing the extension](#publishing-the-extension) to the [VS Code Marketplace](https://marketplace.visualstudio.com/vscode) and the [Open VSX Registry](https://open-vsx.org/).
 
 ![alt text](assets/vsc-et-published.png)
 The workflow is powered by [Interactive Programming](https://en.wikipedia.org/wiki/Interactive_programming). You can use the extension while you are hacking on it, without reloading the extension host. The feedback is instantaneous. As it should be to keep coding productive and maximum fun.
@@ -56,7 +56,7 @@ The paved path is:
    * Hint: _The ClojureScript app is your extension_.
 1. <kbd>F5</kbd>. This starts the VS Code _Development Extension Host_ (because configured to do so in [.vscode/launch.json](.vscode/launch.json))
    * The development extension host is a VS Code window where your extension under development is installed. You now need to activate it to actually start the ClojureScript app.
-1. In the extension development host <kbd>cmd/ctrl+shift+p</kbd>, find and run the command **Extension template: Say hello!**
+1. In the extension development host <kbd>cmd/ctrl+shift+p</kbd>, find and run the command **Calva MCP Server: Say hello!**
    ![VS Code Command Palette, ET hHello command](assets/usage/say-hello.png)
    * This activates your extension and starts the ClojureScript app and its REPL
 1. Back in the development project you will see the progress dialog go away. Because now the development project window is connected to the Development Extension Host window's REPL.

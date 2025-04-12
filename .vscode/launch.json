@@ -13,7 +13,7 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--enable-proposed-api",
-				"betterthantomorrow.vsc-et",
+				"betterthantomorrow.calva-mcp-server",
 			],
 			"sourceMaps": true,
 			"outFiles": [
@@ -28,7 +28,7 @@
 			"args": [
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--enable-proposed-api",
-				"betterthantomorrow.vsc-et",
+				"betterthantomorrow.calva-mcp-server",
 				"${workspaceFolder}/e2e-test-ws/",
 			],
 			"sourceMaps": true,
@@ -45,7 +45,7 @@
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--folder-uri=null",
 				"--enable-proposed-api",
-				"betterthantomorrow.vsc-et",
+				"betterthantomorrow.calva-mcp-server",
 			],
 			"sourceMaps": true,
 			"outFiles": [
@@ -61,7 +61,7 @@
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--disable-extensions",
 				"--enable-proposed-api",
-				"betterthantomorrow.vsc-et",
+				"betterthantomorrow.calva-mcp-server",
 			],
 			"sourceMaps": true,
 			"env": {},

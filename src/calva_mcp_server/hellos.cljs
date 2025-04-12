@@ -1,9 +1,9 @@
 ;; Example commands
 
-(ns vsc-et.hellos
+(ns calva-mcp-server.hellos
   (:require ["vscode" :as vscode]
             [promesa.core :as p]
-            [vsc-et.hellos.util :as util]))
+            [calva-mcp-server.hellos.util :as util]))
 
 (defn hello-command!+ [_!state s]
   (p/let [s (or s (vscode/window.showInputBox (clj->js util/input-box-options)))]

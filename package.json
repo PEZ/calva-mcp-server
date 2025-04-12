@@ -1,7 +1,7 @@
 {
-  "name": "vsc-et",
-  "displayName": "Extension Template",
-  "description": "Helping users who want to get Y done, by provding X.",
+  "name": "calva-mcp-server",
+  "displayName": "Calva MCP Server",
+  "description": "Model Context Protocol server extension for Calva",
   "version": "0.0.1",
   "publisher": "betterthantomorrow",
   "author": {
@@ -11,7 +11,7 @@
   "icon": "assets/extension-icon-128x128.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PEZ/vsc-et.git"
+    "url": "https://github.com/BetterThanTomorrow/calva-mcp-server.git"
   },
   "engines": {
     "vscode": ">=1.75.0",
@@ -20,32 +20,32 @@
   "enabledApiProposals": [
     "extensionRuntime"
   ],
-  "categories": [],
-  "keywords": [],
+  "categories": ["Programming Languages", "Formatters", "Linters", "Other"],
+  "keywords": ["clojure", "clojurescript", "mcp", "model-context-protocol", "ai"],
   "activationEvents": [],
   "main": "out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vsc-et.hello",
-        "category": "Extension Template",
+        "command": "calva-mcp-server.hello",
+        "category": "Calva MCP Server",
         "title": "Say Hello!"
       },
       {
-        "command": "vsc-et.newHelloDocument",
-        "category": "Extension Template",
-        "enablement": ":vsc-et/active?",
+        "command": "calva-mcp-server.newHelloDocument",
+        "category": "Calva MCP Server",
+        "enablement": ":calva-mcp-server/active?",
         "title": "Open a new Hello document"
       }
     ],
     "keybindings": [
       {
-        "command": "vsc-et.hello",
+        "command": "calva-mcp-server.hello",
         "key": "ctrl+alt+h h"
       },
       {
-        "command": "vsc-et.newHelloDocument",
-        "when": ":vsc-et/active?",
+        "command": "calva-mcp-server.newHelloDocument",
+        "when": ":calva-mcp-server/active?",
         "key": "ctrl+alt+h d"
       }
     ]

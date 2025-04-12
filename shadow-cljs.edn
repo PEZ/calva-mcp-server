@@ -7,9 +7,9 @@
               :compiler-options {:infer-externs :auto}
               :output-dir "out/js"
               :output-to "out/extension.js"
-              :exports {:activate vsc-et.extension/activate
-                        :deactivate vsc-et.extension/deactivate}
-              :devtools {:build-notify vsc-et.extension/build-notify!}}
+              :exports {:activate calva-mcp-server.extension/activate
+                        :deactivate calva-mcp-server.extension/deactivate}
+              :devtools {:build-notify calva-mcp-server.extension/build-notify!}}
   :test-watch
   {:target    :node-test
    :output-to "out/extension-tests.js"

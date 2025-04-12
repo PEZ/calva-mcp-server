@@ -7,8 +7,8 @@
 ;; This extension template does not have any business logic, so we'll
 ;; pretend with these silly examples.
 
-(ns vsc-et.hellos.util-test
-  (:require [vsc-et.hellos.util :as sut]
+(ns calva-mcp-server.hellos.util-test
+  (:require [calva-mcp-server.hellos.util :as sut]
             [clojure.test :refer [deftest is testing]]))
 
 (deftest greet

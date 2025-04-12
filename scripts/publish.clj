@@ -57,7 +57,7 @@
   (tag version dry-run?)
   (push dry-run?)
   (println "Open to follow the progress of the release:")
-  (println "  https://github.com/PEZ/vsc-et/actions"))
+  (println "  https://github.com/BetterThanTomorrow/calva-mcp-server/actions"))
 
 (defn publish! [dry-run?]
   (let [unreleased-changelog-text (get-changelog-text-for-version "Unreleased")

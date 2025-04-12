@@ -7,7 +7,7 @@
 (deftest-async new-hello-doc
   (testing "Context of the test assertions"
     (p/let [hello-text "Multiverse"
-            editor (vscode/commands.executeCommand "vsc-et.newHelloDocument" hello-text)
+            editor (vscode/commands.executeCommand "calva-mcp-server.newHelloDocument" hello-text)
             doc (.-document editor)
             doc-text (.getText doc)
             _ (vscode/commands.executeCommand "workbench.action.revertAndCloseActiveEditor" false)]

@@ -1,12 +1,11 @@
-(ns vsc-et.extension.db)
+(ns calva-mcp-server.extension.db)
 
 (def init-db {:extension/context nil
               :extension/disposables []
-              :extension/when-contexts {:vsc-et/active? false}})
+              :extension/when-contexts {:calva-mcp-server/active? false}})
 
 (defonce !app-db (atom init-db))
 
 (comment
   @!app-db
   :rcf)
-

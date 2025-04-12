@@ -1,8 +1,8 @@
 # Change Log
 
-Changes to Extension Template
+Changes to Calva MCP Server
 
 ## [Unreleased]
 
 - Initial Release
-- [Some cool thing that was lacking on the marketplace](https://github.com/PEZ/vsc-et/issues/1)
+- [Some cool thing that was lacking on the marketplace](https://github.com/BetterThanTomorrow/calva-mcp-server/issues/1)

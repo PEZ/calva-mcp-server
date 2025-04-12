@@ -1,22 +1,22 @@
-(ns vsc-et.extension
-  (:require [vsc-et.hellos :as hellos]
-            [vsc-et.extension.db :as db]
-            [vsc-et.extension.life-cycle-helpers :as lc-helpers]
-            [vsc-et.extension.when-contexts :as when-contexts]))
+(ns calva-mcp-server.extension
+  (:require [calva-mcp-server.hellos :as hellos]
+            [calva-mcp-server.extension.db :as db]
+            [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
+            [calva-mcp-server.extension.when-contexts :as when-contexts]))
 
 ;;;;; Extension activation entry point
 
 (defn ^:export activate [context]
   (js/console.time "activation")
-  (js/console.timeLog "activation" "Extension Template activate START")
+  (js/console.timeLog "activation" "Calva MCP Server activate START")
 
   (when context
     (swap! db/!app-db assoc :extension/context context))
-  (lc-helpers/register-command! db/!app-db "vsc-et.hello" #'hellos/hello-command!+)
-  (lc-helpers/register-command! db/!app-db "vsc-et.newHelloDocument" #'hellos/new-hello-doc-command!+)
-  (when-contexts/set-context!+ db/!app-db :vsc-et/active? true)
+  (lc-helpers/register-command! db/!app-db "calva-mcp-server.hello" #'hellos/hello-command!+)
+  (lc-helpers/register-command! db/!app-db "calva-mcp-server.newHelloDocument" #'hellos/new-hello-doc-command!+)
+  (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
 
-  (js/console.timeLog "activation" "Extension Template activate END")
+  (js/console.timeLog "activation" "Calva MCP Server activate END")
   (js/console.timeEnd "activation")
   #js {:v1 {}})
 

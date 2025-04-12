@@ -7,7 +7,7 @@
 ;; This extension template does not have any business logic, so we'll
 ;; pretend with these silly examples.
 
-(ns vsc-et.hellos.util)
+(ns calva-mcp-server.hellos.util)
 
 (defn greet [s]
   (str "Hello, " s "!"))
