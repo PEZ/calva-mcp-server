@@ -11,16 +11,19 @@ This document tracks the development progress of the Calva MCP Server extension.
 - Successfully verified build and REPL connection
 - Ran end-to-end tests to confirm correct renaming
 - Created Project Requirements Document (PRD)
+- Established decision log for tracking significant decisions ([DECISION_LOG.md](./DECISION_LOG.md))
 
 ### Decisions
 - Decided to follow Documentation Driven Development approach
 - Opted to implement REPL evaluation capabilities as the MVP
 - Determined that a development log would complement the PRD
+- Created structured decision log for documenting decision-making process
 
 ### Insights
 - The extension template provides a solid foundation for extension development
 - Maintaining a development log alongside the PRD helps track both the destination and the journey
 - Documentation-first approach encourages thoughtful API design before implementation
+- Capturing decision rationale preserves context for future development
 
 ### Next Steps
 - Define detailed API specification based on Calva Extension API

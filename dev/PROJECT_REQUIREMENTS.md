@@ -20,7 +20,7 @@ The Calva MCP Server extension provides a Model Context Protocol server for Calv
 
 ### 2.1 Architecture Overview
 The extension will:
-1. Connect to Calva's Extension API 
+1. Connect to Calva's Extension API
 2. Implement the Model Context Protocol server
 3. Provide translation between MCP requests and Calva API calls
 4. Return formatted results to the requesting AI

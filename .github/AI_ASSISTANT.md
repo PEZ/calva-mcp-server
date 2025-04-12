@@ -32,6 +32,8 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Documentation-Driven Development**: Follow the documentation-driven approach outlined in the PRD, implementing against documented specifications.
 
+- **Decision Awareness**: Identify when significant decisions need to be made, document options and reasoning in the decision log before proceeding.
+
 - **Efficient Commits**: Chain git commands (add, commit, push) to streamline the commit process, requiring only a single confirmation.
 
 - **Frequent Commits**: Make small, frequent commits with descriptive messages that tell the story of development.
