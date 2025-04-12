@@ -148,6 +148,13 @@ Following the principles of Documentation Driven Development:
 5. Update documentation based on implementation insights
 6. Repeat
 
+Alongside this approach, the project will:
+- Make frequent, small commits with descriptive messages
+- Chain git commands (add, commit, push) for efficiency
+- Keep code and documentation changes in sync
+- Ensure that each commit represents a coherent unit of work
+- Maintain history that clearly tells the story of development
+
 ### 7.2 Development Log
 The project will maintain a detailed development log to:
 - Track progress and decisions made during implementation
