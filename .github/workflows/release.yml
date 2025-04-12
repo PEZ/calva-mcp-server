@@ -1,0 +1,149 @@
+name: Release VSIX
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    uses: ./.github/workflows/build-and-test.yml
+
+  github-release:
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp
+          pattern: '*.vsix'
+          merge-multiple: true
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+          bb: latest
+
+      - name: Cache clojure/java dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          key: ${{ runner.os }}-clojure-${{ hashFiles('**/*.edn') }}
+          restore-keys: |
+            ${{ runner.os }}-clojure-
+
+      - name: Write release notes
+        run: |
+          bb ci:release-notes ${{ github.ref_name }} > /tmp/release-notes.md
+
+      - name: Github Release
+        uses: ncipollo/release-action@v1
+        with:
+          bodyFile: /tmp/release-notes.md
+          artifacts: "/tmp/*.vsix"
+
+  publish-to-marketplace:
+    runs-on: ubuntu-latest
+    needs: github-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install node dependencies
+        run: npm install
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp
+          pattern: '*.vsix'
+          merge-multiple: true
+
+      - name: Publish to VS Code Marketplace
+        run: | # TODO: Actually publish to the marketplace. For now, only verify that the personal access token will work
+          npx vsce verify-pat --pat ${{ secrets.MARKETPLACE_PAT }}
+          echo npx vsce publish --packagePath /tmp/*.vsix --pat ${{ secrets.MARKETPLACE_PAT }} --githubBranch master
+
+  publish-to-open-vsx:
+    runs-on: ubuntu-latest
+    needs: github-release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install node dependencies
+        run: npm install
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp
+          pattern: '*.vsix'
+          merge-multiple: true
+
+      - name: Publish to Open VSX
+        run: | # TODO: Actually publish to open-vsx. For now, only verify that the personal access token will work
+          npx ovsx verify-pat --pat ${{ secrets.OPEN_VSX_PAT }}
+          echo npx ovsx publish /tmp/*.vsix --pat ${{ secrets.OPEN_VSX_PAT }}
+
+  bump-version:
+    runs-on: ubuntu-latest
+    needs: publish-to-marketplace
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Source Branch
+        id: source-branch
+        run: echo "BUMP_BRANCH=$(git name-rev --name-only --exclude=tags/* HEAD)" >> $GITHUB_ENV
+
+      - name: Setup Babashka
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          bb: latest
+
+      - name: Bump Version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bb ci:bump-version-and-push ${{ env.BUMP_BRANCH}} "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com" "${{ github.actor }}" --force

@@ -1,0 +1,28 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+			{
+					"label": "Build+watch extension",
+					"type": "shell",
+					"command": "${command:default}",
+					"args": ["${args:default}"],
+					"problemMatcher": [],
+					"group": {
+							"kind": "build",
+							"isDefault": true
+					},
+					"windows": {
+							"command": "cmd.exe",
+							"args": ["/d", "/c", "npm run watch"]
+					},
+					"linux": {
+							"command": "/bin/bash",
+							"args": ["-l", "-c", "npm run watch"]
+					},
+					"osx": {
+							"command": "/bin/bash",
+							"args": ["-l", "-c", "npm run watch"]
+					}
+			}
+	]
+}

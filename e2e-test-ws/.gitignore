@@ -1,0 +1,19 @@
+# Dependency directories
+node_modules
+
+# macos
+.DS_Store
+
+# Clojure
+.cpcache/
+.nrepl-port
+
+# CLJS
+.shadow-cljs/
+
+# Calva, lsp, kondo
+.cache
+output.calva-repl
+
+# Portal
+**/.portal/vs-code.edn

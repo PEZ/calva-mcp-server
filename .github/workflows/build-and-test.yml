@@ -1,0 +1,193 @@
+name: Build and test
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - 'master'
+  workflow_call:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+          bb: latest
+
+      - name: Cache clojure/java dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          key: ${{ runner.os }}-clojure-${{ hashFiles('**/*.edn') }}
+          restore-keys: |
+            ${{ runner.os }}-clojure-
+
+      - name: Install node dependencies
+        run: npm install
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Build Pre-release VSIX
+        if: startsWith(github.ref, 'refs/heads/')
+        run: bb package-pre-release ${GITHUB_REF#refs/heads/}
+
+      - name: Build Release VSIX
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -x
+          npm run package
+
+      - name: Get VSIX File Name
+        id: get-vsix-name
+        shell: bash
+        run: echo "VSIX_NAME=$(ls *.vsix)" >> $GITHUB_ENV
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-${{ env.VSIX_NAME }}
+          path: ${{ env.VSIX_NAME }}
+
+      - name: Upload Test Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-extension-tests
+          path: out/extension-tests.js
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: build
+    steps:
+      - name: Download Test Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ runner.os }}-extension-tests
+          pattern: out/extension-tests.js
+          merge-multiple: true
+          path: out/
+
+      - name: Run Tests
+        run: node out/extension-tests.js
+
+  e2e-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          path: .
+          pattern: '${{ runner.os }}-*.vsix'
+          merge-multiple: true
+
+      - name: Get VSIX File Name
+        id: get-vsix-name
+        shell: bash
+        run: echo "VSIX_NAME=$(ls *.vsix)" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install node dependencies
+        run: npm install
+
+      - name: Setup Babashka
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          bb: latest
+
+      - name: Run E2E Tests Unix
+        if: runner.os != 'Windows'
+        uses: coactions/setup-xvfb@6b00cf1889f4e1d5a48635647013c0508128ee1a
+        with:
+          run: bb run-e2e-tests-vsix ${{ env.VSIX_NAME }}
+
+      - name: Run E2E Tests Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: bb run-e2e-tests-vsix ${{ env.VSIX_NAME }}
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          clj-kondo: latest
+
+      - name: Linting that sparks joy
+        run: |
+          clj-kondo --version
+          clj-kondo --lint src test --fail-level warning
+
+  check-format:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cljfmt: latest
+
+      - name: Check formatting
+        run: |
+          cljfmt --version
+          cljfmt check

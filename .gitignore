@@ -1,0 +1,32 @@
+# vs code
+*.vsix
+
+# Dependency directories
+node_modules
+
+# macos
+.DS_Store
+
+# Clojure
+.cpcache/
+.nrepl-port
+
+# CLJS
+.shadow-cljs/
+
+# Calva
+.cache
+**/.calva/output-window/output.calva-repl
+
+# Extension
+/out/
+
+# Portal
+**/.portal/vs-code.edn
+
+# vscode test-electron
+.vscode-test/
+
+# ignored folder
+
+/ignore/
