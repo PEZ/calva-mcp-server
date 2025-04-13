@@ -1,96 +1,91 @@
-# Calva MCP Server
+# Make CoPilot an Interactive Programmer
 
-A Model Context Protocol server extension for Calva, the Clojure/ClojureScript extension for VS Code. Built on the VS Code Extension Template with support for [coding](#coding), [building](#building), [testing](#testing), [end-to-end testing](#end-to-end-testing), and [publishing the extension](#publishing-the-extension) to the [VS Code Marketplace](https://marketplace.visualstudio.com/vscode) and the [Open VSX Registry](https://open-vsx.org/).
+> Calva MCP Server
 
-![alt text](assets/vsc-et-published.png)
-The workflow is powered by [Interactive Programming](https://en.wikipedia.org/wiki/Interactive_programming). You can use the extension while you are hacking on it, without reloading the extension host. The feedback is instantaneous. As it should be to keep coding productive and maximum fun.
+[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/betterthantomorrow.calva-mcp-server)](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
+[![Issues](https://img.shields.io/github/issues/BetterThanTomorrow/calva-mcp-server)](https://github.com/BetterThanTomorrow/calva-mcp-server/issues)
+[![License](https://img.shields.io/github/license/BetterThanTomorrow/calva-mcp-server)](https://github.com/BetterThanTomorrow/calva-mcp-server/blob/master/LICENSE.txt)
 
-## Who is this for?
+A Model Context Protocol server extension for [Calva](https://calva.io), the Clojure/ClojureScript extension for VS Code, enabling AI assistants to harness the power of the REPL.
 
-It is probably for you. 😄 Especially if you would like to build an extension for VS Code. Also if:
+## Why Calva MCP Server?
 
-- You want to explore what it takes to publish an extension to the VS Code Marketplace in an automated manner.
-- Like to have the plumbing for testing, including end-to-end testing, in place from the get-go, ready for you to fill in as you build your extension
-- You would like to learn Clojure/ClojureScript in a fun way
-- Interactive Programming is your thing
-- You think that Interactive Programming might be your thing
+"I wish Copilot could actually run my Clojure code instead of just guessing what it might do."
 
-## What are the prerequisites?
+If you've had this thought, Calva MCP Server is built for you. It transforms AI coding assistants from static code generators into interactive programming partners by giving them access to your REPL.
 
-The tools you need to get started are:
+### Turn Your AI Assistant Into a REPL-Aware Coding Partner
+
+Tired of AI tools that write plausible-looking Clojure that falls apart at runtime? Calva MCP Server lets your AI assistant:
+
+- **Evaluate code in your actual environment** - No more "this might work" guesses
+- **See real data structures**, not just predict their shape
+- **Test functions with real inputs** before suggesting them
+- **Debug alongside you** with access to runtime errors
+- **Learn from your codebase's actual behavior**
+
+### For Clojurians Who Value REPL-Driven Development
+
+As Clojure developers, we know the REPL isn't just a console - it's the center of our workflow. Now your AI assistant can join that workflow, understanding your data and functions as they actually exist, not just as they appear in static code.
+
+## Key Features
+
+- Seamless integration between GitHub Copilot and your Calva REPL
+- AI-driven code evaluation with full access to your project's runtime
+- Interactive data exploration for smarter code suggestions
+- REPL-powered debugging assistance
+- Works with your existing Clojure/ClojureScript projects
+
+## Getting Started
+
+### Prerequisites
 
 - [VS Code](https://code.visualstudio.com/)
-  - The [Calva](https://calva.io) extension
-  - The [Joyride](https://github.com/BetterThanTomorrow/joyride) extension
-- [Node.js](https://nodejs.org/)
-- [Java](https://jdk.java.net/23/)
-- [Clojure CLI](https://clojure.org/guides/install_clojure)
-- [Babashka](https://github.com/babashka/babashka#installation)
-- **If you plan to publish your extension**: At least a skim through Microsofts [Publishing extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) guide and one skim through the corresponding [Publishing Extensions](https://github.com/EclipseFdn/open-vsx.org/wiki/Publishing-Extensions) guide for [open-vsx](https://open-vsx.org/).
+- [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
+- An AI coding assistant (e.g., GitHub Copilot)
 
-Add your curiosity and you should be good to go. To just try the template/workflow out, you do not need to know any ClojureScript (or even programming). When you start to try make the extension do something interesting, you will need to know _some_ Clojure/ClojureScript. Learning Clojure will be a fun endeavor, I promise.
+### Installation
 
-## How do I get started?
+1. Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
+2. Connect Calva to your Clojure/ClojureScript project
+3. Start using your AI assistant with REPL superpowers!
 
-On Github **Use this template**, and name your repository, say you are full of imagination and name it **my-extension**. Clone your repo and open it in VS Code.
-> **You may want to wait with renaming the extension itself** until you've confirmed that you can compile and start it, and connect the REPL for development. When that's confirmed, renaming the extension is mainly a matter of a global search and replace in the project. Something like so:
-> 1. Make a global search (<kbd>cmd/ctrl</kbd>+<kbd>shift</kbd>+<kbd>f</kbd>) for `vsc-et`. Activate case sensitivity and whole-word matching for precision. Study the results, removing the ones you don't think apply (I think it's safe to replace all occurrences). Expand the replace input and study the results list some more before clicking the **Replace All** button.
-> 1. Make a global search replace of “Extension Template”, similarly case sensitive and matching whole words.
-> 1. The publisher of the extension template is `betterthantomorrow`, which you will need to change if you are to publish your extension to the marketplace. See above under prerequisites for the guides to go through to get your publisher id.
+## How It Works
 
-### Starting the extension
+Calva MCP Server implements the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), creating a bridge between AI assistants and your REPL:
 
-... and connecting the ClojureScript REPL.
+1. When your AI assistant needs to understand your code better, it can execute it in your REPL
+2. The results flow back to the AI, giving it insight into actual data shapes and function behavior
+3. This creates a powerful feedback loop where suggestions improve based on runtime information
 
-The paved path is:
+```
+  ┌────────────┐    ┌───────────────┐    ┌───────────┐
+  │            │    │               │    │           │
+  │ AI Coding  │◄──►│  Calva MCP    │◄──►│  Calva    │
+  │ Assistant  │    │  Server       │    │  REPL     │
+  │            │    │               │    │           │
+  └────────────┘    └───────────────┘    └───────────┘
+         ▲                                     ▲
+         │                                     │
+         └────────────┐             ┌─────────┘
+                      ▼             ▼
+                  ┌───────────────────┐
+                  │                   │
+                  │  Your Clojure     │
+                  │  Project          │
+                  │                   │
+                  └───────────────────┘
+```
 
-1. <kbd>cmd/ctrl+shift+b</kbd>. This starts the default build task, which is configured (in [.vscode/tasks.json](.vscode/tasks.json) to start Clojure with an nREPL server. This will happen in a terminal named **Build+watch extension**.
-   * Wait for it to report something like:
-     ```
-     nREPL server started on port 56749 on host localhost - nrepl://localhost:56749
-     ```
-1. <kbd>ctrl+alt+c ctrl+alt+c</kbd>. This runs the command: **Calva: Connect to a Running REPL Server in the Project**
-   * It will connect the Clojure REPL, start a ClojureScript (shadow-cljs) REPL, and build the extension.
-   * This will compile the extension and run the tests. Wait for the **Build+watch extension** to show that the tests have ran, and for Calva to pop up a progress dialog looking something like so:
-     ![Progress dialog, start your extension](assets/usage/start-your-clojurescript-app.png)
-   * Hint: _The ClojureScript app is your extension_.
-1. <kbd>F5</kbd>. This starts the VS Code _Development Extension Host_ (because configured to do so in [.vscode/launch.json](.vscode/launch.json))
-   * The development extension host is a VS Code window where your extension under development is installed. You now need to activate it to actually start the ClojureScript app.
-1. In the extension development host <kbd>cmd/ctrl+shift+p</kbd>, find and run the command **Calva MCP Server: Say hello!**
-   ![VS Code Command Palette, ET hHello command](assets/usage/say-hello.png)
-   * This activates your extension and starts the ClojureScript app and its REPL
-1. Back in the development project you will see the progress dialog go away. Because now the development project window is connected to the Development Extension Host window's REPL.
-      * Now you can hack on the extension code, which will update the app in the extension host window while it is running (a.k.a. interactive programming).
+## Contributing
 
-The important thing to note here is the steps where you activate your extension in the development host, starting the ClojureScript repl which Calva can connect to. Depending on the extension you build, it may be that it activates automatically, or by some specific file appearing or whatever. The point is that your extension needs to be activated for Calva to connect to it, and that starting the development host is often not enough to start your extension.
-
-
-## Hacking on your extension
-
-TBD...
-
-### Publishing your extension
-
-Thus possibly involves carrying out the steps at [create your own organization](https://learn.microsoft.com/azure/devops/organizations/accounts/create-organization)
-
-TBD...
-
-## Who built this?
-
-My name is Peter Strömberg, a.k.a. [PEZ](https://github.com/PEZ). I love Clojure and VS Code, and I love to build things. I created Calva, an extension for working with Clojure in VS Code. I also co-created Joyride, a scripting environment for VS Code that lets you extend the editor in user space (i.e. without creating an extension). I've also created [Paste Replace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.paste-replaced), and a whole bunch of Joyride scripts, big and small (mostly small).
-
-I created this template because I want to share what I have figured out about building and maintaining extensions for VS Code. To me it is the most fun and rewarding way to spend my time, and I want you to have as much fun as I get. 😄 Calva is mostly built with TypeScript, and I'd like to contribute to you building your extensions in a more civilized programming language. Because ClojureScript is much, much, more fun than TypeScript.
-
-That said, the workflow and automation used in the template are used for Calva, as well as with my pure ClojureScript extensions, so if you find the rest of the automation in this template useful, you can most definitely use it with a TypeScript tool chain.
+Contributions are welcome! See our [Contribution Guidelines](CONTRIBUTING.md) for more information.
 
 ## License
 
-MIT
+[MIT](LICENSE.txt)
 
-Free to use, modify and redistribute as you wish. 🍻🗽
+## Acknowledgments
 
-## Sponsor my open source work ♥️
-
-That, said, you are welcome to show me you like my work using this link:
-
-* https://github.com/sponsors/PEZ
+- [Calva](https://calva.io) - The Clojure/ClojureScript extension for VS Code
+- [Model Context Protocol](https://modelcontextprotocol.io) - The protocol enabling AI tool integration
