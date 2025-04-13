@@ -8,8 +8,7 @@
               :output-dir "out/js"
               :output-to "out/extension.js"
               :exports {:activate calva-mcp-server.extension/activate
-                        :deactivate calva-mcp-server.extension/deactivate}
-              :devtools {:build-notify calva-mcp-server.extension/build-notify!}}
+                        :deactivate calva-mcp-server.extension/deactivate}}
   :test-watch
   {:target    :node-test
    :output-to "out/extension-tests.js"
