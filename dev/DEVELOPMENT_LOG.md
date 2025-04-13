@@ -147,5 +147,20 @@ This document tracks the development progress of the Calva MCP Server extension.
 - Once validated, expand to implement MCP-specific actions and effects
 - Integrate with Calva's API for REPL evaluation
 
+## 2025-04-13: Testing Workflow Clarifications
+
+### Insights
+- Shadow-cljs serves as the test runner; no separate test runner file is needed
+- The shadow-cljs configuration automatically picks up test namespaces ending with "-test"
+- Clojure-lsp automatically adds namespace declarations to new files after a short delay
+- When creating new files, either:
+  - Pause briefly after file creation to allow clojure-lsp to add the namespace, then modify it
+  - Or edit the file after creation and handle any duplicate namespace declarations
+
+### Next Steps
+- Continue implementing tests for the Ex framework components
+- Run tests using shadow-cljs to validate the implementation
+- Proceed with implementing MCP-specific components once the core framework is validated
+
 ---
 *Note: This log will be updated regularly during development sessions to track progress, decisions, and insights.*

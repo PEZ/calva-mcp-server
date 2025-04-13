@@ -18,6 +18,10 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Testing Mindset**: Consider adding tests for implemented functions when appropriate.
 
+- **File Creation**: When creating new files, be aware that clojure-lsp automatically adds namespace declarations after a short delay. Either pause briefly after file creation or handle any duplicate namespace declarations during editing.
+
+- **Testing Workflow**: Shadow-cljs serves as the test runner, automatically discovering and running tests in namespaces ending with "-test". No separate test runner file is needed.
+
 ## Problem Solving Approach
 
 1. **Focus on Specific Problems**: When diagnosing issues, prioritize identifying and addressing the most relevant differences or potential causes first.
