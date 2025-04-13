@@ -117,5 +117,35 @@ This document tracks the development progress of the Calva MCP Server extension.
 - Ensure the AI assistant explicitly requests human intervention when REPL connection is needed
 - Continue to refine our development communication process
 
+## 2025-04-13: Ex Framework Implementation Strategy
+
+### Accomplishments
+- Created Event Loop Architecture document based on the Ex framework from example projects
+- Analyzed both the fleet-designer and todomvc example implementations
+- Established a testing-first approach for the Ex framework implementation
+- Determined the need for a "hello world" minimal implementation with tests
+
+### Decisions
+- Decided to implement a minimal version of the Ex framework before integrating with MCP
+- Opted for a testing-first approach to enable autonomous development feedback
+- Chose to separate the core Ex framework from MCP-specific implementations
+
+### Insights
+- Tests provide crucial autonomous feedback until REPL access is established
+- The Ex framework from fleet-designer offers a more powerful architecture than the todomvc version:
+  - Action dispatches enable more complex behavior composition
+  - Better separation of concerns through dedicated domain namespaces
+  - Consistent naming convention with the `ex/` prefix
+  - More sophisticated effect types including timing-related ones
+- A minimal "hello world" implementation can validate the architecture before adding complexity
+- Test-driven development ensures the implementation meets requirements even without REPL interaction
+
+### Next Steps
+- Create the core Ex framework modules (ax.cljs, fx.cljs, event_handler.cljs)
+- Implement a simple "hello world" action and effect
+- Write comprehensive tests for the minimal implementation
+- Once validated, expand to implement MCP-specific actions and effects
+- Integrate with Calva's API for REPL evaluation
+
 ---
 *Note: This log will be updated regularly during development sessions to track progress, decisions, and insights.*
