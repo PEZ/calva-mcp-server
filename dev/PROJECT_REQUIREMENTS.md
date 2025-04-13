@@ -157,7 +157,20 @@ Alongside this approach, the project will:
 - Ensure that each commit represents a coherent unit of work
 - Maintain history that clearly tells the story of development
 
-### 7.2 Development Log
+### 7.2 Interactive Development
+
+The project will leverage ClojureScript's interactive development capabilities:
+- Use shadow-cljs for continuous hot reloading during development
+- Apply changes to the running extension without restarting
+- Utilize the REPL to experiment with and test code in real-time
+- Initial development phase: Human developer will operate the REPL for the team
+- As functionality matures: AI assistant will increasingly leverage the REPL capabilities
+- Eventually: The AI assistant will use the very MCP server being developed
+
+This approach creates a bootstrap process where the tool we're building (Calva MCP Server) will eventually empower the AI assistant collaborating on its development.
+
+### 7.3 Development Log
+
 The project will maintain a detailed development log to:
 - Track progress and decisions made during implementation
 - Record challenges encountered and solutions applied
@@ -165,15 +178,13 @@ The project will maintain a detailed development log to:
 - Serve as a historical record for future reference
 - Complement the PRD by documenting the actual path taken
 
-The development log will be maintained in `dev/DEVELOPMENT_LOG.md` and updated regularly during development sessions.
-
-### 7.3 Testing Strategy
+### 7.4 Testing Strategy
 - Unit tests for core functions
 - Integration tests for API endpoints
 - End-to-end tests for full workflows
 - Property-based tests for robust behavior validation
 
-### 7.4 Deployment and Distribution
+### 7.5 Deployment and Distribution
 - Available through VS Code Marketplace
 - Clear installation and setup instructions
 - Version compatibility information

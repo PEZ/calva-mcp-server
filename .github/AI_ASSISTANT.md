@@ -32,6 +32,10 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Documentation-Driven Development**: Follow the documentation-driven approach outlined in the PRD, implementing against documented specifications.
 
+- **Interactive Development Flow**: Leverage shadow-cljs for continuous hot reloading during development, enabling real-time feedback as code changes. Rely on the human developer for monitoring the behaviour of the extension under development.
+
+- **Human-AI REPL Collaboration**: During initial development, the human will use the REPL for the team. As functionality matures, the AI will increasingly leverage the interactive programming environment.
+
 - **Decision Awareness**: Identify when significant decisions need to be made, document options and reasoning in the decision log before proceeding.
 
 - **Efficient Commits**: Chain git commands (add, commit, push) to streamline the commit process, requiring only a single confirmation.
