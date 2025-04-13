@@ -32,7 +32,14 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Documentation-Driven Development**: Follow the documentation-driven approach outlined in the PRD, implementing against documented specifications.
 
-- **Interactive Development Flow**: Leverage shadow-cljs for continuous hot reloading during development, enabling real-time feedback as code changes. Rely on the human developer for monitoring the behaviour of the extension under development.
+- **Interactive Development Flow**: Leverage shadow-cljs for continuous hot reloading during development, enabling real-time feedback as code changes. Explicitly note when waiting for the human developer to perform REPL connection and activation steps.
+
+- **Development Workflow Awareness**: Understand that the complete development workflow requires:
+  1. Starting the REPL server (`npm run watch` only starts the server, doesn't connect to it)
+  2. Human connects the REPL using Calva
+  3. Human starts the Extension Development Host
+  4. Human activates the extension in the development host
+  5. Only then is the extension running with hot reloading enabled
 
 - **Human-AI REPL Collaboration**: During initial development, the human will use the REPL for the team. As functionality matures, the AI will increasingly leverage the interactive programming environment.
 

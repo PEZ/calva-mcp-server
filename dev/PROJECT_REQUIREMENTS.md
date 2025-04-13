@@ -158,14 +158,23 @@ Alongside this approach, the project will:
 - Maintain history that clearly tells the story of development
 
 ### 7.2 Interactive Development
-
 The project will leverage ClojureScript's interactive development capabilities:
 - Use shadow-cljs for continuous hot reloading during development
 - Apply changes to the running extension without restarting
 - Utilize the REPL to experiment with and test code in real-time
-- Initial development phase: Human developer will operate the REPL for the team
-- As functionality matures: AI assistant will increasingly leverage the REPL capabilities
-- Eventually: The AI assistant will use the very MCP server being developed
+
+The development workflow follows these steps:
+1. **Start the REPL server**: Run `npm run watch` to start the nREPL server (this does not automatically connect the REPL)
+2. **Connect to the REPL**: Use Calva to connect to the running REPL server
+3. **Start the Extension Host**: Launch the Development Extension Host with F5
+4. **Activate the Extension**: Run a command that activates our extension in the host
+5. **Verify REPL Connection**: Confirm Calva is connected to the extension's REPL
+
+Development roles during this process:
+- **Initial development phase**: Human developer handles REPL connection and activation steps
+- **Development communication**: AI assistant explicitly requests human intervention when these steps are needed
+- **As functionality matures**: AI assistant will increasingly leverage the REPL capabilities
+- **Eventually**: The AI assistant will use the very MCP server being developed
 
 This approach creates a bootstrap process where the tool we're building (Calva MCP Server) will eventually empower the AI assistant collaborating on its development.
 

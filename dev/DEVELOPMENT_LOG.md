@@ -62,5 +62,60 @@ This document tracks the development progress of the Calva MCP Server extension.
 - Document findings about VS Code's MCP integration mechanisms
 - Make a final decision on our transport approach based on spike results
 
+## 2025-04-13: Spike Implementation for MCP Server Integration
+
+### Accomplishments
+- Created directory structure for MCP implementation
+- Implemented core MCP tools in a testable, VS Code-independent namespace
+- Developed spike implementation that attempts multiple registration approaches
+- Set up tests for core MCP functionality
+- Updated shadow-cljs configuration to handle VS Code dependencies in tests
+- Integrated with the Calva extension activation process
+- Implemented exploration of Copilot's availability in the current environment
+
+### Decisions
+- Decided to separate core MCP functionality from VS Code-specific code
+- Adopted a dependency injection approach for improved testability
+- Used a structured registration attempt strategy to discover VS Code's MCP API
+
+### Insights
+- Testing VS Code extensions requires special handling of the vscode module
+- Shadow-cljs configuration can be enhanced to properly mock external modules
+- Interactive development with hot reloading provides rapid feedback
+- The bootstrap process can enable the AI assistant to gradually gain capabilities:
+  1. Human developer operates the REPL initially
+  2. As functionality matures, AI gradually uses the interactive environment
+  3. Eventually, the AI assistant will use the very MCP server being developed
+
+### Next Steps
+- Launch the extension in a development host
+- Monitor logs to determine which MCP registration method succeeds
+- Document findings about VS Code's MCP API
+- Continue developing the MCP server with lessons learned from spike
+- Implement actual REPL evaluation via Calva's API
+
+## 2025-04-13: Development Workflow Refinement
+
+### Accomplishments
+- Clarified the complete interactive development workflow with explicit steps
+- Updated project documentation to reflect the actual REPL connection process
+- Enhanced AI assistant instructions with workflow awareness
+
+### Insights
+- The `npm run watch` command only starts the nREPL server but doesn't connect to it
+- The complete development workflow requires explicit human steps:
+  1. Starting the REPL server with `npm run watch`
+  2. Connecting to the REPL using Calva
+  3. Starting the Extension Development Host
+  4. Activating the extension in the development host
+  5. Only then is the extension running with hot reloading
+- Tests may not automatically run in the shadow-cljs watch process without explicit REPL connection
+- Clear communication about workflow state is essential for effective human-AI collaboration
+
+### Next Steps
+- Proceed with implementing the MCP server spike with proper workflow awareness
+- Ensure the AI assistant explicitly requests human intervention when REPL connection is needed
+- Continue to refine our development communication process
+
 ---
 *Note: This log will be updated regularly during development sessions to track progress, decisions, and insights.*
