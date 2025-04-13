@@ -20,6 +20,10 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **File Creation**: When creating new files, be aware that clojure-lsp automatically adds namespace declarations after a short delay. Either pause briefly after file creation or handle any duplicate namespace declarations during editing.
 
+- **Clojure File Naming Convention**: Follow the Clojure file naming convention where:
+  - Namespaces use kebab-case with hyphens (e.g., `calva-mcp-server.ex.ax-test`)
+  - File paths use snake_case with underscores (e.g., `calva_mcp_server/ex/ax_test.cljs`)
+
 - **Testing Workflow**: Shadow-cljs serves as the test runner, automatically discovering and running tests in namespaces ending with "-test". No separate test runner file is needed.
 
 ## Problem Solving Approach

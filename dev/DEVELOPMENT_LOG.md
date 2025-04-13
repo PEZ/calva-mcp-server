@@ -156,6 +156,10 @@ This document tracks the development progress of the Calva MCP Server extension.
 - When creating new files, either:
   - Pause briefly after file creation to allow clojure-lsp to add the namespace, then modify it
   - Or edit the file after creation and handle any duplicate namespace declarations
+- Clojure file naming convention requires:
+  - Namespaces use kebab-case with hyphens (e.g., `calva-mcp-server.ex.ax-test`)
+  - File paths use snake_case with underscores (e.g., `calva_mcp_server/ex/ax_test.cljs`)
+  - Mismatched conventions will result in compilation errors
 
 ### Next Steps
 - Continue implementing tests for the Ex framework components
