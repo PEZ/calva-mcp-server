@@ -1,3 +1,7 @@
+// Note to the AI Assistant:
+// This task starts the repl in a way that CoPilot can't follow its output.
+// The AI assistant should start the REPL by executing `npm run watch` directly
+// as described in the the .github/AI_ASSISTANT.md doc and dev/PROJECT_REQUIREMENTS.md docs
 {
 	"version": "2.0.0",
 	"tasks": [

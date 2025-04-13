@@ -32,6 +32,8 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Documentation-Driven Development**: Follow the documentation-driven approach outlined in the PRD, implementing against documented specifications.
 
+- **Testing-First Approach**: Until REPL connectivity is established, prioritize writing tests for all implementations to provide autonomous feedback. Tests are the primary way to validate code until interactive REPL development is available.
+
 - **Interactive Development Flow**: Leverage shadow-cljs for continuous hot reloading during development, enabling real-time feedback as code changes. Explicitly note when waiting for the human developer to perform REPL connection and activation steps.
 
 - **Development Workflow Awareness**: Understand that the complete development workflow requires:
