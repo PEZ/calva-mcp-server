@@ -1,160 +1,5 @@
 # Calva MCP Server - Implementation Plan
 
-Based on our research into the Modex repository and the Model Context Protocol, this document outlines our implementation plan for the Calva MCP Server.
-
-## Core Namespaces
-
-```
-calva-mcp-server.mcp
-├── server.cljs        # Core server implementation
-├── protocol.cljs      # MCP protocol definitions
-├── transport.cljs     # Transport mechanisms (stdio initially)
-├── json-rpc.cljs      # JSON-RPC 2.0 message handling
-└── tools
-    ├── core.cljs      # Tool and Parameter record definitions
-    ├── repl.cljs      # REPL evaluation tools
-    └── status.cljs    # Server status tools
-```
-
-## Data Structures
-
-### Tool Definition
-
-```clojure
-;; In calva-mcp-server.mcp.tools.core
-
-(defrecord Parameter [name doc type required default])
-
-(defrecord Tool [name doc parameters handler])
-
-(defn make-parameter
-  "Creates a Parameter object with proper validation"
-  [name doc type & {:keys [required default]}]
-  (->Parameter name doc type (boolean required) default))
-
-(defn make-tool
-  "Creates a Tool object with proper validation"
-  [name doc parameters handler]
-  (->Tool name doc parameters handler))
-
-;; Convenience macro for defining tools (similar to Modex)
-(defmacro deftool
-  [name doc params & body]
-  `(def ~name
-     (make-tool ~(str name) ~doc
-                [~@(map (fn [param]
-                          `(make-parameter ~(str (first param))
-                                          ~(get (meta (first param)) :doc "")
-                                          ~(get (meta (first param)) :type :string)
-                                          :required ~(get (meta (first param)) :required true)
-                                          :default ~(get (meta (first param)) :default nil)))
-                        params)]
-                (fn [~@(map first params)] ~@body))))
-```
-
-### Server Configuration
-
-```clojure
-;; In calva-mcp-server.mcp.server
-
-(defn create-server
-  "Creates an MCP server configuration"
-  [{:keys [name version initialize tools]}]
-  {:name name
-   :version version
-   :initialize initialize
-   :tools tools})
-
-(defn start-server!
-  "Starts the MCP server"
-  [server-config]
-  ;; Set up stdio transport
-  ;; Initialize server with given config
-  ;; Start listening for messages
-  )
-
-(defn handle-message
-  "Handles incoming messages based on JSON-RPC format"
-  [server-config message]
-  ;; Parse message as JSON-RPC
-  ;; Dispatch based on method
-  ;; Handle tool invocations
-  ;; Return results in correct format
-  )
-```
-
-### JSON-RPC Implementation
-
-```clojure
-;; In calva-mcp-server.mcp.json-rpc
-
-(defn parse-message
-  "Parses a JSON string as a JSON-RPC message"
-  [json-str]
-  ;; Parse JSON string
-  ;; Validate against JSON-RPC 2.0 structure
-  ;; Return parsed message map
-  )
-
-(defn create-response
-  "Creates a JSON-RPC response message"
-  [id result]
-  {:jsonrpc "2.0"
-   :id id
-   :result result})
-
-(defn create-error
-  "Creates a JSON-RPC error response"
-  [id code message & [data]]
-  {:jsonrpc "2.0"
-   :id id
-   :error {:code code
-           :message message
-           :data data}})
-```
-
-## REPL Tool Implementation
-
-```clojure
-;; In calva-mcp-server.mcp.tools.repl
-
-(require '[calva-mcp-server.mcp.tools.core :refer [deftool]]
-         '[calva.api :as calva])
-
-(deftool evaluate-code
-  "Evaluates Clojure/ClojureScript code in the current or specified REPL session"
-  [^{:type :string
-     :doc "Clojure/ClojureScript code to evaluate"
-     :required true} code
-   
-   ^{:type :string
-     :doc "REPL session to use (clj or cljs)"
-     :required false} session
-   
-   ^{:type :string
-     :doc "Namespace to evaluate in"
-     :required false} namespace
-   
-   ^{:type :number
-     :doc "Timeout in milliseconds"
-     :required false
-     :default 5000} timeout]
-  
-  (let [eval-opts {:code code
-                  :session (or session (calva/current-session-type))
-                  :namespace (or namespace (calva/current-namespace))
-                  :timeout timeout}
-        result (calva/evaluate eval-opts)]
-    
-    {:result (:result result)
-     :output (:stdout result)
-     :errorOutput (:stderr result)
-     :namespace (:namespace result)
-     :success (not (:error result))}))
-```
-
-## Updated Implementation Approach: Exploratory Spike
-
 Based on our [decision to explore VS Code's MCP integration](./DECISION_LOG.md#2025-04-13-mcp-server-integration-approach-for-vs-code), we'll start with an exploratory spike before committing to a specific implementation approach.
 
 ### Spike Goals
@@ -202,14 +47,14 @@ Based on our [decision to explore VS Code's MCP integration](./DECISION_LOG.md#2
   (let [api (.. vscode -commands)]
     ;; We'll explore different VS Code APIs to find the correct one
     ;; for registering MCP servers
-    (p/let [registration-result (api.executeCommand "mcp.registerServer" 
+    (p/let [registration-result (api.executeCommand "mcp.registerServer"
                                                   {:name "Calva MCP Server"
                                                    :version "0.0.1"
                                                    :tools [evaluate-tool]})]
       (when registration-result
         (swap! db/!state assoc :mcp-server-registered true)
         (vscode/window.showInformationMessage "Calva MCP Server registered successfully"))
-      
+
       ;; Return registration result for logging/debugging
       registration-result)))
 
@@ -217,22 +62,22 @@ Based on our [decision to explore VS Code's MCP integration](./DECISION_LOG.md#2
 (defn start-spike! []
   (p/let [copilot? (copilot-installed?)
           copilot-chat? (copilot-chat-installed?)]
-    (vscode/window.showInformationMessage 
+    (vscode/window.showInformationMessage
      (str "Copilot installed: " copilot? ", Copilot Chat installed: " copilot-chat?))
-    
+
     ;; Attempt registration
     (when (or copilot? copilot-chat?)
       (p/catch
        (register-mcp-server)
        (fn [err]
-         (vscode/window.showErrorMessage 
+         (vscode/window.showErrorMessage
           (str "Failed to register Calva MCP Server: " (.-message err)))
          (js/console.error "MCP registration error:" err))))))
 ```
 
 ### Exploration Areas
 
-1. **API Discovery**: 
+1. **API Discovery**:
    - Research VS Code proposed APIs related to MCP
    - Look at GitHub Copilot source/documentation for MCP integration points
    - Experiment with different command names for MCP server registration
