@@ -5,6 +5,8 @@
 ### 1.1 Purpose
 The Calva MCP Server extension provides a Model Context Protocol server for Calva, enabling AI assistants and language models to interact with Calva's REPL and other functionality. This creates a powerful synergy between Clojure's REPL-driven development model and AI-assisted coding.
 
+**Tagline: Make CoPilot an Interactive Programmer**
+
 ### 1.2 Key Objectives
 - Create a Model Context Protocol (MCP) server that exposes Calva's API
 - Enable AI coding assistants to leverage Calva's REPL connection

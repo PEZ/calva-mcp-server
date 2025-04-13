@@ -1,12 +1,12 @@
 {
   "name": "calva-mcp-server",
   "displayName": "Calva MCP Server",
-  "description": "Model Context Protocol server extension for Calva",
+  "description": "Make CoPilot an Interactive Programmer",
   "version": "0.0.1",
   "publisher": "betterthantomorrow",
   "author": {
-    "name": "Me Myself and I",
-    "email": "me@myself.i.com"
+    "name": "Better Than Tomorrow",
+    "email": "pez@pezius.com"
   },
   "icon": "assets/extension-icon-128x128.png",
   "repository": {
