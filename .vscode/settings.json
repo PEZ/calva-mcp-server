@@ -20,5 +20,10 @@
                 "cljsLaunchBuilds": [":extension", ":test-watch"]
             }
         }
+    ],
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+            "file": ".github/AI_ASSISTANT.md"
+        }
     ]
 }

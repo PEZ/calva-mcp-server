@@ -38,18 +38,19 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 ## Project-Specific Guidelines
 
+- **Development Workflow Awareness**: Understand that the complete development workflow requires:
+  1. The AI Agent should start the REPL server with `npm run watch` from the terminal (don't be creative about it). Note: This only starts the server, and the human need to do the following steps:
+      1. Human connects the REPL using Calva
+      1. Human starts the Extension Development Host
+      1. Human activates the extension in the development host
+  1. Only then is the extension running with hot reloading enabled
+      * The AI should now keep monitoring this terminal.
+
 - **Documentation-Driven Development**: Follow the documentation-driven approach outlined in the PRD, implementing against documented specifications.
 
 - **Testing-First Approach**: Until REPL connectivity is established, prioritize writing tests for all implementations to provide autonomous feedback. Tests are the primary way to validate code until interactive REPL development is available.
 
 - **Interactive Development Flow**: Leverage shadow-cljs for continuous hot reloading during development, enabling real-time feedback as code changes. Explicitly note when waiting for the human developer to perform REPL connection and activation steps.
-
-- **Development Workflow Awareness**: Understand that the complete development workflow requires:
-  1. Starting the REPL server (`npm run watch` only starts the server, doesn't connect to it)
-  2. Human connects the REPL using Calva
-  3. Human starts the Extension Development Host
-  4. Human activates the extension in the development host
-  5. Only then is the extension running with hot reloading enabled
 
 - **Human-AI REPL Collaboration**: During initial development, the human will use the REPL for the team. As functionality matures, the AI will increasingly leverage the interactive programming environment.
 
