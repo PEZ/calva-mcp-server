@@ -1,6 +1,9 @@
 (ns calva-mcp-server.ex.ax
   (:require [clojure.walk :as walk]
-            [clojure.core.match :refer [match]]))
+            [clojure.core.match :refer [match]]
+            [calva-mcp-server.hellos.axs :as hello-axs]
+            [calva-mcp-server.node.axs :as node-axs]
+            [calva-mcp-server.vscode.axs :as vscode-axs]))
 
 (defn- enrich-action-from-context [action ctx]
   (walk/postwalk
@@ -22,24 +25,15 @@
        :else x))
    action))
 
-(defn handle-action [state ctx action]
+(defn handle-action [state ctx [action-kw :as action]]
   (let [enriched-action (-> action
                             (enrich-action-from-context ctx)
                             (enrich-action-from-state state))]
-    (match enriched-action
-      ;; Hello world action
-      [:hello/ax.say-hello name]
-      {:ex/db (assoc state :hello/last-greeting (str "Hello, " name "!"))
-       :ex/fxs [[:hello/fx.log-greeting (str "Hello, " name "!")]]
-       :ex/dxs [[:hello/ax.greeting-sent]]}
-
-      ;; After greeting sent action
-      [:hello/ax.greeting-sent]
-      {:ex/db (assoc state :hello/greeting-sent? true)}
-
-      ;; Default case for unknown actions
-      :else
-      {:ex/db state})))
+    (match (namespace action-kw)
+      "hello"  (hello-axs/handle-action state ctx enriched-action)
+      "vscode" (vscode-axs/handle-action state ctx enriched-action)
+      "node"   (node-axs/handle-action state ctx enriched-action)
+      :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" action]]})))
 
 (defn handle-actions [state ctx actions]
   (reduce (fn [{state :ex/db :as acc} action]

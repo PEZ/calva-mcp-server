@@ -1,12 +1,12 @@
 (ns calva-mcp-server.ex.fx
-  (:require [clojure.core.match :refer [match]]))
+  (:require [clojure.core.match :refer [match]]
+            [calva-mcp-server.node.fxs :as node-fxs]
+            [calva-mcp-server.hellos.fxs :as hello-fxs]
+            [calva-mcp-server.vscode.fxs :as vscode-fxs]))
 
-(defn perform-effect! [event-handler ctx effect]
-  (match effect
-    ;; Hello world effect
-    [:hello/fx.log-greeting greeting]
-    (js/console.log greeting)
-
-    ;; Default case for unknown effects
-    :else
-    (js/console.warn "Unknown effect:" (pr-str effect))))
+(defn perform-effect! [dispatch! context [effect-kw :as effect]]
+  (match (namespace effect-kw)
+    "node" (node-fxs/perform-effect! dispatch! context effect)
+    "hello" (hello-fxs/perform-effect! dispatch! context effect)
+    "vscode" (vscode-fxs/perform-effect! dispatch! context effect)
+    :else (js/console.warn "Unknown effect namespace:" (pr-str effect))))

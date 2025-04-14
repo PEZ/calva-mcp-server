@@ -1,5 +1,5 @@
 (ns calva-mcp-server.extension
-  (:require [calva-mcp-server.hellos :as hellos]
+  (:require [calva-mcp-server.hellos.fxs :as hellos]
             [calva-mcp-server.extension.db :as db]
             [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
             [calva-mcp-server.extension.when-contexts :as when-contexts]))
@@ -12,8 +12,8 @@
 
   (when context
     (swap! db/!app-db assoc :extension/context context))
-  (lc-helpers/register-command! db/!app-db "calva-mcp-server.hello" #'hellos/hello-command!+)
-  (lc-helpers/register-command! db/!app-db "calva-mcp-server.newHelloDocument" #'hellos/new-hello-doc-command!+)
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" #'hellos/new-hello-doc-command!+)
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" #'hellos/hello-command!+)
   (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")
@@ -24,7 +24,7 @@
   ;; When you have updated the activate function, cleanup and call activate again
   ;; NB: If you have updated the extension manifest, you will need to restart the extension host instead
   (lc-helpers/cleanup! db/!app-db)
-  (activate nil)
+  (activate (:extension/context @db/!app-db))
   :rcf)
 
 ;;;;; Extension deactivation entry point

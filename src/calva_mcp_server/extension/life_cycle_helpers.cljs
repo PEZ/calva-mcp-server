@@ -1,6 +1,7 @@
 (ns calva-mcp-server.extension.life-cycle-helpers
   (:require ["vscode" :as vscode]
-            [calva-mcp-server.extension.when-contexts :as when-contexts]))
+            [calva-mcp-server.extension.when-contexts :as when-contexts]
+            [calva-mcp-server.ex.ex :as ex]))
 
 ;;;;; Extension lifecycle helper functions
 ;; These also assist with managing `vscode/Disposable`s in a hot-reloadable way.
@@ -19,8 +20,9 @@
   (clear-disposables! !state))
 
 (defn register-command!
-  [!state ^js command-id var]
+  [extension-context !state command-id var]
   (push-disposable! !state (vscode/commands.registerCommand
                             command-id
                             (fn [& args]
-                              (apply var !state args)))))
+                              (js/console.log "BOOM!" command-id args)
+                              (apply var ex/dispatch! extension-context !state args)))))
