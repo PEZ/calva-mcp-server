@@ -36,10 +36,12 @@
 ;;;;; shadow-cljs hot reload hooks
 ;; We don't need to do anything here, but it is nice to see that reloading is happening
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn ^{:dev/before-load true} before-load []
+(defn ^{:dev/before-load true
+        :export true}
+  before-load []
   (println "shadow-cljs reloading..."))
 
-#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn ^{:dev/after-load true} after-load []
+(defn ^{:dev/after-load true
+        :export true}
+  after-load []
   (println "shadow-cljs reload complete"))
