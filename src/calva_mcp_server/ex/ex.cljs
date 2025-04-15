@@ -11,6 +11,7 @@
     (when (seq dxs)
       (dispatch! extension-context dxs))
     (when (seq fxs)
-      (doseq [fx fxs]
-        #_(when js/goog.DEBUG (js/console.debug "Triggered effect" effect))
-        (fx/perform-effect! dispatch! extension-context fx)))))
+      (last (map (fn [fx]
+                   #_(when js/goog.DEBUG (js/console.debug "Triggered effect" effect))
+                   (fx/perform-effect! dispatch! extension-context fx))
+                 fxs)))))

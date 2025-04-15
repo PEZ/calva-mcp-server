@@ -27,4 +27,4 @@
   (push-disposable! !state (vscode/commands.registerCommand
                             command-id
                             (fn [& args]
-                              (ex/dispatch! extension-context (ax/enrich-with-args actions args))))))
+                              (ex/dispatch! extension-context (apply ax/enrich-with-args actions args))))))
