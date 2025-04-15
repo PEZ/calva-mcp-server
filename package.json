@@ -14,7 +14,7 @@
     "url": "https://github.com/BetterThanTomorrow/calva-mcp-server.git"
   },
   "engines": {
-    "vscode": ">=1.75.0",
+    "vscode": ">=1.99.1",
     "node": ">=20.18.0"
   },
   "enabledApiProposals": [
