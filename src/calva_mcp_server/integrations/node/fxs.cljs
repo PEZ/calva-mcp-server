@@ -1,4 +1,4 @@
-(ns calva-mcp-server.node.fxs
+(ns calva-mcp-server.integrations.node.fxs
   (:require [clojure.core.match :refer [match]]))
 
 (defn perform-effect! [_dispatch! _context effect]

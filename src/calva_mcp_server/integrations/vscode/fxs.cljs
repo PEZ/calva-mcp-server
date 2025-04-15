@@ -1,4 +1,4 @@
-(ns calva-mcp-server.vscode.fxs
+(ns calva-mcp-server.integrations.vscode.fxs
   (:require
    ["vscode" :as vscode]
    [clojure.core.match :refer [match]]

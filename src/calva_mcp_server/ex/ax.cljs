@@ -1,9 +1,10 @@
 (ns calva-mcp-server.ex.ax
-  (:require [clojure.walk :as walk]
-            [clojure.core.match :refer [match]]
-            [calva-mcp-server.hello.axs :as hello-axs]
-            [calva-mcp-server.node.axs :as node-axs]
-            [calva-mcp-server.vscode.axs :as vscode-axs]))
+  (:require
+   [clojure.walk :as walk]
+   [clojure.core.match :refer [match]]
+   [calva-mcp-server.hello.axs :as hello-axs]
+   [calva-mcp-server.integrations.node.axs :as node-axs]
+   [calva-mcp-server.integrations.vscode.axs :as vscode-axs]))
 
 (defn- enrich-action-from-context [action ctx]
   (walk/postwalk

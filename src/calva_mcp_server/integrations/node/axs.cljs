@@ -1,4 +1,4 @@
-(ns calva-mcp-server.node.axs
+(ns calva-mcp-server.integrations.node.axs
   (:require [clojure.core.match :refer [match]]))
 
 (defn handle-action [_state _context action]
