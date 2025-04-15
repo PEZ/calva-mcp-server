@@ -25,6 +25,18 @@
       (is (= [[:hello/ax.greeting-sent]] (:ex/dxs result))))))
 
 (deftest handle-actions
+  (is (= {:ex/db {:hello/last-greetee "Test"},
+          :ex/dxs [[:hello/ax.greeting-sent]],
+          :ex/fxs [[:vscode/fx.show-information-message "Hello, Test!"]]}
+         (ax/handle-actions {} {:name "World"} [[:hello/ax.say-hello "Test"]]))
+      "processes an action returning db dxs, and fxs")
+
+  (is (= {:ex/db {:hello/last-greetee "Clojure"},
+          :ex/dxs [[:hello/ax.greeting-sent]],
+          :ex/fxs [[:vscode/fx.show-information-message "Hello, Clojure!"]]}
+         (ax/handle-actions {} {:name "Clojure"} [[:hello/ax.say-hello :ctx/name]]))
+      "enriches action from context")
+
   (testing "Handling multiple actions"
     (let [state {}
           ctx {:name "World"}
