@@ -24,21 +24,14 @@
     (is (= {:ex/db {:hello/last-greetee "Test"},
             :ex/dxs [[:hello/ax.greeting-sent]],
             :ex/fxs [[:vscode/fx.show-information-message "Hello, Test!"]]}
-           (ax/handle-action {} {:name "World"} [:hello/ax.say-hello "Test"]))))
-
-  (testing "Stateless event handler processes context values"
-    (is (= {:ex/db {:hello/last-greetee "Clojure"},
-            :ex/dxs [[:hello/ax.greeting-sent]],
-            :ex/fxs [[:vscode/fx.show-information-message "Hello, Clojure!"]]}
-           (ax/handle-action {} {:name "Clojure"} [:hello/ax.say-hello :ctx/name])))))
+           (ax/handle-action {} {:name "World"} [:hello/ax.say-hello "Test"])))))
 
 (deftest hello-action
   (testing "Handling multiple actions"
-    (let [state {}
-          ctx {:name "World"}
-          actions [[:hello/ax.say-hello :ctx/name]
+    (let [state {:name "World"}
+          actions [[:hello/ax.say-hello [:db/get :name]]
                    [:hello/ax.say-hello "Calva"]]
-          result (ax/handle-actions state ctx actions)]
+          result (ax/handle-actions state nil actions)]
       (is (= "Calva"
              (:hello/last-greetee (:ex/db result))))
       (is (= [[:vscode/fx.show-information-message "Hello, World!"]

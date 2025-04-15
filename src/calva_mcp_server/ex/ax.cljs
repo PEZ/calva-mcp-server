@@ -1,19 +1,41 @@
 (ns calva-mcp-server.ex.ax
   (:require
-   [clojure.walk :as walk]
-   [clojure.core.match :refer [match]]
    [calva-mcp-server.hello.axs :as hello-axs]
    [calva-mcp-server.integrations.node.axs :as node-axs]
-   [calva-mcp-server.integrations.vscode.axs :as vscode-axs]))
+   [calva-mcp-server.integrations.vscode.axs :as vscode-axs]
+   [clojure.core.match :refer [match]]
+   [clojure.string :as string]
+   [clojure.walk :as walk]))
 
-(defn- enrich-action-from-context [action ctx]
+(defn- js-get-in
+  "Returns the value from the JavaScript `object` following the sequence of strings as a `path`.
+
+   ```clojure
+   (js-get-in #js {:a #js {:b 1}} [\"a\" \"b\"]) ;=> 1
+
+   (def o (js/Object. (clj->js {:target {:value \"foo\"}})))
+   (js-get-in o [\"target\" \"value\"]) ; => \"foo\"
+   ```
+
+   Does not throw an exception if the path does not exist, returns `nil` instead.
+   ```clojure
+   (js-get-in o [\"target\" \"value\" \"bar\"]) ; => nil
+   (js-get-in o [\"TARGET\" \"value\"]) ; => nil
+   ```"
+  [object path]
+  (reduce (fn [acc k]
+            (some-> acc (unchecked-get k)))
+          object
+          path))
+
+(defn- enrich-action-from-context [action context]
   (walk/postwalk
    (fn [x]
-     (cond
-       (and (keyword? x) (= "ctx" (namespace x)))
-       (get ctx (keyword (name x)))
-
-       :else x))
+     (if (keyword? x)
+       (cond (= "context" (namespace x)) (let [path (string/split (name x) #"\.")]
+                                           (js-get-in context path))
+             :else x)
+       x))
    action))
 
 (defn- enrich-action-from-state [action state]
@@ -34,19 +56,19 @@
        :else x))
    actions))
 
-(defn handle-action [state ctx [action-kw :as action]]
+(defn handle-action [state context [action-kw :as action]]
   (let [enriched-action (-> action
-                            (enrich-action-from-context ctx)
+                            (enrich-action-from-context context)
                             (enrich-action-from-state state))]
     (match (namespace action-kw)
-      "hello"  (hello-axs/handle-action state ctx enriched-action)
-      "vscode" (vscode-axs/handle-action state ctx enriched-action)
-      "node"   (node-axs/handle-action state ctx enriched-action)
+      "hello"  (hello-axs/handle-action state context enriched-action)
+      "vscode" (vscode-axs/handle-action state context enriched-action)
+      "node"   (node-axs/handle-action state context enriched-action)
       :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 
-(defn handle-actions [state ctx actions]
+(defn handle-actions [state context actions]
   (reduce (fn [{state :ex/db :as acc} action]
-            (let [{:ex/keys [db fxs dxs]} (handle-action state ctx action)]
+            (let [{:ex/keys [db fxs dxs]} (handle-action state context action)]
               (cond-> acc
                 db (assoc :ex/db db)
                 dxs (update :ex/dxs into dxs)

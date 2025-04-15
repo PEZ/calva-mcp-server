@@ -4,10 +4,9 @@
 
 (deftest enrich-action
   (testing "Enriching action from context"
-    (let [state {}
-          ctx {:name "World"}
-          action [:hello/ax.say-hello :ctx/name]
-          result (ax/handle-action state ctx action)]
+    (let [result (ax/handle-action {}
+                                   #js {:name "World"}
+                                   [:hello/ax.say-hello :context/name])]
       (is (= "World"
              (:hello/last-greetee (:ex/db result))))
       (is (= [[:vscode/fx.show-information-message "Hello, World!"]]
@@ -34,15 +33,16 @@
   (is (= {:ex/db {:hello/last-greetee "Clojure"},
           :ex/dxs [[:hello/ax.greeting-sent]],
           :ex/fxs [[:vscode/fx.show-information-message "Hello, Clojure!"]]}
-         (ax/handle-actions {} {:name "Clojure"} [[:hello/ax.say-hello :ctx/name]]))
+         (ax/handle-actions {}
+                            (clj->js {:something {:name "Clojure"}})
+                            [[:hello/ax.say-hello :context/something.name]]))
       "enriches action from context")
 
   (testing "Handling multiple actions"
-    (let [state {}
-          ctx {:name "World"}
-          actions [[:hello/ax.say-hello :ctx/name]
-                   [:hello/ax.say-hello "Calva"]]
-          {:ex/keys [db fxs dxs]} (ax/handle-actions state ctx actions)]
+    (let [{:ex/keys [db fxs dxs]} (ax/handle-actions {}
+                                                     #js {:name "World"}
+                                                     [[:hello/ax.say-hello :context/name]
+                                                      [:hello/ax.say-hello "Calva"]])]
       (is (= "Calva"
              (:hello/last-greetee db))
           "Last action determines final state")
