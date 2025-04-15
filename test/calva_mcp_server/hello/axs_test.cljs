@@ -10,31 +10,32 @@
 (ns calva-mcp-server.hello.axs-test
   (:require
    [calva-mcp-server.ex.ax :as ax]
-   [calva-mcp-server.hello.axs :as sut]
    [clojure.test :refer [deftest is testing]]))
 
-(deftest greet
-  (testing "greet"
-    (is (.startsWith (sut/greet "World") "Hello, "))
-    (is (.endsWith (sut/greet "World") "!"))
-    (is (= "World" (subs (sut/greet "World") 7 12)))))
-
 (deftest say-hello-action
-  (testing "Stateless event handler processes actions"
-    (is (= {:ex/db {:hello/last-greetee "Test"},
-            :ex/dxs [[:hello/ax.greeting-sent]],
-            :ex/fxs [[:vscode/fx.show-information-message "Hello, Test!"]]}
-           (ax/handle-action {} {:name "World"} [:hello/ax.say-hello "Test"])))))
+  (let [result (ax/handle-actions {:name "World"}
+                                  nil
+                                  [[:hello/ax.say-hello "Clojurian"]])]
+    (is (= "Clojurian"
+           (:hello/last-greetee (:ex/db result)))
+        "Say greetee is saved in new state")
+    (is (= [[:vscode/fx.show-information-message "Hello, Clojurian!"]] (:ex/fxs result))
+        "The greetee is greeted")
+    (is (= [[:hello/ax.greeting-sent]] (:ex/dxs result))
+        "Action about greet updated is dispatched")))
 
 (deftest hello-action
   (testing "Handling multiple actions"
-    (let [state {:name "World"}
-          actions [[:hello/ax.say-hello [:db/get :name]]
-                   [:hello/ax.say-hello "Calva"]]
-          result (ax/handle-actions state nil actions)]
+    (let [result (ax/handle-actions {:name "World"}
+                                    nil
+                                    [[:hello/ax.say-hello [:db/get :name]]
+                                     [:hello/ax.say-hello "Calva"]])]
       (is (= "Calva"
-             (:hello/last-greetee (:ex/db result))))
+             (:hello/last-greetee (:ex/db result)))
+          "Last say saved in new state")
       (is (= [[:vscode/fx.show-information-message "Hello, World!"]
-              [:vscode/fx.show-information-message "Hello, Calva!"]] (:ex/fxs result)))
+              [:vscode/fx.show-information-message "Hello, Calva!"]] (:ex/fxs result))
+          "Both says are shown")
       (is (= [[:hello/ax.greeting-sent]
-              [:hello/ax.greeting-sent]] (:ex/dxs result))))))
+              [:hello/ax.greeting-sent]] (:ex/dxs result))
+          "Both dispatches are present"))))

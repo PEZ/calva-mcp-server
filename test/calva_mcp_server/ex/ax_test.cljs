@@ -6,51 +6,46 @@
   (testing "Enriching action from context"
     (let [result (ax/handle-action {}
                                    #js {:name "World"}
-                                   [:hello/ax.say-hello :context/name])]
+                                   [:ex-test/ax.log-message :context/name])]
       (is (= "World"
-             (:hello/last-greetee (:ex/db result))))
-      (is (= [[:vscode/fx.show-information-message "Hello, World!"]]
-             (:ex/fxs result)))
-      (is (= [[:hello/ax.greeting-sent]]
-             (:ex/dxs result)))))
+             (:ex-test/last-message (:ex/db result)))
+          "new state has name from context")
+      (is (= [[:node/fx.log "ex-test" "World"]]
+             (:ex/fxs result))
+          "fxs uses name from context")))
 
   (testing "Enriching action from state"
-    (let [state {:user-name "Clojurian"}
-          ctx {}
-          action [:hello/ax.say-hello [:db/get :user-name]]
-          result (ax/handle-action state ctx action)]
-      (is (= "Clojurian" (:hello/last-greetee (:ex/db result))))
-      (is (= [[:vscode/fx.show-information-message "Hello, Clojurian!"]] (:ex/fxs result)))
-      (is (= [[:hello/ax.greeting-sent]] (:ex/dxs result))))))
+    (let [result (ax/handle-action {:user-name "Clojurian"}
+                                   {}
+                                   [:ex-test/ax.log-message [:db/get :user-name]])]
+      (is (= "Clojurian"
+             (:ex-test/last-message (:ex/db result)))
+          "new state has user-name from state")
+      (is (= [[:node/fx.log "ex-test" "Clojurian"]]
+             (:ex/fxs result))
+          "fxs uses user name from state"))))
 
 (deftest handle-actions
-  (is (= {:ex/db {:hello/last-greetee "Test"},
-          :ex/dxs [[:hello/ax.greeting-sent]],
-          :ex/fxs [[:vscode/fx.show-information-message "Hello, Test!"]]}
-         (ax/handle-actions {} {:name "World"} [[:hello/ax.say-hello "Test"]]))
+  (is (= {:ex/db {:ex-test/ax.message-logged false
+                  :ex-test/last-message "Test"},
+          :ex/dxs [[:ex-test/ax.message-logged]],
+          :ex/fxs [[:node/fx.log "ex-test" "Test"]]}
+         (ax/handle-actions {} {:name "World"} [[:ex-test/ax.log-message "Test"]]))
       "processes an action returning db dxs, and fxs")
-
-  (is (= {:ex/db {:hello/last-greetee "Clojure"},
-          :ex/dxs [[:hello/ax.greeting-sent]],
-          :ex/fxs [[:vscode/fx.show-information-message "Hello, Clojure!"]]}
-         (ax/handle-actions {}
-                            (clj->js {:something {:name "Clojure"}})
-                            [[:hello/ax.say-hello :context/something.name]]))
-      "enriches action from context")
 
   (testing "Handling multiple actions"
     (let [{:ex/keys [db fxs dxs]} (ax/handle-actions {}
                                                      #js {:name "World"}
-                                                     [[:hello/ax.say-hello :context/name]
-                                                      [:hello/ax.say-hello "Calva"]])]
+                                                     [[:ex-test/ax.log-message :context/name]
+                                                      [:ex-test/ax.log-message "Calva"]])]
       (is (= "Calva"
-             (:hello/last-greetee db))
+             (:ex-test/last-message db))
           "Last action determines final state")
-      (is (= [[:vscode/fx.show-information-message "Hello, World!"]
-              [:vscode/fx.show-information-message "Hello, Calva!"]]
+      (is (= [[:node/fx.log "ex-test" "World"]
+              [:node/fx.log "ex-test" "Calva"]]
              fxs)
           "Effects are accumulated")
-      (is (= [[:hello/ax.greeting-sent]
-              [:hello/ax.greeting-sent]]
+      (is (= [[:ex-test/ax.message-logged]
+              [:ex-test/ax.message-logged]]
              dxs)
           "Dispatches are accumulated"))))

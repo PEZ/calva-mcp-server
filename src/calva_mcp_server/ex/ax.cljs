@@ -3,6 +3,7 @@
    [calva-mcp-server.hello.axs :as hello-axs]
    [calva-mcp-server.integrations.node.axs :as node-axs]
    [calva-mcp-server.integrations.vscode.axs :as vscode-axs]
+   [calva-mcp-server.ex.test.axs :as ex-test-axs]
    [clojure.core.match :refer [match]]
    [clojure.string :as string]
    [clojure.walk :as walk]))
@@ -64,6 +65,7 @@
       "hello"  (hello-axs/handle-action state context enriched-action)
       "vscode" (vscode-axs/handle-action state context enriched-action)
       "node"   (node-axs/handle-action state context enriched-action)
+      "ex-test"   (ex-test-axs/handle-action state context enriched-action)
       :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 
 (defn handle-actions [state context actions]
