@@ -15,21 +15,33 @@
   (str "Hello, " s "!"))
 
 (def input-box-options {:title "Hello Input"
-                        :placeHolder "What should we say hello to today?"})
+                        :placeHolder "What should we say hello to today?"
+                        :ignoreFocusOut true
+                        :ex/then [:hello/ax.say-hello]})
 
 (defn handle-action [state _context action]
   (match action
-    [:hello/ax.log-hello name]
-    {:ex/db (assoc state :hello/last-greetee name)
-     :ex/fxs [[:node/fx.log  "Hello," (str name "!")]]}
+    [:hello/ax.log-hello greetee]
+    {:ex/db (assoc state :hello/last-greetee greetee)
+     :ex/fxs [[:node/fx.log  "Hello," (str greetee "!")]]}
 
-    [:hello/ax.say-hello name]
-    {:ex/db (assoc state :hello/last-greetee (str "Hello, " name "!"))
-     :ex/fxs [[:vscode/fx.show-information-message (str "Hello, " name "!")]]
+    [:hello/ax.command.hello arg]
+    (let [{:keys [greetee]} arg
+          new-state (assoc state :hello/greeting-sent? false)]
+      (if greetee
+        {:ex/db (assoc new-state :hello/last-greetee greetee)
+         :ex/fxs [[:vscode/fx.show-information-message (str "Hello, " greetee "!")]]
+         :ex/dxs [[:hello/ax.greeting-sent]]}
+        {:ex/db new-state
+         :ex/fxs [[:vscode/fx.show-input-box input-box-options]]}))
+
+    [:hello/ax.say-hello greetee]
+    {:ex/db (assoc state :hello/last-greetee greetee)
+     :ex/fxs [[:vscode/fx.show-information-message (str "Hello, " greetee "!")]]
      :ex/dxs [[:hello/ax.greeting-sent]]}
 
     [:hello/ax.greeting-sent]
     {:ex/db (assoc state :hello/greeting-sent? true)}
 
     :else
-    {:ex/fxs [[:node/fx.log-error-greeting "Unknown action:" action]]}))
+    {:ex/fxs [[:node/fx.log-error "Unknown action:" (pr-str action)]]}))

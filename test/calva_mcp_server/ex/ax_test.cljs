@@ -8,7 +8,7 @@
           ctx {:name "World"}
           action [:hello/ax.say-hello :ctx/name]
           result (ax/handle-action state ctx action)]
-      (is (= "Hello, World!"
+      (is (= "World"
              (:hello/last-greetee (:ex/db result))))
       (is (= [[:vscode/fx.show-information-message "Hello, World!"]]
              (:ex/fxs result)))
@@ -20,7 +20,7 @@
           ctx {}
           action [:hello/ax.say-hello [:db/get :user-name]]
           result (ax/handle-action state ctx action)]
-      (is (= "Hello, Clojurian!" (:hello/last-greetee (:ex/db result))))
+      (is (= "Clojurian" (:hello/last-greetee (:ex/db result))))
       (is (= [[:vscode/fx.show-information-message "Hello, Clojurian!"]] (:ex/fxs result)))
       (is (= [[:hello/ax.greeting-sent]] (:ex/dxs result))))))
 
@@ -31,7 +31,7 @@
           actions [[:hello/ax.say-hello :ctx/name]
                    [:hello/ax.say-hello "Calva"]]
           {:ex/keys [db fxs dxs]} (ax/handle-actions state ctx actions)]
-      (is (= "Hello, Calva!"
+      (is (= "Calva"
              (:hello/last-greetee db))
           "Last action determines final state")
       (is (= [[:vscode/fx.show-information-message "Hello, World!"]
