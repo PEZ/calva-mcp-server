@@ -25,6 +25,14 @@
        :else x))
    action))
 
+(defn enrich-with-args [actions args]
+  (walk/postwalk
+   (fn [x]
+     (cond
+       (= :ex/action-args x) args
+       :else x))
+   actions))
+
 (defn handle-action [state ctx [action-kw :as action]]
   (let [enriched-action (-> action
                             (enrich-action-from-context ctx)
@@ -33,7 +41,7 @@
       "hello"  (hello-axs/handle-action state ctx enriched-action)
       "vscode" (vscode-axs/handle-action state ctx enriched-action)
       "node"   (node-axs/handle-action state ctx enriched-action)
-      :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" action]]})))
+      :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 
 (defn handle-actions [state ctx actions]
   (reduce (fn [{state :ex/db :as acc} action]

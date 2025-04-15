@@ -1,8 +1,8 @@
 (ns calva-mcp-server.extension
-  (:require [calva-mcp-server.hello.fxs :as hellos]
-            [calva-mcp-server.extension.db :as db]
-            [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
-            [calva-mcp-server.extension.when-contexts :as when-contexts]))
+  (:require
+   [calva-mcp-server.extension.db :as db]
+   [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
+   [calva-mcp-server.extension.when-contexts :as when-contexts]))
 
 ;;;;; Extension activation entry point
 
@@ -12,8 +12,8 @@
 
   (when context
     (swap! db/!app-db assoc :extension/context context))
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" #'hellos/new-hello-doc-command!+)
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" #'hellos/hello-command!+)
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args}]])
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args}]])
   (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")

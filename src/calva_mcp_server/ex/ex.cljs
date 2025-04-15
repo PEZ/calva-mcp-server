@@ -5,7 +5,6 @@
    [calva-mcp-server.extension.db :as db]))
 
 (defn dispatch! [extension-context actions]
-  (js/console.log "BOOM! dispatch!" (count actions))
   (let [{:ex/keys [fxs dxs db]} (ax/handle-actions @db/!app-db extension-context actions)]
     (when db
       (reset! db/!app-db db))
