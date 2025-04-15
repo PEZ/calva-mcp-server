@@ -7,7 +7,7 @@
 ;; This extension template does not have any business logic, so we'll
 ;; pretend with these silly examples.
 
-(ns calva-mcp-server.hellos.axs
+(ns calva-mcp-server.hello.axs
   (:require
    [cljs.core.match :refer [match]]))
 

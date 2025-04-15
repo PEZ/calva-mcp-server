@@ -1,7 +1,7 @@
 (ns calva-mcp-server.ex.ax
   (:require [clojure.walk :as walk]
             [clojure.core.match :refer [match]]
-            [calva-mcp-server.hellos.axs :as hello-axs]
+            [calva-mcp-server.hello.axs :as hello-axs]
             [calva-mcp-server.node.axs :as node-axs]
             [calva-mcp-server.vscode.axs :as vscode-axs]))
 

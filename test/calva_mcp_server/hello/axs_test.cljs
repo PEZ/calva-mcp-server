@@ -7,10 +7,10 @@
 ;; This extension template does not have any business logic, so we'll
 ;; pretend with these silly examples.
 
-(ns calva-mcp-server.hellos.axs-test
+(ns calva-mcp-server.hello.axs-test
   (:require
    [calva-mcp-server.ex.ax :as ax]
-   [calva-mcp-server.hellos.axs :as sut]
+   [calva-mcp-server.hello.axs :as sut]
    [clojure.test :refer [deftest is testing]]))
 
 (deftest greet

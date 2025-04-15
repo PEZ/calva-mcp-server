@@ -1,9 +1,9 @@
 ;; Example commands
 
-(ns calva-mcp-server.hellos.fxs
+(ns calva-mcp-server.hello.fxs
   (:require
    ["vscode" :as vscode]
-   [calva-mcp-server.hellos.axs :as hellos]
+   [calva-mcp-server.hello.axs :as hellos]
    [cljs.core.match :refer [match]]
    [promesa.core :as p]))
 

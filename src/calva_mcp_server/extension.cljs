@@ -1,5 +1,5 @@
 (ns calva-mcp-server.extension
-  (:require [calva-mcp-server.hellos.fxs :as hellos]
+  (:require [calva-mcp-server.hello.fxs :as hellos]
             [calva-mcp-server.extension.db :as db]
             [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
             [calva-mcp-server.extension.when-contexts :as when-contexts]))
