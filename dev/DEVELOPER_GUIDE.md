@@ -76,7 +76,6 @@ Test runner logic: `e2e-test-ws/launch.js`, `e2e-test-ws/runTests.js`
 - Make small, frequent commits with descriptive messages that tell the story of development
 - Keep code and documentation changes in sync
 - Ensure that each commit represents a coherent unit of work
-- Update the development log (`dev/DEVELOPMENT_LOG.md`) regularly with progress, decisions, and insights
 - Be super aware of when a decision point is reached. When a significant decision needs to be made, document the options and reasoning in the decision log (`dev/DECISION_LOG.md`) before proceeding.
 
 ## Deployment and Distribution
@@ -89,7 +88,7 @@ Test runner logic: `e2e-test-ws/launch.js`, `e2e-test-ws/runTests.js`
 
 ## References
 
-- For architectural and protocol details, see `dev/MCP_OVERVIEW.md` and `dev/EX_ARCHITECTURE.md`
+- For architectural and protocol details, see `dev/MCP_OVERVIEW.md` and `dev/EVENT_LOOP_ARCHITECTURE.md`
 - For project requirements and philosophy, see `dev/PROJECT_REQUIREMENTS.md`
 - For template-based setup and onboarding, see `doc/TEMPLATE_README.md`
 
