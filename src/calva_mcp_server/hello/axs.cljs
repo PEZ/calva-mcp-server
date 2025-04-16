@@ -39,7 +39,7 @@
       (if greetee
         {:ex/db (assoc new-state :hello/last-greetee greetee)
          :ex/fxs [[:vscode/fx.open-text-document {:app/content (str "Hello, " greetee "!")
-                                                  :ex/then [[:vscode/ax.show-text-document :ex/action-args%1]]}]]
+                                                  :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]
          :ex/dxs [[:hello/ax.greeting-sent]]}
         {:ex/db new-state
          :ex/fxs [[:vscode/fx.show-input-box {:title "Hello Input"
