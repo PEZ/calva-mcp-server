@@ -89,7 +89,7 @@ Test runner logic: `e2e-test-ws/launch.js`, `e2e-test-ws/runTests.js`
 
 ## References
 
-- For architectural and protocol details, see `dev/MCP_OVERVIEW.md` and `dev/EVENT_LOOP_ARCHITECTURE.md`
+- For architectural and protocol details, see `dev/MCP_OVERVIEW.md` and `dev/EX_ARCHITECTURE.md`
 - For project requirements and philosophy, see `dev/PROJECT_REQUIREMENTS.md`
 - For template-based setup and onboarding, see `doc/TEMPLATE_README.md`
 

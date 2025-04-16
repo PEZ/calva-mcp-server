@@ -120,7 +120,7 @@ This document tracks the development progress of the Calva MCP Server extension.
 ## 2025-04-13: Ex Framework Implementation Strategy
 
 ### Accomplishments
-- Created Event Loop Architecture document based on the Ex framework from example projects
+- Created Ex Architecture document based on the Ex framework from example projects
 - Analyzed both the fleet-designer and todomvc example implementations
 - Established a testing-first approach for the Ex framework implementation
 - Determined the need for a "hello world" minimal implementation with tests
