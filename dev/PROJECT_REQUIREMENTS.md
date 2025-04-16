@@ -141,60 +141,6 @@ Errors will be handled gracefully and returned in a structured format:
 
 ## 7. Development Approach
 
-### 7.1 Documentation Driven Development
-Following the principles of Documentation Driven Development:
-1. Define the API and interfaces first
-2. Document expected behaviors and edge cases
-3. Implement against the documentation
-4. Validate implementation against documentation
-5. Update documentation based on implementation insights
-6. Repeat
+The development approach for this project follows documentation-driven development, interactive development with REPL, comprehensive testing, and regular documentation updates.
 
-Alongside this approach, the project will:
-- Make frequent, small commits with descriptive messages
-- Chain git commands (add, commit, push) for efficiency
-- Keep code and documentation changes in sync
-- Ensure that each commit represents a coherent unit of work
-- Maintain history that clearly tells the story of development
-
-### 7.2 Interactive Development
-The project will leverage ClojureScript's interactive development capabilities:
-- Use shadow-cljs for continuous hot reloading during development
-- Apply changes to the running extension without restarting
-- Utilize the REPL to experiment with and test code in real-time
-
-The development workflow follows these steps:
-1. **Start the REPL server**: Run `npm run watch` to start the nREPL server (this does not automatically connect the REPL)
-2. **Connect to the REPL**: Use Calva to connect to the running REPL server
-3. **Start the Extension Host**: Launch the Development Extension Host with F5
-4. **Activate the Extension**: Run a command that activates our extension in the host
-5. **Verify REPL Connection**: Confirm Calva is connected to the extension's REPL
-
-Development roles during this process:
-- **Initial development phase**: Human developer handles REPL connection and activation steps
-- **Development communication**: AI assistant explicitly requests human intervention when these steps are needed
-- **As functionality matures**: AI assistant will increasingly leverage the REPL capabilities
-- **Eventually**: The AI assistant will use the very MCP server being developed
-
-This approach creates a bootstrap process where the tool we're building (Calva MCP Server) will eventually empower the AI assistant collaborating on its development.
-
-### 7.3 Development Log
-
-The project will maintain a detailed development log to:
-- Track progress and decisions made during implementation
-- Record challenges encountered and solutions applied
-- Document insights gained throughout the development process
-- Serve as a historical record for future reference
-- Complement the PRD by documenting the actual path taken
-
-### 7.4 Testing Strategy
-- Unit tests for core functions
-- Integration tests for API endpoints
-- End-to-end tests for full workflows
-- Property-based tests for robust behavior validation
-
-### 7.5 Deployment and Distribution
-- Available through VS Code Marketplace
-- Clear installation and setup instructions
-- Version compatibility information
-- Updates managed through standard VS Code extension mechanisms
+For detailed development workflow, testing procedures, and contributor guidelines, please refer to [DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md).
