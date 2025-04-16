@@ -7,7 +7,7 @@ This document describes the Ex (Event Dispatch) architecture used in the Calva M
 The Ex architecture revolves around these key concepts:
 
 1. **Actions (ax)**: Pure data structures representing operations to perform, structured as vectors with a namespaced keyword identifier and parameters
-2. **Effects (fx)**: Data structures representing controlled side effects 
+2. **Effects (fx)**: Data structures representing controlled side effects
 3. **Action Enrichment**: System for transforming pure data structures with contextual information at runtime
 4. **Dispatch**: Mechanism for action processing, new state creation, and triggering effects
 5. **Application State**: Immutable data managed through atoms
@@ -177,7 +177,7 @@ Effect handlers receive the `dispatch!` function, allowing them to directly trig
     (-> (js/Promise.resolve "result")
         (.then (fn [result]
                  (dispatch! context [[:some/ax.handle-result result]]))))
-    
+
     ;; ...other effects
     ))
 ```
@@ -194,7 +194,7 @@ A powerful pattern used throughout the framework is the `:ex/then` option for ef
 
 ```clojure
 ;; In an action handler:
-{:ex/fxs [[:vscode/fx.show-input-box 
+{:ex/fxs [[:vscode/fx.show-input-box
            {:title "Enter Name"
             :ex/then [[:hello/ax.greet :ex/action-args]]}]]}
 
@@ -217,8 +217,8 @@ The indexed placeholders (`%n` syntax) let you access specific elements of colle
 The architecture supports nested async operations:
 
 ```clojure
-[:vscode/fx.show-input-box 
- {:ex/then [[:vscode/fx.open-text-document 
+[:vscode/fx.show-input-box
+ {:ex/then [[:vscode/fx.open-text-document
              {:content :ex/action-args
               :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}]
 ```
@@ -233,7 +233,7 @@ The action processing pipeline shows how actions flow through the system:
 [action1, action2, ...] → handle-actions → {
   for each action:
     action → enrich-action → domain-specific handle-action → individual result
-  
+
   accumulate individual results into:
     {:ex/db new-state, :ex/fxs effects, :ex/dxs dispatched-actions}
 }
@@ -257,7 +257,7 @@ The `handle-actions` function is central to this process:
 
 This function:
 1. Takes the current state, context, and a collection of actions
-2. Processes each action sequentially, passing the latest state to each action 
+2. Processes each action sequentially, passing the latest state to each action
 3. Accumulates results (db, fxs, dxs) into a single result map
 4. Ignores nil actions, allowing conditional inclusion in action collections
 
