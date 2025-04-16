@@ -40,11 +40,13 @@
       {
         "command": "calva-mcp-server.startServer",
         "category": "Calva MCP Server",
+        "enablement": "!calva-mcp:server-started",
         "title": "Start MCP Server"
       },
       {
         "command": "calva-mcp-server.stopServer",
         "category": "Calva MCP Server",
+        "enablement": "calva-mcp:server-started",
         "title": "Stop MCP Server"
       }
     ],
