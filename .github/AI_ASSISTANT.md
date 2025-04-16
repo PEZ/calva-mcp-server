@@ -44,7 +44,7 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 ## Project-Specific Guidelines
 
-- **Decision Awareness**: Identify when significant decisions need to be made, document options and reasoning in the decision log before proceeding. (See Developer Guide for details.)
+- **Decision Awareness**: Identify when significant decisions need to be made, and initiate discussion.
 
 - **Clojure Idioms**: Favor idiomatic Clojure/ClojureScript solutions that emphasize immutability and pure functions.
 
