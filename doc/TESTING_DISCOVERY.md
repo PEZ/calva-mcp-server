@@ -37,7 +37,7 @@ To test if Claude can discover and use your MCP server:
 ```
 I have an MCP server running at http://localhost:3000. Can you:
 1. Check its status endpoint (/status)
-2. Discover its capabilities (/capabilities) 
+2. Discover its capabilities (/capabilities)
 3. Use the hello-world tool (/hello)
 ```
 

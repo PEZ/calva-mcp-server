@@ -36,6 +36,16 @@
         "category": "Calva MCP Server",
         "enablement": ":calva-mcp-server/active?",
         "title": "Open a new Hello document"
+      },
+      {
+        "command": "calva-mcp-server.startServer",
+        "category": "Calva MCP Server",
+        "title": "Start MCP Server"
+      },
+      {
+        "command": "calva-mcp-server.stopServer",
+        "category": "Calva MCP Server",
+        "title": "Stop MCP Server"
       }
     ],
     "keybindings": [
