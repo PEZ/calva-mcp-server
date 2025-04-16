@@ -1,15 +1,14 @@
 (ns calva-mcp-server.mcp.logging
   (:require ["vscode" :as vscode]
-            ["path" :as path]
             [promesa.core :as p]))
 
 (defn- get-log-path []
   (when-let [ext-dir (.-logUri vscode/env)]
     (let [log-uri (.joinPath vscode/Uri (.toString ext-dir) "mcp-server.log")
-          dir-uri (.joinPath vscode/Uri (.toString ext-dir) "")] ; Get a URI for just the directory
+          dir-uri (.joinPath vscode/Uri (.toString ext-dir) "")]
       (-> (p/do!
            (.createDirectory vscode/workspace.fs dir-uri)
-           log-uri))))) ; Return the log URI after creating directory
+           log-uri)))))
 
 (defn log-message [level message & [data]]
   (let [timestamp (.toISOString (js/Date.))
