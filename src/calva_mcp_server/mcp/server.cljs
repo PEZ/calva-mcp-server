@@ -1,9 +1,9 @@
 (ns calva-mcp-server.mcp.server
   (:require [cljs.nodejs :as nodejs]))
 
-(defonce http (nodejs/require "http"))
+(defonce ^js http (nodejs/require "http"))
 
-(defn handler [req res]
+(defn handler [^js req ^js res]
   (println "BOOM! handler")
   (let [url-obj (js/URL. (.-url req) "http://localhost")
         path (.-pathname url-obj)]
@@ -31,18 +31,20 @@
         (.writeHead res 404 #js {"Content-Type" "application/json"})
         (.end res (js/JSON.stringify #js {:error "Not found"}))))))
 
-(defonce server
+(defonce ^js server
   (.createServer http (fn [req res]
                         (handler req res))))
 
-(defn start-server []
-  (.listen server 3000 #(js/console.log "MCP server listening on port 3000")))
+(defn start-server
+  ([] (start-server 3000))
+  ([port]
+   (.listen server port #(js/console.log "MCP server listening on port" port))))
 
 (defn stop-server []
   (when server
     (.close server #(js/console.log "MCP server stopped"))))
 
-;; To start the server, call (start-server)
+;; To start the server, call (start-server) or (start-server port)
 
 (comment
   (start-server)

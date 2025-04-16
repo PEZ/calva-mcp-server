@@ -4,15 +4,19 @@
 
 (defn handle-action [state _context action]
   (match action
-    [:mcp/ax.start-server]
-    {:ex/db (assoc state :mcp/server-running? true)
-     :ex/fxs [[:mcp/fx.start-server]
-              [:vscode/fx.show-information-message "MCP server started on port 3000"]]}
+    [:mcp/ax.start-server port]
+    {:ex/db (assoc state :mcp/server-running? true :mcp/server-port port)
+     :ex/fxs [[:mcp/fx.start-server {:mcp/port port
+                                     :ex/on-success [[:vscode/ax.show-information-message (str "MCP server started on port " port)]]
+                                     :ex/on-error [[:mcp/ax.server-error]]}]]}
 
     [:mcp/ax.stop-server]
     {:ex/db (assoc state :mcp/server-running? false)
-     :ex/fxs [[:mcp/fx.stop-server]
-              [:vscode/fx.show-information-message "MCP server stopped"]]}
+     :ex/fxs [[:mcp/fx.stop-server {:ex/on-success [[:vscode/ax.show-information-message "MCP server stopped"]]
+                                   :ex/on-error [[:mcp/ax.server-error]]}]]}
+
+    [:mcp/ax.server-error err]
+    {:ex/fxs [[:vscode/fx.show-error-message (str "MCP server error: " err)]]}
 
     :else
     {:ex/fxs [[:node/fx.log-error "Unknown action:" (pr-str action)]]}))
