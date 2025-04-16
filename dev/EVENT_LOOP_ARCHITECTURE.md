@@ -1,167 +1,295 @@
-# Calva MCP Server - Event Loop Architecture
+# Calva MCP Server - Ex Architecture
 
-This document outlines an event loop architecture for the Calva MCP Server, inspired by the Ex framework pattern demonstrated in the example projects. The architecture follows functional core/imperative shell design principles to keep the system as data-oriented as possible.
+This document describes the Ex (Event Dispatch) architecture used in the Calva MCP Server project. Ex is a micro framework that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow.
 
 ## Core Concepts
 
-The event loop architecture is built around these key concepts:
+The Ex architecture revolves around these key concepts:
 
-1. **Actions (axs)**: Pure data structures representing something that should happen
-2. **Effects (fxs)**: Pure data structures representing side effects to be performed
-3. **Application State (db)**: Immutable state managed using atoms
-4. **Action Dispatches (dxs)**: New actions to be processed by the system
+1. **Actions (ax)**: Pure data structures representing operations to perform, structured as vectors with a namespaced keyword identifier and parameters
+2. **Effects (fx)**: Data structures representing controlled side effects 
+3. **Action Enrichment**: System for transforming pure data structures with contextual information at runtime
+4. **Dispatch**: Mechanism for action processing, new state creation, and triggering effects
+5. **Application State**: Immutable data managed through atoms
+6. **Action Dispatches (dxs)**: New actions to process after the current action completes
 
-## System Overview
+## Evolutionary Design
 
-```
-┌─────────────────────────┐
-│                         │
-│  MCP Message Transport  │
-│  (VSCode API / stdio)   │
-│                         │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│                         │
-│  Message Handler        │◄─────┐
-│  (Parse/route messages) │      │
-│                         │      │
-└────────────┬────────────┘      │
-             │                   │
-             ▼                   │
-┌─────────────────────────┐      │
-│                         │      │
-│  Event Handler          │      │ Action Dispatches
-│  (Process actions)      │      │ (dxs)
-│                         │      │
-└┬───────────┬────────────┘      │
- │           │                   │
- │           │                   │
- ▼           ▼                   │
-┌────────────┴────────────┐      │
-│                         │      │
-│  Effect Handler         ├──────┘
-│  (Perform side effects) │
-│                         │
-└─────────────────────────┘
-```
+The Ex framework is embedded directly in the project source (in the `calva_mcp_server.ex` namespace) rather than imported as a library. This is intentional, allowing the framework to evolve alongside the project's needs. As requirements change, the framework can be extended with:
+
+- New enrichment strategies
+- Additional effect types
+- Modified dispatch behaviors
+- Domain-specific optimizations
+
+This evolutionary approach ensures the architecture remains flexible and tailored to the specific needs of the Calva MCP Server project.
+
+## System Flow
+
+The Ex architecture follows a unidirectional data flow pattern with clear separation between pure functions and side effects:
+
+1. `dispatch!` function receives an actions collection and calls `handle-actions`
+2. `handle-actions` processes each action sequentially with the latest state
+3. Each individual action goes through:
+   - Enrichment (context and state)
+   - Domain-specific handling
+   - Result generation with `:ex/db`, `:ex/fxs`, `:ex/dxs` keys
+4. Results are accumulated into a single batch result
+5. The dispatcher then:
+   - Updates application state via `reset!` (a controlled side effect)
+   - Processes any resulting dispatched actions (`:ex/dxs`)
+   - Executes effects (`:ex/fxs`)
 
 ## Core Components
 
-### 1. Action Handling (ax.cljs)
+### 1. Action Handler (ax.cljs)
 
-Actions are pure data structures that represent something that should happen. Each action is a vector with a namespaced keyword as the first element, followed by any parameters:
+The action handler system processes actions by:
+1. Enriching actions with context and state
+2. Routing actions to domain-specific handlers based on namespace
+3. Returning action results with new state and effects
 
 ```clojure
-(defn handle-action [state ctx action]
+(defn handle-action [state context [action-kw :as action]]
   (let [enriched-action (-> action
-                            (enrich-action-from-context ctx)
+                            (enrich-action-from-context context)
                             (enrich-action-from-state state))]
-    (match enriched-action
-      ;; MCP Protocol Actions
-      [:mcp/ax.register-server]
-      {:ex/fxs [[:mcp/fx.register-server]]}
-
-      [:mcp/ax.execute-tool tool-name params]
-      {:ex/fxs [[:mcp/fx.execute-tool tool-name params]]}
-
-      ;; REPL Evaluation Actions
-      [:repl/ax.evaluate code session]
-      {:ex/fxs [[:repl/fx.evaluate code session]]}
-
-      [:repl/ax.handle-result result]
-      {:ex/db (assoc state :last-eval-result result)
-       :ex/fxs [[:mcp/fx.send-result result]]}
-
-      ;; System Actions
-      [:system/ax.init]
-      {:ex/db (assoc state :initialized true)
-       :ex/dxs [[:mcp/ax.register-server]]})))
+    (match (namespace action-kw)
+      "hello"  (hello-axs/handle-action state context enriched-action)
+      "vscode" (vscode-axs/handle-action state context enriched-action)
+      "node"   (node-axs/handle-action state context enriched-action)
+      "ex-test"   (ex-test-axs/handle-action state context enriched-action)
+      :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 ```
 
-### 2. Effect Handling (fx.cljs)
+Action handlers return maps with these keys:
+- `:ex/db` - New application state
+- `:ex/fxs` - Effects to perform
+- `:ex/dxs` - Additional actions to dispatch
 
-Effects are pure data structures that represent side effects to be performed. The effect handler is the only place where we interact with the outside world:
+### 2. Effect Handler (fx.cljs)
+
+The effect system performs side effects through a handler that:
+1. Routes effects to domain-specific handlers based on namespace
+2. Executes side effects in a controlled manner
+3. Optionally chains new actions via the dispatcher
 
 ```clojure
-(defn perform-effect! [event-handler ctx effect]
-  (match effect
-    ;; MCP Protocol Effects
-    [:mcp/fx.register-server]
-    (p/let [result (register-mcp-server)]
-      (event-handler ctx [[:system/ax.log "MCP server registered" result]]))
-
-    [:mcp/fx.execute-tool tool-name params]
-    (case tool-name
-      "evaluate-clojure" (event-handler ctx [[:repl/ax.evaluate (:code params) (:session params)]])
-      (event-handler ctx [[:system/ax.log (str "Unknown tool: " tool-name)]]))
-
-    [:mcp/fx.send-result result]
-    (send-result-to-mcp-client result)
-
-    ;; REPL Effects
-    [:repl/fx.evaluate code session]
-    (p/let [result (evaluate-code-in-calva code session)]
-      (event-handler ctx [[:repl/ax.handle-result result]]))
-
-    ;; System Effects
-    [:system/fx.log & args]
-    (apply js/console.log args)))
+(defn perform-effect! [dispatch! context [effect-kw :as effect]]
+  (match (namespace effect-kw)
+    "node" (node-fxs/perform-effect! dispatch! context effect)
+    "vscode" (vscode-fxs/perform-effect! dispatch! context effect)
+    :else (js/console.warn "Unknown effect namespace:" (pr-str effect))))
 ```
 
-### 3. Event Handler (event_handler.cljs)
+### 3. Dispatcher (ex.cljs)
 
-The event handler orchestrates the flow of actions and effects, maintaining the application state:
+The dispatcher orchestrates the overall flow:
 
 ```clojure
-(defn event-handler [ctx actions]
-  (let [{:ex/keys [fxs dxs db]} (ax/handle-actions @db/!state ctx actions)]
+(defn dispatch! [extension-context actions]
+  (let [{:ex/keys [fxs dxs db]} (ax/handle-actions @db/!app-db extension-context actions)]
     (when db
-      (reset! db/!state db))
-    (when dxs
-      (event-handler ctx dxs))
-    (when fxs
-      (doseq [fx fxs]
-        (fx/perform-effect! event-handler ctx fx)))))
+      ;; State replacement is kept outside the pure action handlers
+      ;; It's treated as a controlled side effect
+      (reset! db/!app-db db))
+    (when (seq dxs)
+      (dispatch! extension-context dxs))
+    (when (seq fxs)
+      (last (map (fn [fx]
+                   (fx/perform-effect! dispatch! extension-context fx))
+                 fxs)))))
 ```
 
-## MCP Message Flow
+The key aspects of this design:
+1. The dispatcher receives a collection of actions, not just a single action
+2. `handle-actions` processes and accumulates results from multiple actions
+3. State replacement via `reset!` is intentionally kept outside the pure action handlers
+4. The dispatcher handles the recursive processing of any dispatched actions (dxs)
+5. Effects are executed after state replacement and before processing dispatched actions
 
-1. **Incoming Messages**:
-   - MCP client (GitHub Copilot) sends a message to execute a tool
-   - Message is parsed and converted to an action: `[:mcp/ax.execute-tool "evaluate-clojure" {:code "(+ 1 2)" :session "clj"}]`
-   - Action is dispatched to the event handler
+## Action Enrichment
 
-2. **Processing**:
-   - Event handler processes the action and generates an effect: `[:repl/fx.evaluate "(+ 1 2)" "clj"]`
-   - Effect handler executes the code in Calva's REPL and generates a new action with the result: `[:repl/ax.handle-result {:value "3" :type "number"}]`
-   - Event handler updates the state and generates a new effect: `[:mcp/fx.send-result {:value "3" :type "number"}]`
-   - Effect handler sends the result back to the MCP client
+The architecture includes action enrichment to support pure data expressions:
 
-## Enrichment Process
+### Context Enrichment
+Replaces keywords namespaced with "context" with values from the JS context object:
 
-To maintain pure data vectors as actions and effects, we use an enrichment process:
+```clojure
+(defn- enrich-action-from-context [action context]
+  (walk/postwalk
+   (fn [x]
+     (if (keyword? x)
+       (cond (= "context" (namespace x)) (let [path (string/split (name x) #"\.")]
+                                           (js-get-in context path))
+             :else x)
+       x))
+   action))
+```
 
-1. `enrich-action-from-context`: Replaces context-related keywords with actual values
-2. `enrich-action-from-state`: Resolves references to state using patterns like `[:db/get :some-key]`
+### State Enrichment
+Replaces `[:db/get key]` vectors with values from the application state:
 
-This allows us to write actions as pure data vectors while still having access to the necessary context at runtime.
+```clojure
+(defn- enrich-action-from-state [action state]
+  (walk/postwalk
+   (fn [x]
+     (cond
+       (and (vector? x) (= :db/get (first x)))
+       (get state (second x))
 
-## Benefits of This Architecture
+       :else x))
+   action))
+```
 
-1. **Pure Functions**: The core logic is implemented as pure functions that transform data
-2. **Testability**: Actions and their handlers can be easily tested without mocking
-3. **Separation of Concerns**: Clear separation between state management, core logic, and side effects
-4. **Traceability**: All system behavior is expressed as explicit data structures
-5. **Extensibility**: Easy to add new actions and effects without modifying existing code
+### Arguments Enrichment
+Supports passing arguments between effects and subsequent actions:
 
-## Implementation Considerations
+```clojure
+(defn enrich-with-args [actions args]
+  (walk/postwalk
+   (fn [x]
+     (cond
+       (= :ex/action-args x) args
 
-1. **State Management**: Use atoms for holding application state
-2. **Effect Coordination**: Consider adding specialized effects for handling async operations
-3. **Error Handling**: Add specific actions and effects for error handling
-4. **Logging/Debugging**: Implement a comprehensive logging system using actions and effects
-5. **Integration with VS Code**: Create specific effects for VS Code API interactions
+       (and (keyword? x)
+            (= "ex" (namespace x))
+            (.startsWith (name x) "action-args%"))
+       (let [[_ n] (re-find #"action-args%(\d+)" (name x))]
+         (nth args (dec (parse-long n))))
 
-This architecture provides a solid foundation for building the Calva MCP Server while maintaining the functional and data-oriented approach that your example projects demonstrate.
+       :else x))
+   actions))
+```
+
+## Async and Dispatch Capabilities
+
+The Ex architecture provides mechanisms for handling asynchronous flows and dispatching actions from effects:
+
+### Direct Dispatch from Effects
+
+Effect handlers receive the `dispatch!` function, allowing them to directly trigger new actions:
+
+```clojure
+(defn perform-effect! [dispatch! context effect]
+  (match effect
+    [:some/fx.async-operation]
+    (-> (js/Promise.resolve "result")
+        (.then (fn [result]
+                 (dispatch! context [[:some/ax.handle-result result]]))))
+    
+    ;; ...other effects
+    ))
+```
+
+This capability enables:
+- Debounced dispatches
+- Batched updates
+- Conditional action flows
+- Complex async sequences
+
+### Promise Continuation with :ex/then
+
+A powerful pattern used throughout the framework is the `:ex/then` option for effects that return promises:
+
+```clojure
+;; In an action handler:
+{:ex/fxs [[:vscode/fx.show-input-box 
+           {:title "Enter Name"
+            :ex/then [[:hello/ax.greet :ex/action-args]]}]]}
+
+;; In the effect handler:
+(-> (vscode/window.showInputBox (clj->js options))
+    (.then (fn [input]
+             (when input
+               (dispatch! context (ax/enrich-with-args then input))))))
+```
+
+When the promise resolves, the result is passed to `enrich-with-args` which injects it into the action template using placeholders:
+
+- `:ex/action-args` - The entire result
+- `:ex/action-args%n` - Access specific indices in collection results, where n is any positive number (e.g., `:ex/action-args%1`, `:ex/action-args%2`, `:ex/action-args%22`)
+
+The indexed placeholders (`%n` syntax) let you access specific elements of collection results, supporting both simple cases and more complex scenarios where effects produce multiple values that need to be addressed individually.
+
+### Nested Async Flows
+
+The architecture supports nested async operations:
+
+```clojure
+[:vscode/fx.show-input-box 
+ {:ex/then [[:vscode/fx.open-text-document 
+             {:content :ex/action-args
+              :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}]
+```
+
+This creates a clean, declarative way to express complex async workflows while maintaining the pure data representation at each step.
+
+## Action Processing Pipeline
+
+The action processing pipeline shows how actions flow through the system:
+
+```
+[action1, action2, ...] → handle-actions → {
+  for each action:
+    action → enrich-action → domain-specific handle-action → individual result
+  
+  accumulate individual results into:
+    {:ex/db new-state, :ex/fxs effects, :ex/dxs dispatched-actions}
+}
+```
+
+The `handle-actions` function is central to this process:
+
+```clojure
+(defn handle-actions [state context actions]
+  (reduce (fn [{state :ex/db :as acc} action]
+            (let [{:ex/keys [db fxs dxs]} (handle-action state context action)]
+              (cond-> acc
+                db (assoc :ex/db db)
+                dxs (update :ex/dxs into dxs)
+                fxs (update :ex/fxs into fxs))))
+          {:ex/db state
+           :ex/fxs []
+           :ex/dxs []}
+          (remove nil? actions)))
+```
+
+This function:
+1. Takes the current state, context, and a collection of actions
+2. Processes each action sequentially, passing the latest state to each action 
+3. Accumulates results (db, fxs, dxs) into a single result map
+4. Ignores nil actions, allowing conditional inclusion in action collections
+
+## Domain-Specific Handlers
+
+The architecture uses namespaced actions and effects to create clear domain boundaries:
+
+1. **hello**: Example greeting functionality
+2. **vscode**: VS Code-specific operations
+3. **node**: Node.js operations like logging
+
+Each domain has its own action and effect handlers, following a consistent pattern.
+
+## Async Operations
+
+The architecture supports async operations primarily through effect handlers. For example, VS Code input boxes return Promises, which are then used to trigger follow-up actions:
+
+```clojure
+[:vscode/fx.show-input-box {:title "Hello Input"
+                           :ex/then [[:hello/ax.say-hello :ex/action-args]]}]
+```
+
+This creates a clean way to handle asynchronous flows while maintaining pure data structures for actions and effects.
+
+## Benefits
+
+1. **Functional and Data Oriented**: Business logic is implemented in pure functions that transform data
+2. **Predictable Dataflow**: All state is immutable; new state is created rather than mutating existing state
+3. **Improved Testability**: Actions and their results can be tested without mocking
+4. **Clear Dependencies**: Domain-specific handlers create explicit boundaries
+5. **Composability**: Actions and effects can be composed and chained in flexible ways
+6. **Explicit Side Effects**: All side effects are represented as data and executed in controlled handlers
+7. **Developer Experience**: Debugging is simplified by logging actions and effects as data
+
+This architecture provides a solid foundation for building the Calva MCP Server, leveraging ClojureScript's strengths in functional programming and data-oriented design.
