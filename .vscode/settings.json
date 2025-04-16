@@ -25,5 +25,14 @@
         {
             "file": ".github/AI_ASSISTANT.md"
         }
+    ],
+    "calva.customREPLCommandSnippets": [
+        {
+            "name": "Re-activate extension",
+            "key": ".",
+            "repl": "cljs",
+            "snippet": "(calva-mcp-server.extension.life-cycle-helpers/cleanup! calva-mcp-server.extension.db/!app-db) (calva-mcp-server.extension/activate (:extension/context @calva-mcp-server.extension.db/!app-db))",
+            "evaluationSendCodeToOutputWindow": true
+        }
     ]
 }
