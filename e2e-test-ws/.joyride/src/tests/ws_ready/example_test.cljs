@@ -5,6 +5,9 @@
 
 ; No tests starts before the workspace is activated
 (deftest ws-activated
-  (testing "The workspace is indeed activated"
-    (is (= 42 workspace-activate/question))
-    (is (= (first vscode/workspace.workspaceFolders) workspace-activate/ws-root))))
+  (is (= 42
+         workspace-activate/question)
+      "We can read the question from the namespace")
+  (is (= (first vscode/workspace.workspaceFolders)
+         workspace-activate/ws-root)
+      "The root folder is also the only folder"))

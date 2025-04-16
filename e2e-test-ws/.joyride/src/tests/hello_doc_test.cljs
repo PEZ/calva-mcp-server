@@ -12,4 +12,5 @@
             doc-text (.getText doc)
             _ (vscode/commands.executeCommand "workbench.action.revertAndCloseActiveEditor" false)]
       (is (= (str "Hello, " hello-text "!")
-             doc-text)))))
+             doc-text)
+          "Hello doc created with the expected text"))))
