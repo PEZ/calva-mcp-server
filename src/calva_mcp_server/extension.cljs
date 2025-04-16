@@ -12,8 +12,8 @@
 
   (when context
     (swap! db/!app-db assoc :extension/context context))
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args}]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args}]])
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args%1}]])
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args%1}]])
   (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")

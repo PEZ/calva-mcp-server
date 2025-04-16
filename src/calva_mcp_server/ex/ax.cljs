@@ -54,7 +54,15 @@
    (fn [x]
      (cond
        (= :ex/action-args x) args
-       :else x))
+
+       (and (keyword? x)
+            (= "ex" (namespace x))
+            (.startsWith (name x) "action-args%"))
+       (let [[_ n] (re-find #"action-args%(\d+)" (name x))]
+         (nth args (dec (parse-long n))))
+
+       :else
+       x))
    actions))
 
 (defn handle-action [state context [action-kw :as action]]

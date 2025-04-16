@@ -31,7 +31,7 @@
          :ex/fxs [[:vscode/fx.show-input-box {:title "Hello Input"
                                               :placeHolder "What should we say hello to today?"
                                               :ignoreFocusOut true
-                                              :ex/then [[:hello/ax.say-hello :ex/action-args]]}]]}))
+                                              :ex/then [[:hello/ax.say-hello :ex/action-args%1]]}]]}))
 
     [:hello/ax.command.hello-doc arg]
     (let [{:keys [greetee]} arg
@@ -39,7 +39,7 @@
       (if greetee
         {:ex/db (assoc new-state :hello/last-greetee greetee)
          :ex/fxs [[:vscode/fx.open-text-document {:app/content (str "Hello, " greetee "!")
-                                                  :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]
+                                                  :ex/then [[:vscode/ax.show-text-document :ex/action-args%1]]}]]
          :ex/dxs [[:hello/ax.greeting-sent]]}
         {:ex/db new-state
          :ex/fxs [[:vscode/fx.show-input-box {:title "Hello Input"
