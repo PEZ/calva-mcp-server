@@ -72,20 +72,20 @@
        (let [server (.createServer net
                                    (fn [^js socket]
                                      (.setEncoding socket "utf8")
-                                     (let [buffer (atom "")]
+                                     (let [buffer (volatile! "")]
                                        (.on socket "data"
                                             (fn [chunk]
-                                              (swap! buffer str chunk)
+                                              (vswap! buffer str chunk)
                                               (when (str/ends-with? @buffer "\n")
                                                 (try
                                                   (p/let [request (js/JSON.parse @buffer)
                                                           response (handle-request request)]
                                                     (.write socket (str (js/JSON.stringify (clj->js response)) "\n"))
-                                                    (reset! buffer ""))
+                                                    (vreset! buffer ""))
                                                   (catch :default parse-err
                                                     (logging/error!  "Error parsing request JSON:" parse-err {:buffer @buffer})
                                                     (.write socket (str (js/JSON.stringify #js {:jsonrpc "2.0", :error #js {:code -32700, :message "Parse error"}}) "\n"))
-                                                    (reset! buffer ""))))))
+                                                    (vreset! buffer ""))))))
                                        (.on socket "error" (fn [err]
                                                              (logging/error! "Socket error:" err))))))]
          (.on server "error" (fn [err]
