@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "calca-mcp-server": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${extensionInstallFolder:betterthantomorrow.calva-mcp-server}/dist/calva-mcp-server.js",
+        "${workspaceFolder}"
+      ]
+    }
+  }
+}
