@@ -14,7 +14,7 @@
     (swap! db/!app-db assoc :extension/context context))
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args%1}]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args%1}]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.startServer" [[:mcp/ax.start-server 9000]])
+  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.startServer" [[:mcp/ax.start-server]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]])
   (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
 

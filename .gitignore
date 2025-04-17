@@ -21,8 +21,9 @@ node_modules
 # Extension
 /out/
 
-# MCP stdio wrapper
+# MCP server
 dist/
+**/.calva/mcp-server/port
 
 # Portal
 **/.portal/vs-code.edn

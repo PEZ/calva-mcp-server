@@ -1,35 +1,33 @@
 (ns calva-mcp-server.mcp.fxs
   (:require
+   [calva-mcp-server.ex.ax :as ax]
+   [calva-mcp-server.mcp.server :as server]
    [cljs.core.match :refer [match]]
-   [promesa.core :as p]
-   [calva-mcp-server.mcp.server :as server]))
+   [promesa.core :as p]))
 
 (defn perform-effect! [dispatch! context effect]
   (match effect
     [:mcp/fx.start-server options]
-    (-> (p/catch
-         (server/start-server)
-         (fn [e]
-           (js/console.error "Failed to start MCP server:" e)
-           (when-let [on-error (:ex/on-error options)]
-             (dispatch! context [(conj (first on-error) (str e))]))
-           (throw e)))
-        (p/then (fn [_]
-                  (js/console.log "🚀 MCP server started on port"  "???")
-                  (when-let [on-success (:ex/on-success options)]
-                    (dispatch! context on-success)))))
+    (let [{:ex/keys [on-success on-error]} options]
+      (-> (server/start-server options)
+          (p/then (fn [{:server/keys [port] :as server-info}]
+                    (js/console.log "🚀 MCP server started on port" port)
+                    (dispatch! context (ax/enrich-with-args on-success server-info))))
+          (p/catch
+
+           (fn [e]
+             (js/console.error "Failed to start MCP server:" e)
+             (dispatch! context (ax/enrich-with-args on-error e))))))
 
     [:mcp/fx.stop-server options]
-    (-> (p/catch
-         (server/stop-server)
-         (fn [e]
-           (js/console.error "Failed to stop MCP server:" e)
-           (when-let [on-error (:ex/on-error options)]
-             (dispatch! context [(conj (first on-error) (str e))]))
-           (throw e)))
-        (p/then (fn [_]
-                  (js/console.log "🛑 MCP server stopped")
-                  (when-let [on-success (:ex/on-success options)]
+    (let [{:ex/keys [on-success on-error]} options]
+      (-> (p/catch
+           (server/stop-server options)
+           (fn [e]
+             (js/console.error "Failed to stop MCP server:" e)
+             (dispatch! context (ax/enrich-with-args on-error e))))
+          (p/then (fn [_]
+                    (js/console.log "🛑 MCP server stopped")
                     (dispatch! context on-success)))))
 
     :else

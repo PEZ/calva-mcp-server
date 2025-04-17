@@ -22,14 +22,18 @@
         (p/catch (fn [err]
                    (js/console.error "Failed to write to MCP server log:" err))))))
 
-(defn info [& messages]
+(defn info! [& messages]
   (apply js/console.log messages)
   (apply log! :info messages))
 
-(defn error [& messages]
+(defn error! [& messages]
   (apply js/console.error messages)
   (apply log! :error messages))
 
-(defn debug [& messages]
+(defn warn! [& messages]
+  (apply js/console.error messages)
+  (apply log! :warn messages))
+
+(defn debug! [& messages]
   (apply js/console.debug messages)
   (apply log! :debug messages))

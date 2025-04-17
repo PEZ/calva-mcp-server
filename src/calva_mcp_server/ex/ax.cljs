@@ -30,7 +30,7 @@
           object
           path))
 
-(defn- enrich-action-from-context [action context]
+(defn enrich-action-from-context [action context]
   (walk/postwalk
    (fn [x]
      (if (keyword? x)
