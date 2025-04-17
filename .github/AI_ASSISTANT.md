@@ -22,6 +22,12 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Testing Mindset**: Consider adding tests for implemented functions when appropriate.
 
+- **Explicit Context Passing**: Always pass context/data explicitly to functions rather than having them access global state directly. Never reach into app-db or other shared state from helper functions.
+
+- **Functional Purity**: Favor pure functions and immutable data structures. Isolate side effects and handle them explicitly, typically in effect handlers.
+
+- **One-Shot Changes**: Each PR or change should be focused on a single, well-defined problem. Aim for changes that require minimal review feedback beyond "Thanks for helping!"
+
 - **Clojure File Naming Convention**: (AI only) Follow the Clojure file naming convention where:
   - Namespaces use kebab-case with hyphens (e.g., `calva-mcp-server.ex.ax-test`)
   - File paths use snake_case with underscores (e.g., `calva_mcp_server/ex/ax_test.cljs`)
@@ -42,11 +48,15 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 4. **Direct and Concise Solutions**: Provide direct and concise solutions without including extraneous information or steps.
 
+5. **Error Handling**: Ensure all predictable errors are handled gracefully. Never let missing context, port conflicts, or similar issues crash the system.
+
 ## Project-Specific Guidelines
 
-- **Decision Awareness**: Identify when significant decisions need to be made, and initiate discussion.
+- **Decision Awareness**: Identify when significant decisions need to be made, and initiate discussion. Document the rationale for significant design or architectural decisions.
 
 - **Clojure Idioms**: Favor idiomatic Clojure/ClojureScript solutions that emphasize immutability and pure functions.
+
+- **Documentation with Code**: Update relevant documentation alongside code changes, especially when affecting usage or architecture.
 
 ---
 

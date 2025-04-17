@@ -2,7 +2,25 @@
 
 Welcome, Clojure cult member! This guide provides practical instructions for developing, testing, and contributing to the Calva MCP Server project. Pair programming, data-orientation, and functional thinking are encouraged throughout.
 
-## Documentation-Driven Development
+## Core Development Principles
+
+This project follows these key principles:
+
+### Functional Purity
+
+- **Pure Functions**: Minimize side effects and make them explicit when necessary
+- **Immutable Data**: Use immutable data structures and transformations
+- **Explicit Context Passing**: Never reach into global state or app-db from helper functions
+- **Controlled Side Effects**: Isolate side effects in clearly defined effect handlers
+- **Error Handling**: Handle all predictable errors gracefully with proper fallbacks
+
+### One-Shot Changes
+
+- Each PR should be a focused, atomic change solving a single, well-defined problem
+- Avoid drive-by refactors unless they are necessary for the change at hand
+- Include tests and documentation updates with functional changes
+
+### Documentation-Driven Development
 
 This project follows these principles:
 
@@ -71,12 +89,29 @@ Test runner logic: `e2e-test-ws/launch.js`, `e2e-test-ws/runTests.js`
 - **End-to-end tests**: Use the Babashka task as described above for full workflow validation
 - **Property-based tests**: Consider for robust behavior validation where appropriate
 
+**Error Handling Tests**:
+- Include test cases for expected error conditions
+- Validate that errors are handled gracefully
+- Ensure that systems degrade predictably under failure
+
 ## Commit and Documentation Practices
 
 - Make small, frequent commits with descriptive messages that tell the story of development
 - Keep code and documentation changes in sync
 - Ensure that each commit represents a coherent unit of work
-- Be super aware of when a decision point is reached.
+- Document design decisions and their rationale
+- When making significant architectural choices, update relevant documentation
+- Be super aware of when a decision point is reached
+
+## Decision Logging
+
+For significant design or implementation decisions:
+1. Document the problem being solved
+2. Outline the options considered
+3. Explain the reasoning behind the chosen solution
+4. Update relevant documentation to reflect the decision
+
+This practice creates an architectural decision record that helps future contributors understand why things are implemented in certain ways.
 
 ## Deployment and Distribution
 
