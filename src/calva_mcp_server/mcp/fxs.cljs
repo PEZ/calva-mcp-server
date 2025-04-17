@@ -24,8 +24,8 @@
       (-> (p/catch
            (server/stop-server options)
            (fn [e]
-             (js/console.error "Failed to stop MCP server:" e)
-             (dispatch! context (ax/enrich-with-args on-error e))))
+             (js/console.error "Failed to stop MCP server:" (.-message e))
+             (dispatch! context (ax/enrich-with-args on-error (.-message e)))))
           (p/then (fn [_]
                     (js/console.log "🛑 MCP server stopped")
                     (dispatch! context on-success)))))
