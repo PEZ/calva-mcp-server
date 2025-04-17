@@ -19,7 +19,7 @@
   (let [timestamp (.toISOString (js/Date.))
         formatted-message (apply str timestamp " [" (name level) "] " (map pr-str messages))
         log-entry (str formatted-message "\n")]
-    (-> (p/let [_ (.createDirectory vscode/workspace.fs log-dir-uri)
+    (-> (p/let [_ (vscode/workspace.fs.createDirectory log-dir-uri)
                 ^js log-uri (get-log-path log-dir-uri)]
           (append-file+ (.-fsPath log-uri) log-entry))
         (p/catch (fn [err]
