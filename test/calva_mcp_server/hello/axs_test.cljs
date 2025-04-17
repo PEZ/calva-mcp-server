@@ -47,8 +47,8 @@
     (is (= "DocClojurian"
            (:hello/last-greetee (:ex/db result)))
         "Doc greetee is saved in new state")
-    (is (= [[:vscode/fx.open-text-document {:app/content "Hello, DocClojurian!"
-                                            :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]
+    (is (= [[:vscode/fx.window.open-text-document {:app/content "Hello, DocClojurian!"
+                                                   :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]
            (:ex/fxs result))
         "The greetee doc is opened with correct content and then show-text-document is queued")
     (is (= [[:hello/ax.greeting-sent]]

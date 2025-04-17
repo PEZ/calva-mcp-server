@@ -11,14 +11,14 @@
           first
           .-uri))
 
+(defn- get-server-dir []
+  (vscode/Uri.joinPath (get-workspace-root-uri) ".calva" "mcp-server"))
+
 (defn- get-port-file-uri []
-  (when-let [^js root-uri (get-workspace-root-uri)]
-    (vscode/Uri.joinPath root-uri ".calva" "mcp-server" "port")))
+  (vscode/Uri.joinPath (get-server-dir) "port"))
 
 (defn- ensure-port-file-dir-exists []
-  (when-let [^js root-uri (get-workspace-root-uri)]
-    (let [dir-uri (vscode/Uri.joinPath root-uri ".calva" "mcp-server")]
-      (.createDirectory vscode/workspace.fs dir-uri))))
+  (vscode/workspace.fs.createDirectory (get-server-dir)))
 
 (def ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
@@ -36,69 +36,74 @@
   (evaluate-code "(+ 41 1)" js/undefined)
   :rcf)
 
-(defn handle-request [request]
-  (let [{:keys [id method params]} (js->clj request :keywordize-keys true)]
-    (cond
-      (= method "initialize")
-      {:jsonrpc "2.0"
-       :id id
-       :result {:capabilities {:name "CalvaMCP"
+(defn create-request-handler [log-uri]
+  (fn handle-request [request]
+    (logging/debug! log-uri "BOOM! handle-request" (pr-str request))
+    (let [{:keys [id method params]} (js->clj request :keywordize-keys true)]
+      (cond
+        (= method "initialize")
+        {:jsonrpc "2.0"
+         :id id
+         :result {:serverInfo {:name "CalvaMCP"
                                :version "0.1.0"
-                               :tools [{:name "calva-eval"
-                                        :description "Evaluate Clojure/ClojureScript code"
-                                        :parameters [{:name "code" :type "string"}]}]}}}
+                               :capabilities {:name "CalvaMCP"
+                                              :version "0.1.0"
+                                              :tools [{:name "calva-eval"
+                                                       :description "Evaluate Clojure/ClojureScript code"
+                                                       :parameters [{:name "code" :type "string"}]}]}}}}
 
-      (= method "listTools")
-      {:jsonrpc "2.0"
-       :id id
-       :result [{:name "calva-eval"
-                 :description "Evaluate Clojure/ClojureScript code"
-                 :parameters [{:name "code" :type "string"}]}]}
+        (= method "listTools")
+        {:jsonrpc "2.0"
+         :id id
+         :result [{:name "calva-eval"
+                   :description "Evaluate Clojure/ClojureScript code"
+                   :parameters [{:name "code" :type "string"}]}]}
 
-      (= method "invokeTool")
-      (let [{:keys [tool params]} params]
-        (if (= tool "calva-eval")
-          (p/let [result (evaluate-code (:code params) js/undefined)]
-            {:jsonrpc "2.0" :id id :result result})
-          {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}}))
+        (= method "invokeTool")
+        (let [{:keys [tool params]} params]
+          (if (= tool "calva-eval")
+            (p/let [result (evaluate-code (:code params) js/undefined)]
+              {:jsonrpc "2.0" :id id :result result})
+            {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}}))
 
-      :else
-      {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}})))
+        :else
+        {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}}))))
 
 (defn start-socket-server [log-uri]
-  (p/create
-   (fn [resolve reject]
-     (try
-       (let [server (.createServer net
-                                   (fn [^js socket]
-                                     (.setEncoding socket "utf8")
-                                     (let [buffer (volatile! "")]
-                                       (.on socket "data"
-                                            (fn [chunk]
-                                              (vswap! buffer str chunk)
-                                              (when (str/ends-with? @buffer "\n")
-                                                (try
-                                                  (p/let [request (js/JSON.parse @buffer)
-                                                          response (handle-request request)]
-                                                    (.write socket (str (js/JSON.stringify (clj->js response)) "\n"))
-                                                    (vreset! buffer ""))
-                                                  (catch :default parse-err
-                                                    (logging/error!  "Error parsing request JSON:" parse-err {:buffer @buffer})
-                                                    (.write socket (str (js/JSON.stringify #js {:jsonrpc "2.0", :error #js {:code -32700, :message "Parse error"}}) "\n"))
-                                                    (vreset! buffer ""))))))
-                                       (.on socket "error" (fn [err]
-                                                             (logging/error! "Socket error:" err))))))]
-         (.on server "error" (fn [err]
-                               (logging/error! "Server creation error:" err)
-                               (reject err)))
-         (.listen server 0 (fn []
-                             (let [address (.address server)
-                                   port (.-port address)]
-                               (logging/info! log-uri "Socket server listening on port" port)
-                               (resolve {:server/instance server :server/port port})))))
-       (catch :default e
-         (logging/error! log-uri "Error creating server:" e)
-         (reject e))))))
+  (let [handle-request (create-request-handler log-uri)]
+    (p/create
+     (fn [resolve reject]
+       (try
+         (let [server (.createServer net
+                                     (fn [^js socket]
+                                       (.setEncoding socket "utf8")
+                                       (let [buffer (volatile! "")]
+                                         (.on socket "data"
+                                              (fn [chunk]
+                                                (vswap! buffer str chunk)
+                                                (when (str/ends-with? @buffer "\n")
+                                                  (try
+                                                    (p/let [request (js/JSON.parse @buffer)
+                                                            response (handle-request request)]
+                                                      (.write socket (str (js/JSON.stringify (clj->js response)) "\n"))
+                                                      (vreset! buffer ""))
+                                                    (catch :default parse-err
+                                                      (logging/error!  "Error parsing request JSON:" parse-err {:buffer @buffer})
+                                                      (.write socket (str (js/JSON.stringify #js {:jsonrpc "2.0", :error #js {:code -32700, :message "Parse error"}}) "\n"))
+                                                      (vreset! buffer ""))))))
+                                         (.on socket "error" (fn [err]
+                                                               (logging/error! "Socket error:" err))))))]
+           (.on server "error" (fn [err]
+                                 (logging/error! "Server creation error:" err)
+                                 (reject err)))
+           (.listen server 0 (fn []
+                               (let [address (.address server)
+                                     port (.-port address)]
+                                 (logging/info! log-uri "Socket server listening on port" port)
+                                 (resolve {:server/instance server :server/port port})))))
+         (catch :default e
+           (logging/error! log-uri "Error creating server:" e)
+           (reject e)))))))
 
 (defn start-server [{:app/keys [log-uri]}]
   (p/let [server-info (start-socket-server log-uri)
@@ -109,7 +114,7 @@
        (ensure-port-file-dir-exists)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
        (logging/info! log-uri "Wrote port file:" (.-fsPath port-file-uri))
-       server-info)
+       (assoc server-info :server/log-uri (logging/get-log-path log-uri)))
       (do
         (logging/error! log-uri "Could not determine workspace root to write port file.")
         (p/rejected (js/Error. "Could not determine workspace root"))))))
@@ -132,7 +137,7 @@
                       (-> (.delete vscode/workspace.fs port-file-uri #js {:recursive false, :useTrash false})
                           (p/then (fn [_] (logging/info! log-uri "Deleted port file:" (.fsPath port-file-uri)) true))
                           (p/catch (fn [_del-err]
-                                     (logging/warn! "Could not delete port file (maybe already gone?).")
+                                     (logging/warn! log-uri "Could not delete port file (maybe already gone?).")
                                      true)))
                       (p/resolved true))))
           (p/catch (fn [err]

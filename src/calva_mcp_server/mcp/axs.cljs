@@ -35,8 +35,10 @@
               [:vscode/fx.set-context "calva-mcp:server-started" false]
               [:vscode/fx.show-information-message "MCP server stopped"]]}
 
-    [:mcp/ax.update-context running?]
-    {:ex/fxs [[:vscode/fx.set-context "calva-mcp:server-started" running?]]}
+    [:mcp/ax.open-server-log]
+    {:ex/fxs [[:vscode/fx.workspace.open-text-document
+               {:open/uri (get-in state [:app/server-info :server/log-uri])
+                :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}
 
     [:mcp/ax.server-error err]
     {:ex/fxs [[:vscode/fx.show-error-message (str "MCP server error: " err)]]}

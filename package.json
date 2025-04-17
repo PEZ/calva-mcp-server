@@ -20,8 +20,19 @@
   "enabledApiProposals": [
     "extensionRuntime"
   ],
-  "categories": ["Programming Languages", "Formatters", "Linters", "Other"],
-  "keywords": ["clojure", "clojurescript", "mcp", "model-context-protocol", "ai"],
+  "categories": [
+    "Programming Languages",
+    "Formatters",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "clojure",
+    "clojurescript",
+    "mcp",
+    "model-context-protocol",
+    "ai"
+  ],
   "activationEvents": [],
   "main": "out/extension.js",
   "contributes": {
@@ -41,26 +52,22 @@
         "command": "calva-mcp-server.startServer",
         "category": "Calva MCP Server",
         "enablement": "!calva-mcp:server-started",
-        "title": "Start MCP Server"
+        "title": "Start the Calva MCP Server"
       },
       {
         "command": "calva-mcp-server.stopServer",
         "category": "Calva MCP Server",
-        "enablement": "calva-mcp:server-started",
-        "title": "Stop MCP Server"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "calva-mcp-server.hello",
-        "key": "ctrl+alt+h h"
+        "_enablement": "calva-mcp:server-started",
+        "title": "Stop the Calva MCP Server"
       },
       {
-        "command": "calva-mcp-server.newHelloDocument",
-        "when": ":calva-mcp-server/active?",
-        "key": "ctrl+alt+h d"
+        "command": "calva-mcp-server.openServerLog",
+        "category": "Calva MCP Server",
+        "_enablement": "calva-mcp:server-started",
+        "title": "Open the Calva MCP Server Log"
       }
-    ]
+    ],
+    "keybindings": []
   },
   "scripts": {
     "clean": "rimraf .cpcache .shadow-cljs/ out/",
@@ -80,12 +87,13 @@
     "@vscode/codicons": "^0.0.36"
   },
   "devDependencies": {
+    "@types/node": "^22.14.1",
     "@types/vscode": "^1.99.1",
-    "rimraf": "^6.0.1",
-    "shadow-cljs": "2.28.23",
-    "@vscode/vsce": "^3.3.2",
     "@vscode/test-electron": "~2.5.2",
-    "ovsx": "~0.10.1"
+    "@vscode/vsce": "^3.3.2",
+    "ovsx": "~0.10.1",
+    "rimraf": "^6.0.1",
+    "shadow-cljs": "2.28.23"
   },
   "extensionDependencies": [
     "betterthantomorrow.calva"

@@ -18,7 +18,7 @@
                      (when input
                        (dispatch! context (ax/enrich-with-args then input))))))))
 
-    [:vscode/fx.open-text-document options]
+    [:vscode/fx.window.open-text-document options]
     (let [{:keys [ex/then app/content]} options]
       (if-not then
         (vscode/window.showInputBox options)
@@ -26,6 +26,15 @@
             (.then (fn [document]
                      (when document
                        (dispatch! context (ax/enrich-with-args then document))))))))
+
+    [:vscode/fx.workspace.open-text-document options]
+    (let [{:keys [open/uri ex/then]} options]
+      (-> (vscode/workspace.openTextDocument uri)
+          (.then (fn [document]
+                   (when (and document then)
+                     (dispatch! context (ax/enrich-with-args then document))))
+                 (fn [error]
+                   (js/console.error "Error opening or showing document:" uri error)))))
 
     [:vscode/fx.show-text-document document]
     (vscode/window.showTextDocument document)

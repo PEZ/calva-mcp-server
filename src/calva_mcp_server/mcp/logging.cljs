@@ -1,39 +1,42 @@
 (ns calva-mcp-server.mcp.logging
   (:require ["vscode" :as vscode]
+            ["fs" :as fs]
             [promesa.core :as p]))
 
-(defn- get-log-path []
-  (when-let [ext-dir (.-logUri vscode/env)]
-    (let [log-uri (.joinPath vscode/Uri (.toString ext-dir) "mcp-server.log")
-          dir-uri (.joinPath vscode/Uri (.toString ext-dir) "")]
-      (-> (p/do!
-           (.createDirectory vscode/workspace.fs dir-uri)
-           log-uri)))))
+(defn append-file+ [path data]
+  (p/create
+   (fn [resolve-fn reject]
+     (fs/appendFile path data
+                    (fn [err]
+                      (if err
+                        (reject err)
+                        (resolve-fn)))))))
 
-(defn log! [level message & data]
+(defn get-log-path [log-dir-uri]
+  (vscode/Uri.joinPath log-dir-uri "mcp-server.log"))
+
+(defn log! [log-dir-uri level & messages]
   (let [timestamp (.toISOString (js/Date.))
-        formatted-message (str timestamp " [" (name level) "] " message
-                               (when data (str " " (pr-str data))))
-        log-entry (str formatted-message "\n")
-        log-entry-data (js/Buffer.from log-entry)]
-    (-> (p/let [log-uri (get-log-path)]
-          (when log-uri
-            (.writeFile vscode/workspace.fs log-uri log-entry-data #js {:create true, :overwrite false})))
+        formatted-message (apply str timestamp " [" (name level) "] " (map pr-str messages))
+        log-entry (str formatted-message "\n")]
+    (-> (p/let [_ (.createDirectory vscode/workspace.fs log-dir-uri)
+                ^js log-uri (get-log-path log-dir-uri)]
+          (append-file+ (.-fsPath log-uri) log-entry))
         (p/catch (fn [err]
                    (js/console.error "Failed to write to MCP server log:" err))))))
 
-(defn info! [& messages]
+(defn info! [log-dir-uri & messages]
   (apply js/console.log messages)
-  (apply log! :info messages))
+  (apply log! log-dir-uri :info messages))
 
-(defn error! [& messages]
+(defn error! [log-dir-uri & messages]
   (apply js/console.error messages)
-  (apply log! :error messages))
+  (apply log! log-dir-uri :error messages))
 
-(defn warn! [& messages]
+(defn warn! [log-dir-uri & messages]
   (apply js/console.error messages)
-  (apply log! :warn messages))
+  (apply log! log-dir-uri :warn messages))
 
-(defn debug! [& messages]
+(defn debug! [log-dir-uri & messages]
   (apply js/console.debug messages)
-  (apply log! :debug messages))
+  (apply log! log-dir-uri :debug messages))
