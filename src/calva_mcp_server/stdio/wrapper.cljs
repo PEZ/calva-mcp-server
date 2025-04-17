@@ -36,7 +36,7 @@
                 (str (js/JSON.stringify
                       #js {:jsonrpc "2.0",
                            :error #js {:code -32002,
-                                      :message "Configuration error: Workspace path not provided to MCP wrapper script."}})
+                                       :message "Configuration error: Workspace path not provided to MCP wrapper script."}})
                      "\n"))
         (.exit process 1))
       (p/let [port (read-port-from-file workspace-path)]
@@ -83,6 +83,6 @@
                     (str (js/JSON.stringify
                           #js {:jsonrpc "2.0",
                                :error #js {:code -32001,
-                                          :message "Calva MCP backend server not running or port file missing. Please start it using the 'Calva MCP Server: Start MCP Server' command in VS Code."}})
+                                           :message "Calva MCP backend server not running or port file missing. Please start it using the 'Calva MCP Server: Start MCP Server' command in VS Code."}})
                          "\n"))
             (.exit process 1)))))))

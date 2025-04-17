@@ -120,13 +120,13 @@
             _ (logging/info! log-uri "Stopping socket server...")]
       (-> (p/create (fn [resolve reject]
                       (.close instance (fn [err]
-                                                (if err
-                                                  (do
-                                                    (logging/error! log-uri "Error stopping socket server:" err)
-                                                    (reject err))
-                                                  (do
-                                                    (logging/info! log-uri "Socket server stopped.")
-                                                    (resolve true)))))))
+                                         (if err
+                                           (do
+                                             (logging/error! log-uri "Error stopping socket server:" err)
+                                             (reject err))
+                                           (do
+                                             (logging/info! log-uri "Socket server stopped.")
+                                             (resolve true)))))))
           (p/then (fn [_]
                     (if port-file-uri
                       (-> (.delete vscode/workspace.fs port-file-uri #js {:recursive false, :useTrash false})
