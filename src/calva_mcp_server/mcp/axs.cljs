@@ -23,7 +23,7 @@
     {:ex/db (assoc state :app/server-stopping? true)
      :ex/fxs [[:vscode/fx.set-context "calva-mcp:server-stopping" true]
               [:mcp/fx.stop-server (merge {:app/log-uri :context/logUri
-                                           :ex/on-success [:mcp/ax.server-stopped]
+                                           :ex/on-success [[:mcp/ax.server-stopped]]
                                            :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}
                                           (:app/server-info state))]]}
 
