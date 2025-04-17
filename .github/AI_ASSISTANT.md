@@ -36,6 +36,17 @@ This document provides instructions for AI assistants working on the Calva MCP S
 
 - **Efficient Commits**: (AI only) Chain git commands (add, commit, push) to streamline the commit process, requiring only a single confirmation.
 
+- **State Management**: Prefer storing state in the central app-db rather than using local atoms in modules. State changes should flow through the action/effect cycle.
+
+- **Code Editing Style**: When editing files:
+  - Provide the whole file so that the human can apply one edit
+  - Don't include code comments that tell the human what you changed. Use the chat for that
+
+- **Action/Effect Pattern**:
+  - Actions should include success/error callbacks in their data
+  - Effects should resolve with data that subsequent actions can use
+  - Pass dependencies explicitly to effect handlers
+
 ## Problem Solving Approach
 
 1. **Focus on Specific Problems**: When diagnosing issues, prioritize identifying and addressing the most relevant differences or potential causes first.
