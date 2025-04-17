@@ -35,7 +35,7 @@
         (.write (.-stdout process)
                 (str (js/JSON.stringify
                       #js {:jsonrpc "2.0",
-                           :error #js {:code -32002, ; Use a different code?
+                           :error #js {:code -32002,
                                       :message "Configuration error: Workspace path not provided to MCP wrapper script."}})
                      "\n"))
         (.exit process 1))
@@ -67,15 +67,15 @@
 
             (.on socket "close"
                  (fn []
-                   (js/console.log "Socket closed, exiting.")
+                   (js/console.error "Socket closed, exiting.")
                    (.exit process 0)))
 
             (.on stdin "close"
                  (fn []
-                   (js/console.log "Stdin closed, closing socket.")
+                   (js/console.error "Stdin closed, closing socket.")
                    (.end socket)))
 
-            (js/console.log (str "stdio wrapper connected to port " port)))
+            (js/console.error (str "stdio wrapper connected to port " port)))
 
           (do
             (js/console.error (str "Port file not found or invalid relative to workspace: " workspace-path))
