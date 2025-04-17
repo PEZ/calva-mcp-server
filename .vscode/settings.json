@@ -17,7 +17,7 @@
             "menuSelections": {
                 "cljAliases": [],
                 "cljsDefaultBuild": ":extension",
-                "cljsLaunchBuilds": [":extension", ":test-watch"]
+                "cljsLaunchBuilds": [":extension", ":test-watch", ":stdio-wrapper"]
             }
         }
     ],

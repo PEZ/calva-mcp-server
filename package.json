@@ -86,5 +86,8 @@
     "@vscode/vsce": "^3.3.2",
     "@vscode/test-electron": "~2.5.2",
     "ovsx": "~0.10.1"
-  }
+  },
+  "extensionDependencies": [
+    "betterthantomorrow.calva"
+  ]
 }

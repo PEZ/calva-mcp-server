@@ -9,6 +9,9 @@
               :output-to "out/extension.js"
               :exports {:activate calva-mcp-server.extension/activate
                         :deactivate calva-mcp-server.extension/deactivate}}
+  :stdio-wrapper {:target :node-script
+                  :main calva-mcp-server.stdio.wrapper/main
+                  :output-to "dist/calva-mcp-server.js"}
   :test-watch
   {:target    :node-test
    :output-to "out/extension-tests.js"

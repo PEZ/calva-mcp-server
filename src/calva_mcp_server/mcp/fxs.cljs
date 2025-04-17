@@ -8,14 +8,14 @@
   (match effect
     [:mcp/fx.start-server options]
     (-> (p/catch
-         (server/start-server (:mcp/port options))
+         (server/start-server)
          (fn [e]
            (js/console.error "Failed to start MCP server:" e)
            (when-let [on-error (:ex/on-error options)]
              (dispatch! context [(conj (first on-error) (str e))]))
            (throw e)))
         (p/then (fn [_]
-                  (js/console.log "🚀 MCP server started on port" (:mcp/port options))
+                  (js/console.log "🚀 MCP server started on port"  "???")
                   (when-let [on-success (:ex/on-success options)]
                     (dispatch! context on-success)))))
 

@@ -21,6 +21,9 @@ node_modules
 # Extension
 /out/
 
+# MCP stdio wrapper
+dist/
+
 # Portal
 **/.portal/vs-code.edn
 

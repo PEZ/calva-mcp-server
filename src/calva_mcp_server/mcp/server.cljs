@@ -1,101 +1,97 @@
 (ns calva-mcp-server.mcp.server
-  (:require [cljs.nodejs :as nodejs]
-            [calva-mcp-server.mcp.logging :as log]
-            [promesa.core :as p]))
+  (:require
+   ["net" :as net]
+   ["vscode" :as vscode]
+   [calva-mcp-server.mcp.logging :as log]
+   [clojure.string :as str]
+   [promesa.core :as p]))
 
-(defonce ^js http (nodejs/require "http"))
+(def ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
-(defn handler [^js req ^js res]
-  (println "BOOM! handler")
-  (let [url-obj (js/URL. (.-url req) "http://localhost")
-        path (.-pathname url-obj)]
-    (log/debug "MCP server request" {:path path})
+(def ^js calvaApi (-> calvaExt
+                      .-exports
+                      .-v1
+                      (js->clj :keywordize-keys true)))
+
+(defn evaluate-code [code session]
+  (p/let [evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
+          result (.-result evaluation+)]
+    result))
+
+(comment
+  (evaluate-code "(+ 41 1)" js/undefined)
+  :rcf)
+
+(defn handle-request [request]
+  (let [{:keys [id method params]} (js->clj request :keywordize-keys true)]
     (cond
-      (= path "/hello")
-      (do
-        (log/info "MCP server hello request")
-        (doto res
-          (.writeHead 200 #js {"Content-Type" "application/json"})
-          (.end (js/JSON.stringify (clj->js {:message "Hello, World!"})))))
+      (= method "initialize")
+      {:jsonrpc "2.0"
+       :id id
+       :result {:capabilities {:name "CalvaMCP"
+                               :version "0.1.0"
+                               :tools [{:name "calva-eval"
+                                        :description "Evaluate Clojure/ClojureScript code"
+                                        :parameters [{:name "code" :type "string"}]}]}}}
 
-      (= path "/status")
-      (do
-        (log/info "MCP server status request")
-        (doto res
-          (.writeHead 200 #js {"Content-Type" "application/json"})
-          (.end (js/JSON.stringify (clj->js {:connected true
-                                             :session "cljs"
-                                             :namespace "user"
-                                             :version "0.1.0"})))))
+      (= method "listTools")
+      {:jsonrpc "2.0"
+       :id id
+       :result [{:name "calva-eval"
+                 :description "Evaluate Clojure/ClojureScript code"
+                 :parameters [{:name "code" :type "string"}]}]}
 
-      (= path "/capabilities")
-      (do
-        (log/info "MCP server capabilities request")
-        (doto res
-          (.writeHead 200 #js {"Content-Type" "application/json"})
-          (.end (js/JSON.stringify (clj->js {:tools [{:name "hello-world"
-                                                      :description "Returns a friendly greeting."
-                                                      :parameters []
-                                                      :endpoint "/hello"}]})))))
+      (= method "invokeTool")
+      (let [{:keys [tool params]} params]
+        (if (= tool "calva-eval")
+          (p/let [result (evaluate-code (:code params) js/undefined)]
+            {:jsonrpc "2.0" :id id :result result})
+          {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}}))
 
       :else
-      (do
-        (log/info "MCP server unknown request" {:path path})
-        (doto res
-          (.writeHead 404 #js {"Content-Type" "application/json"})
-          (.end (js/JSON.stringify #js {:error "Not found"})))))))
+      {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}})))
 
-(defonce server-instance (atom nil))
+(defn start-socket-server []
+  (let [server (.createServer net (fn [^js socket]
+                                    (.setEncoding socket "utf8")
+                                    (let [buffer (atom "")]
+                                      (.on socket "data" (fn [chunk]
+                                                           (swap! buffer str chunk)
+                                                           (when (str/ends-with? @buffer "\n")
+                                                             (p/let [request (js/JSON.parse @buffer)
+                                                                     response (handle-request request)]
+                                                               (.write socket (str (js/JSON.stringify (clj->js response)) "\n"))
+                                                               (reset! buffer "")))))
+                                      (.on socket "error" (fn [err]
+                                                            (log/error "Socket error:" err))))))]
+    (.listen server 0 (fn []
+                        (log/info "Socket server listening on port" (.-port (.address server)))))
+    server))
 
-(defn start-server
-  ([] (start-server 9000))
-  ([port]
-   (try
-     (log/info "Starting MCP server" {:port port})
-     (let [new-server (.createServer http (fn [^js req ^js res]
-                                            (try
-                                              (handler req res)
-                                              (catch :default err
-                                                (log/error "Handler error:" err)
-                                                (when-not (unchecked-get res "headersSent")
-                                                  (doto res
-                                                    (.writeHead 500 #js {"Content-Type" "application/json"})
-                                                    (.end (js/JSON.stringify #js {:error "Internal server error"}))))))))
-           promise (p/create (fn [resolve reject]
-                               (.on new-server "error" (fn [err]
-                                                         (log/error "Server error:" err)
-                                                         (reject err)))
-                               (.listen new-server port (fn []
-                                                          (log/info "MCP server listening on port" port)
-                                                          (reset! server-instance new-server)
-                                                          (resolve new-server)))))]
-       promise)
-     (catch :default err
-       (log/error "Failed to start MCP server:" err)
-       (p/rejected err)))))
+(def socket-server (atom nil))
+
+(defn start-server []
+  (p/let [srv (start-socket-server)]
+    (reset! socket-server srv)
+    (.-port (.address srv))))
+
 
 (defn stop-server []
-  (log/info "Stopping MCP server" @server-instance)
-  (if-let [srv @server-instance]
+  (if-let [srv @socket-server]
     (p/create (fn [resolve reject]
-                (try
-                  (.close srv (fn [err]
-                                (if err
-                                  (do
-                                    (log/error "Error stopping MCP server:" err)
-                                    (reject err))
-                                  (do
-                                    (reset! server-instance nil)
-                                    (log/info "MCP server stopped")
-                                    (resolve nil)))))
-                  (catch :default err
-                    (log/error "Exception stopping MCP server:" err)
-                    (reject err)))))
+                (log/info "Stopping socket server...")
+                (.close srv (fn [err]
+                              (if err
+                                (do
+                                  (log/error "Error stopping socket server:" err)
+                                  (reject err))
+                                (do
+                                  (log/info "Socket server stopped.")
+                                  (reset! socket-server nil)
+                                  (resolve true)))))))
     (do
-      (log/info "No MCP server instance to stop")
-      (p/resolved nil))))
-
-;; To start the server, call (start-server) or (start-server port)
+      (log/info "Socket server not running.")
+      (p/resolved false))))
 
 (comment
   (start-server)
