@@ -12,9 +12,9 @@ A Model Context Protocol server extension for [Calva](https://calva.io), the Clo
 
 "I wish Copilot could actually run my Clojure code instead of just guessing what it might do."
 
-If you've had this thought, Calva MCP Server is built for you. It transforms AI coding assistants from static code generators into interactive programming partners by giving them access to your REPL.
+The Calva MCP Server transforms AI coding assistants from static code generators into interactive programming partners by giving them access to your REPL. (Please be mindful about the implications of that before you start using it.)
 
-### Turn Your AI Assistant Into a REPL-Aware Coding Partner
+### Turn your AI Agent into an Interactive Programming partner
 
 Tired of AI tools that write plausible-looking Clojure that falls apart at runtime? Calva MCP Server lets your AI assistant:
 
@@ -24,14 +24,14 @@ Tired of AI tools that write plausible-looking Clojure that falls apart at runti
 - **Debug alongside you** with access to runtime errors
 - **Learn from your codebase's actual behavior**
 
-### For Clojurians Who Value REPL-Driven Development
+### For Clojurians who value Iiteractive Programming
 
 As Clojure developers, we know the REPL isn't just a console - it's the center of our workflow. Now your AI assistant can join that workflow, understanding your data and functions as they actually exist, not just as they appear in static code.
 
 ## Key Features
 
 - Seamless integration between GitHub Copilot and your Calva REPL
-- AI-driven code evaluation with full access to your project's runtime
+- AI-driven code evaluation with full access to your project's runtime (⚠️)
 - Interactive data exploration for smarter code suggestions
 - REPL-powered debugging assistance
 - Works with your existing Clojure/ClojureScript projects
@@ -43,12 +43,20 @@ As Clojure developers, we know the REPL isn't just a console - it's the center o
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
 - An AI coding assistant (e.g., GitHub Copilot)
+- Any Clojure environment dependencies your project has (e.g. Clojure, Babashka, etc)
 
 ### Installation
 
-1. Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
-2. Connect Calva to your Clojure/ClojureScript project
-3. Start using your AI assistant with REPL superpowers!
+1. Install Calva MCP Server from the Extensions pane in VS Code
+1. Start the Calva MCP Server
+1. Add the MCP server from the CoPilot chat in Agent mode (further instructions TBD)
+1. Stop the Calva MCP Server (it's a habit to consider, at least)
+
+### Using
+
+1. Connect Calva to your Clojure/ClojureScript project
+1. Start the Calva MCP Server
+3. Start using your AI Agent with REPL superpowers!
 
 ## How It Works
 
@@ -118,9 +126,14 @@ Contributions are welcome! See our [Contribution Guidelines](CONTRIBUTING.md) fo
 
 ## License
 
+
+## License 🍻🗽
+
 [MIT](LICENSE.txt)
 
-## Acknowledgments
 
-- [Calva](https://calva.io) - The Clojure/ClojureScript extension for VS Code
-- [Model Context Protocol](https://modelcontextprotocol.io) - The protocol enabling AI tool integration
+## Sponsor my open source work ♥️
+
+You are welcome to show me you like my work using this link:
+
+* https://github.com/sponsors/PEZ

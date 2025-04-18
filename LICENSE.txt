@@ -1,7 +1,7 @@
 MIT License
 
-Copyright (c) 2024 Peter Strömberg, pez@pezius.com
-Copyright (c) 2024 Your Name, Your Email
+Copyright (c) 2025 Peter Strömberg, pez@pezius.com
+Copyright (c) 2025 Your Name, Your Email
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
