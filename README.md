@@ -91,19 +91,21 @@ flowchart TD
     AIAgent --> MCP
     MCP --> Calva
 
-    classDef users fill:#ffffff,stroke:#ffffff,stroke-width:2px,color:#000000;
+    classDef users fill:#ffffff,stroke:#63b132,stroke-width:1px,color:#63b132;
     classDef programmers fill:#63b132,stroke:#000000,stroke-width:2px,color:#ffffff;
     classDef vscode fill:#0078d7,stroke:#000000,stroke-width:1px,color:#ffffff;
     classDef calva fill:#df793b,stroke:#ffffff,stroke-width:1px,color:#ffffff;
     classDef highlight fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
     classDef dark fill:#333333,stroke:#ffffff,stroke-width:1px,color:#ffffff;
     classDef repl fill:#5881d8,stroke:#ffffff,stroke-width:1px,color:#ffffff;
-    classDef running fill:#63b132,stroke:#000000,stroke-width:1px,color:#ffffff;
+    classDef running fill:#63b132,stroke:#ffffff,stroke-width:1px,color:#ffffff;
+    classDef project fill:#888888,stroke:#ffffff,stroke-width:1px,color:#ffffff;
 
     class User,AIAgent users;
     class VSCode vscode;
     class Calva,MCP calva;
     class REPLClient repl;
+    class Project project;
     class SourceCode dark;
     class RunningApp running;
     class REPL repl;
