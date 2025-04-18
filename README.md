@@ -57,24 +57,61 @@ Calva MCP Server implements the [Model Context Protocol](https://modelcontextpro
 1. When your AI assistant needs to understand your code better, it can execute it in your REPL
 2. The results flow back to the AI, giving it insight into actual data shapes and function behavior
 3. This creates a powerful feedback loop where suggestions improve based on runtime information
+4. You remain in control of this process, benefiting from an AI partner that truly understands your running code
 
-```
-  ┌────────────┐    ┌───────────────┐    ┌───────────┐
-  │            │    │               │    │           │
-  │ AI Coding  │◄──►│  Calva MCP    │◄──►│  Calva    │
-  │ Assistant  │    │  Server       │    │  REPL     │
-  │            │    │               │    │           │
-  └────────────┘    └───────────────┘    └───────────┘
-         ▲                                     ▲
-         │                                     │
-         └────────────┐             ┌─────────┘
-                      ▼             ▼
-                  ┌───────────────────┐
-                  │                   │
-                  │  Your Clojure     │
-                  │  Project          │
-                  │                   │
-                  └───────────────────┘
+```mermaid
+flowchart TD
+    subgraph InteractiveProgrammers["Interactive Programmers"]
+        direction LR
+        User([You]) <--> AI([AI Agent])
+    end
+
+    subgraph VSCode["VS Code"]
+        direction TB
+
+        subgraph Calva["Calva"]
+            direction TB
+            subgraph REPLClient["REPL Client"]
+            end
+        end
+
+        MCP["Calva MCP Server"]
+
+        subgraph Project["Clojure Project"]
+            direction TB
+            SourceCode["Source Code"]
+
+            subgraph RunningApp["Running Application"]
+                direction TB
+                REPL["REPL"]
+            end
+        end
+    end
+
+    User --> Calva
+    User --> SourceCode
+    REPLClient --> REPL
+    MCP --> Calva
+    MCP --> REPL
+    AI --> MCP
+    AI --> SourceCode
+
+    classDef users fill:#ffffff,stroke:#000000,stroke-width:2px;
+    classDef programmers fill:#333333,stroke:#000000,stroke-width:2px,color:#ffffff;
+    classDef vscode fill:#0078d7,stroke:#000000,stroke-width:1px,color:#ffffff;
+    classDef calva fill:#df793b,stroke:#000000,stroke-width:1px,color:#ffffff;
+    classDef highlight fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
+    classDef dark fill:#333333,stroke:#ffffff,stroke-width:1px,color:#ffffff;
+    classDef secondary fill:#cccccc,stroke:#000000,stroke-width:1px;
+
+    class User,AI users;
+    class VSCode vscode;
+    class Calva,MCP calva;
+    class REPLClient highlight;
+    class SourceCode dark;
+    class RunningApp secondary;
+    class REPL highlight;
+    class InteractiveProgrammers programmers;
 ```
 
 ## Contributing
