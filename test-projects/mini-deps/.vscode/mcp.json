@@ -1,6 +1,6 @@
 {
   "servers": {
-    "calva-mcp-server": {
+    "calva": {
       "type": "stdio",
       "command": "node",
       "args": [

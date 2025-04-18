@@ -36,9 +36,16 @@
   (evaluate-code "(+ 41 1)" js/undefined)
   :rcf)
 
-(def ^:private tools [{:name "calva-eval"
+(def ^:private tools [{:id "calva-eval"
+                       :name "calva-eval"
                        :description "Evaluate Clojure/ClojureScript code"
-                       :parameters [{:name "code" :type "string"}]}])
+                       :inputSchema {:type "object"
+                                     :properties {"code" {:type "string"
+                                                          :description "Clojure/ClojureScript code to evaluate"}}
+                                     :required ["code"]}
+                       :parameters [{:name "code"
+                                     :type "string"
+                                     :description "Clojure/ClojureScript code to evaluate"}]}])
 
 (defn create-request-handler [log-uri]
   (fn handle-request [{:keys [id method params] :as request}]
@@ -48,16 +55,17 @@
       (let [response {:jsonrpc "2.0"
                       :id id
                       :result {:serverInfo {:name "CalvaMCP"
-                                            :version "0.1.0"}
-                               :capabilities {:name "CalvaMCP"
-                                              :version "0.1.0"
-                                              :tools tools}}}]
+                                            :version "0.0.1"}
+                               :protocolVersion "2024-11-05"
+                               :capabilities {:tools {:listChanged true}
+                                              :listToolsProvider true}}}]
         response)
 
-      (= method "tools/list")
+      (or (= method "tools/list") (= method "listTools"))
       (let [response {:jsonrpc "2.0"
                       :id id
-                      :result tools}]
+                      :result {:tools tools}}]
+        (logging/debug! log-uri "Formatted tools response:" (pr-str tools))
         response)
 
       (= method "invokeTool")
@@ -104,13 +112,12 @@
                                             (.write socket (str (js/JSON.stringify (clj->js response)) "\n")))
                                           (logging/debug! log-uri
                                                           "BOOM! not sending response for '"
-                                                          method "' "
-                                                          (pr-str response)))
+                                                          method "'"))
                                         (vreset! buffer ""))
                                       (catch :default parse-err
                                         (logging/error! log-uri
                                                         "Error parsing request JSON:"
-                                                         parse-err {:buffer @buffer})
+                                                        parse-err {:buffer @buffer})
                                         (.write socket (str (js/JSON.stringify
                                                              #js {:jsonrpc "2.0"
                                                                   :error #js {:code -32700
