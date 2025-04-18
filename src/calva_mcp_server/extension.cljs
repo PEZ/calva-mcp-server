@@ -1,8 +1,8 @@
 (ns calva-mcp-server.extension
   (:require
+   [calva-mcp-server.ex.ex :as ex]
    [calva-mcp-server.extension.db :as db]
-   [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]
-   [calva-mcp-server.extension.when-contexts :as when-contexts]))
+   [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]))
 
 ;;;;; Extension activation entry point
 
@@ -17,7 +17,7 @@
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.startServer" [[:mcp/ax.start-server]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.openServerLog" [[:mcp/ax.open-server-log]])
-  (when-contexts/set-context!+ db/!app-db :calva-mcp-server/active? true)
+  (ex/dispatch! context [[:extension/ax.set-when-context :calva-mcp-server/active? true]])
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")
   (js/console.timeEnd "activation")

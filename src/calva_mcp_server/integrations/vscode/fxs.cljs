@@ -39,5 +39,8 @@
     [:vscode/fx.show-text-document document]
     (vscode/window.showTextDocument document)
 
+    [:vscode/fx.set-context k v]
+    (vscode/commands.executeCommand "setContext" (str k) v)
+
     :else
     (js/console.error "Unknown effect:" (pr-str effect))))

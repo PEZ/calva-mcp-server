@@ -2,8 +2,7 @@
   (:require
    ["vscode" :as vscode]
    [calva-mcp-server.ex.ax :as ax]
-   [calva-mcp-server.ex.ex :as ex]
-   [calva-mcp-server.extension.when-contexts :as when-contexts]))
+   [calva-mcp-server.ex.ex :as ex]))
 
 
 ;;;;; Extension lifecycle helper functions
@@ -19,7 +18,8 @@
   (swap! !state assoc :extension/disposables []))
 
 (defn cleanup! [!state]
-  (when-contexts/set-context!+ !state :calva-mcp-server/active? false)
+  (when (:extension/context @!state)
+    (ex/dispatch! (:extension/context @!state) [[:extension/ax.set-when-context :calva-mcp-server/active? false]]))
   (clear-disposables! !state))
 
 (defn register-command!
