@@ -1,26 +1,25 @@
 # Calva MCP Server - Ex Architecture
 
-This document describes the Ex (Event Dispatch) architecture used in the Calva MCP Server project. Ex is a micro framework that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow.
+**Ex** is a micro framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way) and [Replicant](https://replicant.fun).
 
 ## Core Concepts
 
 The Ex architecture revolves around these key concepts:
 
-1. **Actions (ax)**: Pure data structures representing operations to perform, structured as vectors with a namespaced keyword identifier and parameters
-2. **Effects (fx)**: Data structures representing controlled side effects
+1. **Actions (`:ex/axs`)**: Pure data structures representing operations to perform, structured as vectors with a namespaced keyword identifier and parameters
+2. **Effects (`:ex/fxs`)**: Data structures representing controlled side effects. The effects dispatcher will call the actual functions.
 3. **Action Enrichment**: System for transforming pure data structures with contextual information at runtime
-4. **Dispatch**: Mechanism for action processing, new state creation, and triggering effects
-5. **Application State**: Immutable data managed through atoms
-6. **Action Dispatches (dxs)**: New actions to process after the current action completes
+4. **Dispatch**: Mechanism for **actions** dispatch, available to all actions (`:ex/dxs`) and effects (they get passed a `dispatch!` function)
+5. **Central Application State**: Actions get the current state as an immutable map and return new state. State is centrally updated on a the app-db atom in the dispatch handler. Basically it is treated as the side effect it is.
 
 ## Evolutionary Design
 
 The Ex framework is embedded directly in the project source (in the `calva_mcp_server.ex` namespace) rather than imported as a library. This is intentional, allowing the framework to evolve alongside the project's needs. As requirements change, the framework can be extended with:
 
-- New enrichment strategies
-- Additional effect types
+- New enrichments
+- Additional effects
 - Modified dispatch behaviors
-- Domain-specific optimizations
+- Anything
 
 This evolutionary approach ensures the architecture remains flexible and tailored to the specific needs of the Calva MCP Server project.
 
@@ -29,11 +28,11 @@ This evolutionary approach ensures the architecture remains flexible and tailore
 The Ex architecture follows a unidirectional data flow pattern with clear separation between pure functions and side effects:
 
 1. `dispatch!` function receives an actions collection and calls `handle-actions`
-2. `handle-actions` processes each action sequentially with the latest state
+2. `handle-actions` processes each action (`ax`) sequentially with the latest state
 3. Each individual action goes through:
-   - Enrichment (context and state)
+   - Enrichment (from extension context and app state)
    - Domain-specific handling
-   - Result generation with `:ex/db`, `:ex/fxs`, `:ex/dxs` keys
+   - Result generation a map with any (or none) of the `:ex/db`, `:ex/fxs`, `:ex/dxs` entries.
 4. Results are accumulated into a single batch result
 5. The dispatcher then:
    - Updates application state via `reset!` (a controlled side effect)
@@ -44,7 +43,7 @@ The Ex architecture follows a unidirectional data flow pattern with clear separa
 
 ### 1. Action Handler (ax.cljs)
 
-The action handler system processes actions by:
+The action handler processes actions by:
 1. Enriching actions with context and state
 2. Routing actions to domain-specific handlers based on namespace
 3. Returning action results with new state and effects
@@ -55,9 +54,9 @@ The action handler system processes actions by:
                             (enrich-action-from-context context)
                             (enrich-action-from-state state))]
     (match (namespace action-kw)
-      "hello"  (hello-axs/handle-action state context enriched-action)
-      "vscode" (vscode-axs/handle-action state context enriched-action)
-      "node"   (node-axs/handle-action state context enriched-action)
+      "vscode"    (vscode-axs/handle-action state context enriched-action)
+      "node"      (node-axs/handle-action state context enriched-action)
+      "mcp"       (node-axs/handle-action state context enriched-action)
       "ex-test"   (ex-test-axs/handle-action state context enriched-action)
       :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 ```
@@ -143,7 +142,8 @@ Replaces `[:db/get key]` vectors with values from the application state:
 ```
 
 ### Arguments Enrichment
-Supports passing arguments between effects and subsequent actions:
+
+Supports passing arguments from effects to subsequent actions:
 
 ```clojure
 (defn enrich-with-args [actions args]
@@ -265,9 +265,10 @@ This function:
 
 The architecture uses namespaced actions and effects to create clear domain boundaries:
 
-1. **hello**: Example greeting functionality
-2. **vscode**: VS Code-specific operations
-3. **node**: Node.js operations like logging
+1. **vscode**: VS Code-specific operations
+1. **node**: Node.js operations like logging
+1. **mcp**: the mcp server
+1. **test**: used by the unit tests testing Ex itself
 
 Each domain has its own action and effect handlers, following a consistent pattern.
 
@@ -282,14 +283,20 @@ The architecture supports async operations primarily through effect handlers. Fo
 
 This creates a clean way to handle asynchronous flows while maintaining pure data structures for actions and effects.
 
-## Benefits
+## Cons
+
+* Deep event chains can sometimes be a bit hard to orient yourself in
+* The indirection between actually performing a side effect and declaring it is an inderection after all
+* While a subdomain of side effects is being implemented (as needed, mind you), it can be a bit of extra work to get it in place. Basically you'll have at least one interface declaration for each side effect you use
+
+## Pros
 
 1. **Functional and Data Oriented**: Business logic is implemented in pure functions that transform data
-2. **Predictable Dataflow**: All state is immutable; new state is created rather than mutating existing state
-3. **Improved Testability**: Actions and their results can be tested without mocking
-4. **Clear Dependencies**: Domain-specific handlers create explicit boundaries
-5. **Composability**: Actions and effects can be composed and chained in flexible ways
-6. **Explicit Side Effects**: All side effects are represented as data and executed in controlled handlers
-7. **Developer Experience**: Debugging is simplified by logging actions and effects as data
+1. **Improved Testability**: Actions and their results can be tested without mocking
+1. **Predictable Dataflow**: All state inside actions is immutable; new state is created rather than mutating existing state
+1. **Clear Dependencies**: Domain-specific handlers create explicit boundaries
+1. **Composability**: Actions and effects can be composed and chained in flexible ways
+1. **Explicit Side Effects**: All side effects are represented as data and executed in controlled handlers
+1. **Developer Experience**: Debugging is simplified by logging actions and effects as data
 
-This architecture provides a solid foundation for building the Calva MCP Server, leveraging ClojureScript's strengths in functional programming and data-oriented design.
+I believe that the benefits outweigh the drawbacks, and that this architecture provides a solid foundation for building the Calva MCP Server, leveraging ClojureScript's strengths in functional programming and data-oriented design.

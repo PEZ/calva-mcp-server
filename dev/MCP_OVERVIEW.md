@@ -9,28 +9,10 @@ MCP is a protocol that enables AI language models (like Claude, GPT, etc.) to in
 3. **Access resources** like files or API responses
 4. **Use templates** (prompts) for specialized tasks
 
-## Client-Server Architecture
+Instead of reiterating (badly) what MCP is here, let's take it from the horse's mouth:
 
-The MCP architecture consists of:
-
-1. **MCP Hosts/Clients** (like Claude for Desktop, GitHub Copilot) - Interfaces between the user and the language model
-2. **MCP Servers** - Expose tools, resources, and prompts to the language model
-3. **Language Models** (like Claude, GPT) - Analyze problems and decide which tools to use
-
-When a user asks a question:
-- The client sends the question to the language model
-- The model decides which tools it needs to answer the question
-- The client executes those tools through the appropriate MCP server
-- The results are sent back to the model
-- The model formulates a natural response
-
-## Types of Capabilities
-
-MCP servers can provide three main types of capabilities:
-
-1. **Resources**: File-like data that can be read by clients (API responses, file contents)
-2. **Tools**: Functions that can be called by the LLM (with user approval)
-3. **Prompts**: Pre-written templates that help accomplish specific tasks
+* https://modelcontextprotocol.io/
+* Calva MCP Server follows version `2024-11-05` of the protocol. There's a schema here: https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/refs/heads/main/schema/2024-11-05/schema.ts
 
 ## Calva MCP Server Implementation
 
@@ -40,7 +22,7 @@ For our Calva MCP Server project, we're building an MCP server that will expose 
 2. Get results back in a structured format
 3. Use those results to help solve programming problems
 
-This is powerful because it allows AI assistants to not just reason about Clojure code, but actually execute it and see the results - similar to how human developers use the REPL during development.
+See the project [README](../README.md) for the rationale.
 
 ## Key Components for Implementation
 
@@ -49,24 +31,25 @@ Based on the MCP specification, our server will need:
 1. **Tool Definitions**: We'll define tools like `evaluate-code` that expose Calva's REPL functionality
 2. **Tool Execution Logic**: The actual implementation that connects to Calva's API
 3. **Server Setup**: Code to initialize and run the MCP server
-4. **Response Formatting**: Logic to format evaluation results in a way the LLM can understand
 
-## ClojureScript Implementation Approach
+### Server Setup
 
-Our implementation in ClojureScript will:
+Considerations:
 
-1. Use a ClojureScript library for implementing MCP servers (or create bindings to a JavaScript one)
-2. Define our tools using this library
-3. Connect these tools to Calva's extension API
-4. Handle communication between the LLM and Calva
+* VS Code CoPilot only supports the **stdio** [Transport](https://modelcontextprotocol.io/docs/concepts/transports).
+* There is no way to start the server inside the extension via a shell command (afaik).
+* The user needs full control of wether the REPL is exposed via the MCP protocol or not.
+* The Calva MCP Server needs API access to the Calva extension
 
-Since JavaScript/Node.js is a supported platform for MCP, and ClojureScript compiles to JavaScript, we can leverage the JavaScript ecosystem while maintaining the benefits of Clojure's functional approach.
+We solve this by implementing the server running inside the Calva MCP Extension, using TCP sockets (a backend server). Then in front of that a node script witch which the AI Agent system can start an MCP **stdio** Transport “relay”/wrapper that the AI Agent uses.
 
-## Benefits for Clojure Developers
+* Backend server: [mcp/server.cljs](../src/calva_mcp_server/mcp/server.cljs)
+* Relay/wrapper: [stdio/wrapper.cljs](../src/calva_mcp_server/stdio/wrapper.cljs)
 
-By connecting AI assistants to a live REPL, we enable:
+### ClojureScript Implementation Approach
 
-1. **Interactive Exploration**: AI can test hypotheses by executing code
-2. **Data-Aware Assistance**: AI can analyze actual data structures, not just guess about them
-3. **Runtime Insights**: AI can observe behavior at runtime, not just predict from static code
-4. **REPL-Driven Development**: AI can participate in the same workflow Clojure developers love
+Note that for now we are trying to build an MCP server implementation from scratch, in ClojureScript, with as few npm dependencies (none so far) as we can get away with.
+
+We build both the extension, it's MCP server, and the wrapper with ClojureScript, in Interactive Programming mode.
+
+See also the [DEVELOPER_GUIDE](DEVELOPER_GUIDE.md), and the [PROJECT_REQUIREMENTS](PROJECT_REQUIREMENTS.md).
