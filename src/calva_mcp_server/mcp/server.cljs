@@ -36,16 +36,12 @@
   (evaluate-code "(+ 41 1)" js/undefined)
   :rcf)
 
-(def ^:private tools [{:id "calva-eval"
-                       :name "calva-eval"
+(def ^:private tools [{:name "calva-eval"
                        :description "Evaluate Clojure/ClojureScript code"
                        :inputSchema {:type "object"
                                      :properties {"code" {:type "string"
-                                                          :description "Clojure/ClojureScript code to evaluate"}}
-                                     :required ["code"]}
-                       :parameters [{:name "code"
-                                     :type "string"
-                                     :description "Clojure/ClojureScript code to evaluate"}]}])
+                                                         :description "Clojure/ClojureScript code to evaluate"}}
+                                     :required ["code"]}}])
 
 (defn handle-request-fn [log-uri {:keys [id method params] :as request}]
   (logging/debug! log-uri "BOOM! handle-request " (pr-str request))
@@ -56,29 +52,37 @@
                     :result {:serverInfo {:name "CalvaMCP"
                                           :version "0.0.1"}
                              :protocolVersion "2024-11-05"
-                             :capabilities {:tools {:listChanged true}
-                                            :listToolsProvider true}}}]
+                             :capabilities {:tools {:listChanged true}}
+                             :instructions "Use the calva-eval tool to evaluate Clojure/ClojureScript code in the current project."}}]
       response)
 
-    (or (= method "tools/list") (= method "listTools"))
+    (= method "tools/list")
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools tools}}]
       (logging/debug! log-uri "Formatted tools response:" (pr-str tools))
       response)
 
-    (= method "invokeTool")
-    (let [{:keys [tool params]} params]
-      (p/let [response (if (= tool "calva-eval")
-                         (p/let [result (evaluate-code (:code params) js/undefined)]
-                           {:jsonrpc "2.0" :id id :result result})
-                         {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}})]
-        response))
+    (= method "tools/call")
+    (let [{:keys [arguments]
+           tool :name} params]
+      (p/let [result (if (= tool "calva-eval")
+                       (evaluate-code (:code arguments) js/undefined)
+                       nil)]
+        (if result
+          {:jsonrpc "2.0"
+           :id id
+           :result {:content [{:type "text"
+                               :text (str result)}]}}
+          {:jsonrpc "2.0"
+           :id id
+           :error {:code -32601
+                   :message "Unknown tool"}})))
 
     (= method "ping")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result "pong"}]
+                    :result {}}]
       response)
 
     id
