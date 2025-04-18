@@ -11,7 +11,7 @@
   "icon": "assets/extension-icon-128x128.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BetterThanTomorrow/calva-mcp-server.git"
+    "url": "https://github.com/PEZ/calva-mcp-server.git"
   },
   "engines": {
     "vscode": ">=1.99.1",
