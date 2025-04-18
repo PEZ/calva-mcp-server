@@ -60,6 +60,46 @@ The project leverages ClojureScript's interactive development capabilities:
 
 This creates a bootstrap process where the tool we're building ultimately empowers the AI collaborating on its development.
 
+## MCP Development and Testing
+
+### Using the MCP Inspector
+
+The Model Context Protocol (MCP) inspector is a valuable tool for testing and debugging the MCP server implementation. It provides a GUI to interact with the server and validate responses against the schema.
+
+To start the MCP inspector:
+
+```sh
+npx @modelcontextprotocol/inspector node ./dist/calva-mcp-server.js ./test-projects/mini-deps
+```
+
+This will:
+1. Launch a web interface on some localhost port
+2. Connect to your MCP server implementation
+3. Provide interactive tools to test initialize, ping, tools/list, and tools/call operations
+4. Display validation errors when responses don't conform to the schema
+
+The inspector is particularly useful when:
+- Testing new tool implementations
+- Validating schema compliance
+- Debugging connection issues
+- Monitoring request/response cycles
+
+### MCP Schema Reference
+
+All responses must conform to the official MCP schema. The current implementation should follow the 2024-11-05 schema version, which can be found at:
+
+```
+https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/refs/heads/main/schema/2024-11-05/schema.ts
+```
+
+Common schema validation issues to watch for:
+- Response result formats must match expected structures (e.g., ping expects an empty object result)
+- Tool definitions must include required fields (name, description, inputSchema)
+- Initialize response must include valid capabilities
+- tools/call responses must return content in the correct format
+
+When making changes to the server implementation, always validate them with the MCP inspector before committing.
+
 ## End-to-End (e2e) Testing
 
 To validate the extension in a real VS Code environment, use the provided Babashka task for e2e tests:
