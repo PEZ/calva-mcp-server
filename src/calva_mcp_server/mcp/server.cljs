@@ -47,40 +47,49 @@
                                      :type "string"
                                      :description "Clojure/ClojureScript code to evaluate"}]}])
 
+(defn handle-request-fn [log-uri {:keys [id method params] :as request}]
+  (logging/debug! log-uri "BOOM! handle-request " (pr-str request))
+  (cond
+    (= method "initialize")
+    (let [response {:jsonrpc "2.0"
+                    :id id
+                    :result {:serverInfo {:name "CalvaMCP"
+                                          :version "0.0.1"}
+                             :protocolVersion "2024-11-05"
+                             :capabilities {:tools {:listChanged true}
+                                            :listToolsProvider true}}}]
+      response)
+
+    (or (= method "tools/list") (= method "listTools"))
+    (let [response {:jsonrpc "2.0"
+                    :id id
+                    :result {:tools tools}}]
+      (logging/debug! log-uri "Formatted tools response:" (pr-str tools))
+      response)
+
+    (= method "invokeTool")
+    (let [{:keys [tool params]} params]
+      (p/let [response (if (= tool "calva-eval")
+                         (p/let [result (evaluate-code (:code params) js/undefined)]
+                           {:jsonrpc "2.0" :id id :result result})
+                         {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}})]
+        response))
+
+    (= method "ping")
+    (let [response {:jsonrpc "2.0"
+                    :id id
+                    :result "pong"}]
+      response)
+
+    id
+    {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}}
+
+    :else
+    nil))
+
 (defn create-request-handler [log-uri]
-  (fn handle-request [{:keys [id method params] :as request}]
-    (logging/debug! log-uri "BOOM! handle-request " (pr-str request))
-    (cond
-      (= method "initialize")
-      (let [response {:jsonrpc "2.0"
-                      :id id
-                      :result {:serverInfo {:name "CalvaMCP"
-                                            :version "0.0.1"}
-                               :protocolVersion "2024-11-05"
-                               :capabilities {:tools {:listChanged true}
-                                              :listToolsProvider true}}}]
-        response)
-
-      (or (= method "tools/list") (= method "listTools"))
-      (let [response {:jsonrpc "2.0"
-                      :id id
-                      :result {:tools tools}}]
-        (logging/debug! log-uri "Formatted tools response:" (pr-str tools))
-        response)
-
-      (= method "invokeTool")
-      (let [{:keys [tool params]} params]
-        (p/let [response (if (= tool "calva-eval")
-                           (p/let [result (evaluate-code (:code params) js/undefined)]
-                             {:jsonrpc "2.0" :id id :result result})
-                           {:jsonrpc "2.0" :id id :error {:code -32601 :message "Unknown tool"}})]
-          response))
-
-      id
-      {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}}
-
-      :else
-      nil)))
+  (fn [request]
+    (handle-request-fn log-uri request)))
 
 (defn start-socket-server [log-uri]
   (let [handle-request (create-request-handler log-uri)]
