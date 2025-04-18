@@ -49,7 +49,7 @@
     (= method "initialize")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:serverInfo {:name "CalvaMCP"
+                    :result {:serverInfo {:name "calva-mcp-server"
                                           :version "0.0.1"}
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}}
@@ -88,7 +88,7 @@
     id
     {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}}
 
-    :else
+    :else ;; returning nil so that the response is not sent
     nil))
 
 (defn create-request-handler [log-uri]
