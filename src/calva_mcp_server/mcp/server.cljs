@@ -104,51 +104,58 @@
                        net
                        (fn [^js socket]
                          (.setEncoding socket "utf8")
-                         (let [buffer (volatile! "")]
+                         (let [buffer (volatile! "")] ; Buffer for incoming socket data
                            (.on socket "data"
                                 (fn [a-chunk]
+                                  (logging/debug! log-uri "[Server] Socket received chunk:" a-chunk)
                                   (vswap! buffer str a-chunk)
-                                  (when (str/ends-with? @buffer "\n")
-                                    (try
-                                      (p/let [request-js (js/JSON.parse @buffer)
-                                              {:keys [method]
-                                               :as request} (js->clj request-js
-                                                                     :keywordize-keys true)
-                                              response (handle-request request)]
-                                        (if response
-                                          (do
-                                            (logging/debug! log-uri
-                                                            "BOOM! sending '"
-                                                            method
-                                                            "' response "
-                                                            (pr-str response))
-                                            (.write socket (str (js/JSON.stringify (clj->js response)) "\n")))
-                                          (logging/debug! log-uri
-                                                          "BOOM! not sending response for '"
-                                                          method "'"))
-                                        (vreset! buffer ""))
-                                      (catch :default parse-err
-                                        (logging/error! log-uri
-                                                        "Error parsing request JSON:"
-                                                        parse-err {:buffer @buffer})
-                                        (.write socket (str (js/JSON.stringify
-                                                             #js {:jsonrpc "2.0"
-                                                                  :error #js {:code -32700
-                                                                              :message "Parse error"}})
-                                                            "\n"))
-                                        (vreset! buffer ""))))))
+                                  ;; Process buffer, splitting by newline
+                                  (loop []
+                                    (let [buffer-val @buffer
+                                          newline-pos (.indexOf buffer-val "\n")]
+                                      (if (>= newline-pos 0) ; Found a newline
+                                        (let [message-part (subs buffer-val 0 newline-pos)
+                                              ;; Update buffer *before* processing message
+                                              _ (vreset! buffer (subs buffer-val (inc newline-pos)))
+                                              request-json (str/trim message-part)] ; Use str/trim
+                                          (if (not (str/blank? request-json)) ; Use str/blank?
+                                            (try
+                                              (logging/debug! log-uri "[Server] Processing request segment:" request-json)
+                                              ;; Wrap the processing in a p/do! or similar if handle-request is async
+                                              ;; and might throw errors that need catching by the outer try/catch.
+                                              ;; Using p/let here is fine as long as handle-request returns a promise
+                                              ;; or a plain value.
+                                              (p/let [request-js (js/JSON.parse request-json) ; Parse *only* the segment
+                                                      {:keys [method] :as request} (js->clj request-js :keywordize-keys true)
+                                                      _ (logging/debug! log-uri "[Server] Parsed request:" (pr-str request))
+                                                      response (handle-request request)]
+                                                (if response
+                                                  (do
+                                                    (logging/debug! log-uri "[Server] Sending response for" method ":" (pr-str response))
+                                                    (.write socket (str (js/JSON.stringify (clj->js response)) "\n")))
+                                                  (logging/debug! log-uri "[Server] No response generated for method:" method))
+                                                 ;; No need to reset buffer here, it was updated before parsing
+                                                )
+                                              (catch js/Error parse-err ; Catch JS errors specifically if needed
+                                                (logging/error! log-uri "[Server] Error parsing request JSON segment:" (.-message parse-err) {:json request-json})
+                                                (.write socket (str (js/JSON.stringify #js {:jsonrpc "2.0", :error #js {:code -32700, :message "Parse error"}}) "\n"))
+                                                ;; No need to reset buffer here either
+                                                ))
+                                            (logging/debug! log-uri "[Server] Blank line segment received, ignoring."))
+                                          (recur)) ; Check buffer again for more complete messages
+                                        false))))) ; No more newlines in the buffer, wait for more data
                            (.on socket "error" (fn [err]
-                                                 (logging/error! "Socket error:" err))))))]
+                                                 (logging/error! log-uri "[Server] Socket error:" err))))))]
            (.on server "error" (fn [err]
-                                 (logging/error! "Server creation error:" err)
+                                 (logging/error! log-uri "[Server] Server creation error:" err)
                                  (reject err)))
            (.listen server 0 (fn []
                                (let [address (.address server)
                                      port (.-port address)]
-                                 (logging/info! log-uri "Socket server listening on port" port)
+                                 (logging/info! log-uri "[Server] Socket server listening on port" port)
                                  (resolve-fn {:server/instance server :server/port port})))))
-         (catch :default e
-           (logging/error! log-uri "Error creating server:" e)
+         (catch js/Error e ; Catch JS errors specifically
+           (logging/error! log-uri "[Server] Error creating server:" (.-message e))
            (reject e)))))))
 
 (defn start-server [{:app/keys [log-uri]}]
