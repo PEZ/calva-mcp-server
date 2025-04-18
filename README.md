@@ -62,55 +62,51 @@ Calva MCP Server implements the [Model Context Protocol](https://modelcontextpro
 ```mermaid
 flowchart TD
     subgraph InteractiveProgrammers["Interactive Programmers"]
-        direction LR
-        User([You]) <--> AI([AI Agent])
+        User([You])
+        AIAgent([AI Agent])
+        User <--> AIAgent
     end
 
     subgraph VSCode["VS Code"]
-        direction TB
-
-        subgraph Calva["Calva"]
-            direction TB
-            subgraph REPLClient["REPL Client"]
-            end
-        end
 
         MCP["Calva MCP Server"]
 
+        subgraph Calva["Calva"]
+            REPLClient["REPL Client"]
+        end
+
         subgraph Project["Clojure Project"]
-            direction TB
-            SourceCode["Source Code"]
 
             subgraph RunningApp["Running Application"]
-                direction TB
+                SourceCode["Source Code"]
                 REPL["REPL"]
             end
         end
     end
 
-    User --> Calva
     User --> SourceCode
+    User --> Calva
     REPLClient --> REPL
+    AIAgent --> SourceCode
+    AIAgent --> MCP
     MCP --> Calva
-    MCP --> REPL
-    AI --> MCP
-    AI --> SourceCode
 
-    classDef users fill:#ffffff,stroke:#000000,stroke-width:2px;
-    classDef programmers fill:#333333,stroke:#000000,stroke-width:2px,color:#ffffff;
+    classDef users fill:#ffffff,stroke:#ffffff,stroke-width:2px,color:#000000;
+    classDef programmers fill:#63b132,stroke:#000000,stroke-width:2px,color:#ffffff;
     classDef vscode fill:#0078d7,stroke:#000000,stroke-width:1px,color:#ffffff;
-    classDef calva fill:#df793b,stroke:#000000,stroke-width:1px,color:#ffffff;
+    classDef calva fill:#df793b,stroke:#ffffff,stroke-width:1px,color:#ffffff;
     classDef highlight fill:#ffffff,stroke:#000000,stroke-width:1px,color:#000000;
     classDef dark fill:#333333,stroke:#ffffff,stroke-width:1px,color:#ffffff;
-    classDef secondary fill:#cccccc,stroke:#000000,stroke-width:1px;
+    classDef repl fill:#5881d8,stroke:#ffffff,stroke-width:1px,color:#ffffff;
+    classDef running fill:#63b132,stroke:#000000,stroke-width:1px,color:#ffffff;
 
-    class User,AI users;
+    class User,AIAgent users;
     class VSCode vscode;
     class Calva,MCP calva;
-    class REPLClient highlight;
+    class REPLClient repl;
     class SourceCode dark;
-    class RunningApp secondary;
-    class REPL highlight;
+    class RunningApp running;
+    class REPL repl;
     class InteractiveProgrammers programmers;
 ```
 
