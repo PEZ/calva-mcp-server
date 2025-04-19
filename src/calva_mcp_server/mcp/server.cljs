@@ -91,6 +91,24 @@
     :else ;; returning nil so that the response is not sent
     nil))
 
+(defn split-buffer-on-newline [buffer]
+  (let [lines (str/split buffer #"\n")]
+    (if (empty? lines)
+      [[] ""]
+      (let [complete (butlast lines)
+            remainder (last lines)]
+        [complete remainder]))))
+
+(defn parse-request-json [json-str]
+  (try
+    (let [request-js (js/JSON.parse json-str)]
+      (js->clj request-js :keywordize-keys true))
+    (catch js/Error e
+      {:error :parse-error :message (.-message e) :json json-str})))
+
+(defn format-response-json [response]
+  (str (js/JSON.stringify (clj->js response)) "\n"))
+
 (defn create-request-handler [log-uri]
   (fn [request]
     (handle-request-fn log-uri request)))
@@ -109,41 +127,28 @@
                                 (fn [a-chunk]
                                   (logging/debug! log-uri "[Server] Socket received chunk:" a-chunk)
                                   (vswap! buffer str a-chunk)
-                                  ;; Process buffer, splitting by newline
                                   (loop []
-                                    (let [buffer-val @buffer
-                                          newline-pos (.indexOf buffer-val "\n")]
-                                      (if (>= newline-pos 0) ; Found a newline
-                                        (let [message-part (subs buffer-val 0 newline-pos)
-                                              ;; Update buffer *before* processing message
-                                              _ (vreset! buffer (subs buffer-val (inc newline-pos)))
-                                              request-json (str/trim message-part)] ; Use str/trim
-                                          (if (not (str/blank? request-json)) ; Use str/blank?
-                                            (try
-                                              (logging/debug! log-uri "[Server] Processing request segment:" request-json)
-                                              ;; Wrap the processing in a p/do! or similar if handle-request is async
-                                              ;; and might throw errors that need catching by the outer try/catch.
-                                              ;; Using p/let here is fine as long as handle-request returns a promise
-                                              ;; or a plain value.
-                                              (p/let [request-js (js/JSON.parse request-json) ; Parse *only* the segment
-                                                      {:keys [method] :as request} (js->clj request-js :keywordize-keys true)
-                                                      _ (logging/debug! log-uri "[Server] Parsed request:" (pr-str request))
-                                                      response (handle-request request)]
-                                                (if response
-                                                  (do
-                                                    (logging/debug! log-uri "[Server] Sending response for" method ":" (pr-str response))
-                                                    (.write socket (str (js/JSON.stringify (clj->js response)) "\n")))
-                                                  (logging/debug! log-uri "[Server] No response generated for method:" method))
-                                                 ;; No need to reset buffer here, it was updated before parsing
-                                                )
-                                              (catch js/Error parse-err ; Catch JS errors specifically if needed
-                                                (logging/error! log-uri "[Server] Error parsing request JSON segment:" (.-message parse-err) {:json request-json})
-                                                (.write socket (str (js/JSON.stringify #js {:jsonrpc "2.0", :error #js {:code -32700, :message "Parse error"}}) "\n"))
-                                                ;; No need to reset buffer here either
-                                                ))
-                                            (logging/debug! log-uri "[Server] Blank line segment received, ignoring."))
-                                          (recur)) ; Check buffer again for more complete messages
-                                        false))))) ; No more newlines in the buffer, wait for more data
+                                    (let [[segments remainder] (split-buffer-on-newline @buffer)]
+                                      (vreset! buffer remainder)
+                                      (if (seq segments)
+                                        (do
+                                          (doseq [segment segments]
+                                            (let [request-json (str/trim segment)]
+                                              (if (not (str/blank? request-json))
+                                                (let [parsed (parse-request-json request-json)]
+                                                  (if (:error parsed)
+                                                    (do
+                                                      (logging/error! log-uri "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)})
+                                                      (.write socket (format-response-json {:jsonrpc "2.0" :error {:code -32700 :message "Parse error"}})))
+                                                    (let [response (handle-request parsed)]
+                                                      (if response
+                                                        (do
+                                                          (logging/debug! log-uri "[Server] Sending response for" (:method parsed) ":" (pr-str response))
+                                                          (.write socket (format-response-json response)))
+                                                        (logging/debug! log-uri "[Server] No response generated for method:" (:method parsed))))))
+                                                (logging/debug! log-uri "[Server] Blank line segment received, ignoring."))))
+                                          (recur))
+                                        false)))))
                            (.on socket "error" (fn [err]
                                                  (logging/error! log-uri "[Server] Socket error:" err))))))]
            (.on server "error" (fn [err]
