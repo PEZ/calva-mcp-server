@@ -20,14 +20,14 @@
 (defn- ensure-port-file-dir-exists!+ []
   (vscode/workspace.fs.createDirectory (get-server-dir)))
 
-(def ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
+(def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
-(def ^js calvaApi (-> calvaExt
-                      .-exports
-                      .-v1
-                      (js->clj :keywordize-keys true)))
+(def ^:private ^js calvaApi (-> calvaExt
+                                .-exports
+                                .-v1
+                                (js->clj :keywordize-keys true)))
 
-(defn evaluate-code+ [code session]
+(defn- evaluate-code+ [code session]
   (p/let [evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
           result (.-result evaluation+)]
     result))
@@ -43,7 +43,7 @@
                                                           :description "Clojure/ClojureScript code to evaluate"}}
                                      :required ["code"]}}])
 
-(defn handle-request-fn [log-uri {:keys [id method params] :as request}]
+(defn- handle-request-fn [log-uri {:keys [id method params] :as request}]
   (logging/debug! log-uri "BOOM! handle-request " (pr-str request))
   (cond
     (= method "initialize")
@@ -91,7 +91,7 @@
     :else ;; returning nil so that the response is not sent
     nil))
 
-(defn split-buffer-on-newline [buffer]
+(defn- split-buffer-on-newline [buffer]
   (let [lines (str/split buffer #"\n")]
     (if (empty? lines)
       [[] ""]
@@ -99,20 +99,20 @@
             remainder (last lines)]
         [complete remainder]))))
 
-(defn parse-request-json [json-str]
+(defn- parse-request-json [json-str]
   (try
     (let [request-js (js/JSON.parse json-str)]
       (js->clj request-js :keywordize-keys true))
     (catch js/Error e
       {:error :parse-error :message (.-message e) :json json-str})))
 
-(defn format-response-json [response]
+(defn- format-response-json [response]
   (str (js/JSON.stringify (clj->js response)) "\n"))
 
-(defn create-error-response [id code message]
+(defn- create-error-response [id code message]
   {:jsonrpc "2.0" :id id :error {:code code :message message}})
 
-(defn process-segment [log-uri segment handler]
+(defn- process-segment [log-uri segment handler]
   (let [request-json (str/trim segment)]
     (if (str/blank? request-json)
       (do
@@ -127,10 +127,10 @@
             (logging/debug! log-uri "[Server] Processing request for method:" (:method parsed))
             (handler parsed)))))))
 
-(defn process-segments [log-uri segments handler]
+(defn- process-segments [log-uri segments handler]
   (keep #(process-segment log-uri % handler) segments))
 
-(defn handle-socket-data! [log-uri buffer-atom chunk handler]
+(defn- handle-socket-data! [log-uri buffer-atom chunk handler]
   (let [_ (logging/debug! log-uri "[Server] Socket received chunk:" chunk)
         _ (vswap! buffer-atom str chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
@@ -138,7 +138,7 @@
         responses (process-segments log-uri segments handler)]
     responses))
 
-(defn setup-socket-handlers! [log-uri ^js socket handler]
+(defn- setup-socket-handlers! [log-uri ^js socket handler]
   (.setEncoding socket "utf8")
   (let [buffer (volatile! "")]
     (.on socket "data"
@@ -152,11 +152,11 @@
          (fn [err]
            (logging/error! log-uri "[Server] Socket error:" err)))))
 
-(defn create-request-handler [log-uri]
+(defn- create-request-handler [log-uri]
   (fn [request]
     (handle-request-fn log-uri request)))
 
-(defn start-socket-server!+ [log-uri]
+(defn- start-socket-server!+ [log-uri]
   (let [handle-request (create-request-handler log-uri)]
     (p/create
      (fn [resolve-fn reject]
