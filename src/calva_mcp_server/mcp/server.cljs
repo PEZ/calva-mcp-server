@@ -20,16 +20,18 @@
 (defn- ensure-port-file-dir-exists!+ []
   (vscode/workspace.fs.createDirectory (get-server-dir)))
 
-(defn- delete-port-file!+ [log-uri ^js port-file-uri]
-  (if port-file-uri
-    (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
-        (p/then (fn [_]
-                  (logging/info! log-uri "Deleted port file:" (.fsPath port-file-uri))
-                  true))
-        (p/catch (fn [_del-err]
-                   (logging/warn! log-uri "Could not delete port file (maybe already gone?).")
-                   true)))
-    (p/resolved true)))
+(defn- delete-port-file!+ [^js log-uri ^js port-file-uri]
+  (p/create
+    (fn [resolve-fn _reject]
+      (if-not port-file-uri
+        (resolve-fn true)
+        (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
+            (p/then (fn [_]
+                      (logging/info! log-uri "Deleted port file:" (.-fsPath port-file-uri))
+                      (resolve-fn true)))
+            (p/catch (fn [err]
+                       (logging/warn! log-uri "Could not delete port file (maybe already gone?):" err)
+                       (resolve-fn true))))))))
 
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
@@ -212,29 +214,35 @@
 
 (defn- close-server!+ [log-uri instance]
   (logging/info! log-uri "Stopping socket server...")
-  (p/create (fn [resolve-fn reject]
-              (.close instance (fn [err]
-                                 (if err
-                                   (do
-                                     (logging/error! log-uri "Error stopping socket server:" err)
-                                     (reject err))
-                                   (do
-                                     (logging/info! log-uri "Socket server stopped.")
-                                     (resolve-fn true))))))))
+  (p/create
+    (fn [resolve-fn reject]
+      (.close instance
+        (fn [err]
+          (if err
+            (do
+              (logging/error! log-uri "Error stopping socket server:" err)
+              (reject err))
+            (do
+              (logging/info! log-uri "Socket server stopped.")
+              (resolve-fn true))))))))
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.
    Takes a context map with `:app/log-uri` and `:server/instance`.
    Stops the MCP server and removes the port file."
   [{:keys [app/log-uri server/instance]}]
-  (if instance
-    (p/let [^js port-file-uri (get-port-file-uri)]
-      (close-server!+ log-uri instance)
-      (delete-port-file!+ log-uri port-file-uri)
-      true)
+  (if-not instance
     (do
       (logging/info! log-uri "No server instance provided to stop.")
-      (p/resolved false))))
+      (p/resolved false))
+    (-> (close-server!+ log-uri instance)
+        (p/then (fn [_]
+                  (let [port-file-uri (get-port-file-uri)]
+                    (delete-port-file!+ log-uri port-file-uri))))
+        (p/then (fn [_] true))
+        (p/catch (fn [err]
+                   (logging/error! log-uri "Error during server shutdown:" err)
+                   false)))))
 
 (comment
   ;; Todo fix working RCF
