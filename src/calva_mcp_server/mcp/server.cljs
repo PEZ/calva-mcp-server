@@ -40,7 +40,7 @@
                        :description "Evaluate Clojure/ClojureScript code"
                        :inputSchema {:type "object"
                                      :properties {"code" {:type "string"
-                                                         :description "Clojure/ClojureScript code to evaluate"}}
+                                                          :description "Clojure/ClojureScript code to evaluate"}}
                                      :required ["code"]}}])
 
 (defn handle-request-fn [log-uri {:keys [id method params] :as request}]
@@ -137,11 +137,6 @@
         _ (vreset! buffer-atom remainder)
         responses (process-segments log-uri segments handler)]
     responses))
-
-(defn create-socket-data-handler [log-uri buffer-atom handler]
-  (fn [chunk]
-    (let [responses (handle-socket-data log-uri buffer-atom chunk handler)]
-      responses)))
 
 (defn setup-socket-handlers [log-uri ^js socket handler]
   (.setEncoding socket "utf8")
