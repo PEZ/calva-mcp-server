@@ -17,7 +17,7 @@
 (defn- get-port-file-uri []
   (vscode/Uri.joinPath (get-server-dir) "port"))
 
-(defn- ensure-port-file-dir-exists []
+(defn- ensure-port-file-dir-exists!+ []
   (vscode/workspace.fs.createDirectory (get-server-dir)))
 
 (def ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
@@ -27,13 +27,13 @@
                       .-v1
                       (js->clj :keywordize-keys true)))
 
-(defn evaluate-code [code session]
+(defn evaluate-code+ [code session]
   (p/let [evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
           result (.-result evaluation+)]
     result))
 
 (comment
-  (evaluate-code "(+ 41 1)" js/undefined)
+  (evaluate-code+ "(+ 41 1)" js/undefined)
   :rcf)
 
 (def ^:private tools [{:name "calva-eval"
@@ -67,7 +67,7 @@
     (let [{:keys [arguments]
            tool :name} params]
       (p/let [result (if (= tool "calva-eval")
-                       (evaluate-code (:code arguments) js/undefined)
+                       (evaluate-code+ (:code arguments) js/undefined)
                        nil)]
         (if result
           {:jsonrpc "2.0"
@@ -130,7 +130,7 @@
 (defn process-segments [log-uri segments handler]
   (keep #(process-segment log-uri % handler) segments))
 
-(defn handle-socket-data [log-uri buffer-atom chunk handler]
+(defn handle-socket-data! [log-uri buffer-atom chunk handler]
   (let [_ (logging/debug! log-uri "[Server] Socket received chunk:" chunk)
         _ (vswap! buffer-atom str chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
@@ -138,12 +138,12 @@
         responses (process-segments log-uri segments handler)]
     responses))
 
-(defn setup-socket-handlers [log-uri ^js socket handler]
+(defn setup-socket-handlers! [log-uri ^js socket handler]
   (.setEncoding socket "utf8")
   (let [buffer (volatile! "")]
     (.on socket "data"
          (fn [chunk]
-           (let [responses (handle-socket-data log-uri buffer chunk handler)]
+           (let [responses (handle-socket-data! log-uri buffer chunk handler)]
              (doseq [response responses]
                (when response
                  (logging/debug! log-uri "[Server] Sending response for:" (pr-str response))
@@ -156,7 +156,7 @@
   (fn [request]
     (handle-request-fn log-uri request)))
 
-(defn start-socket-server [log-uri]
+(defn start-socket-server!+ [log-uri]
   (let [handle-request (create-request-handler log-uri)]
     (p/create
      (fn [resolve-fn reject]
@@ -164,7 +164,7 @@
          (let [server (.createServer
                        net
                        (fn [^js socket]
-                         (setup-socket-handlers log-uri socket handle-request)))]
+                         (setup-socket-handlers! log-uri socket handle-request)))]
            (.on server "error"
                 (fn [err]
                   (logging/error! log-uri "[Server] Server creation error:" err)
@@ -179,13 +179,13 @@
            (logging/error! log-uri "[Server] Error creating server:" (.-message e))
            (reject e)))))))
 
-(defn start-server [{:app/keys [log-uri]}]
-  (p/let [server-info (start-socket-server log-uri)
+(defn start-server!+ [{:app/keys [log-uri]}]
+  (p/let [server-info (start-socket-server!+ log-uri)
           port (:server/port server-info)
           ^js port-file-uri (get-port-file-uri)]
     (if port-file-uri
       (p/do!
-       (ensure-port-file-dir-exists)
+       (ensure-port-file-dir-exists!+)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
        (logging/info! log-uri "Wrote port file:" (.-fsPath port-file-uri))
        (assoc server-info :server/log-uri (logging/get-log-path log-uri)))
@@ -193,7 +193,7 @@
         (logging/error! log-uri "Could not determine workspace root to write port file.")
         (p/rejected (js/Error. "Could not determine workspace root"))))))
 
-(defn stop-server [{:keys [app/log-uri server/instance]}]
+(defn stop-server!+ [{:keys [app/log-uri server/instance]}]
   (if instance
     (p/let [^js port-file-uri (get-port-file-uri)
             _ (logging/info! log-uri "Stopping socket server...")]
@@ -223,7 +223,7 @@
 
 (comment
   ;; Todo fix working RCF
-  ;; (start-server)
-  ;; (stop-server)
+  ;; (start-server!+)
+  ;; (stop-server!+)
   :rcf)
 

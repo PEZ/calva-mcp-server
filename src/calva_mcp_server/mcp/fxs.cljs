@@ -9,7 +9,7 @@
   (match effect
     [:mcp/fx.start-server options]
     (let [{:ex/keys [on-success on-error]} options]
-      (-> (server/start-server options)
+      (-> (server/start-server!+ options)
           (p/then (fn [{:server/keys [port] :as server-info}]
                     (js/console.log "🚀 MCP server started on port" port)
                     (dispatch! context (ax/enrich-with-args on-success server-info))))
@@ -22,7 +22,7 @@
     [:mcp/fx.stop-server options]
     (let [{:ex/keys [on-success on-error]} options]
       (-> (p/catch
-           (server/stop-server options)
+           (server/stop-server!+ options)
            (fn [e]
              (js/console.error "Failed to stop MCP server:" (.-message e))
              (dispatch! context (ax/enrich-with-args on-error (.-message e)))))
