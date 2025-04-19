@@ -109,6 +109,54 @@
 (defn format-response-json [response]
   (str (js/JSON.stringify (clj->js response)) "\n"))
 
+(defn create-error-response [id code message]
+  {:jsonrpc "2.0" :id id :error {:code code :message message}})
+
+(defn process-segment [log-uri segment handler]
+  (let [request-json (str/trim segment)]
+    (if (str/blank? request-json)
+      (do
+        (logging/debug! log-uri "[Server] Blank line segment received, ignoring.")
+        nil)
+      (let [parsed (parse-request-json request-json)]
+        (if (:error parsed)
+          (do
+            (logging/error! log-uri "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)})
+            (create-error-response nil -32700 "Parse error"))
+          (do
+            (logging/debug! log-uri "[Server] Processing request for method:" (:method parsed))
+            (handler parsed)))))))
+
+(defn process-segments [log-uri segments handler]
+  (keep #(process-segment log-uri % handler) segments))
+
+(defn handle-socket-data [log-uri buffer-atom chunk handler]
+  (let [_ (logging/debug! log-uri "[Server] Socket received chunk:" chunk)
+        _ (vswap! buffer-atom str chunk)
+        [segments remainder] (split-buffer-on-newline @buffer-atom)
+        _ (vreset! buffer-atom remainder)
+        responses (process-segments log-uri segments handler)]
+    responses))
+
+(defn create-socket-data-handler [log-uri buffer-atom handler]
+  (fn [chunk]
+    (let [responses (handle-socket-data log-uri buffer-atom chunk handler)]
+      responses)))
+
+(defn setup-socket-handlers [log-uri ^js socket handler]
+  (.setEncoding socket "utf8")
+  (let [buffer (volatile! "")]
+    (.on socket "data"
+         (fn [chunk]
+           (let [responses (handle-socket-data log-uri buffer chunk handler)]
+             (doseq [response responses]
+               (when response
+                 (logging/debug! log-uri "[Server] Sending response for:" (pr-str response))
+                 (.write socket (format-response-json response)))))))
+    (.on socket "error"
+         (fn [err]
+           (logging/error! log-uri "[Server] Socket error:" err)))))
+
 (defn create-request-handler [log-uri]
   (fn [request]
     (handle-request-fn log-uri request)))
@@ -121,45 +169,18 @@
          (let [server (.createServer
                        net
                        (fn [^js socket]
-                         (.setEncoding socket "utf8")
-                         (let [buffer (volatile! "")] ; Buffer for incoming socket data
-                           (.on socket "data"
-                                (fn [a-chunk]
-                                  (logging/debug! log-uri "[Server] Socket received chunk:" a-chunk)
-                                  (vswap! buffer str a-chunk)
-                                  (loop []
-                                    (let [[segments remainder] (split-buffer-on-newline @buffer)]
-                                      (vreset! buffer remainder)
-                                      (if (seq segments)
-                                        (do
-                                          (doseq [segment segments]
-                                            (let [request-json (str/trim segment)]
-                                              (if (not (str/blank? request-json))
-                                                (let [parsed (parse-request-json request-json)]
-                                                  (if (:error parsed)
-                                                    (do
-                                                      (logging/error! log-uri "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)})
-                                                      (.write socket (format-response-json {:jsonrpc "2.0" :error {:code -32700 :message "Parse error"}})))
-                                                    (let [response (handle-request parsed)]
-                                                      (if response
-                                                        (do
-                                                          (logging/debug! log-uri "[Server] Sending response for" (:method parsed) ":" (pr-str response))
-                                                          (.write socket (format-response-json response)))
-                                                        (logging/debug! log-uri "[Server] No response generated for method:" (:method parsed))))))
-                                                (logging/debug! log-uri "[Server] Blank line segment received, ignoring."))))
-                                          (recur))
-                                        false)))))
-                           (.on socket "error" (fn [err]
-                                                 (logging/error! log-uri "[Server] Socket error:" err))))))]
-           (.on server "error" (fn [err]
-                                 (logging/error! log-uri "[Server] Server creation error:" err)
-                                 (reject err)))
-           (.listen server 0 (fn []
-                               (let [address (.address server)
-                                     port (.-port address)]
-                                 (logging/info! log-uri "[Server] Socket server listening on port" port)
-                                 (resolve-fn {:server/instance server :server/port port})))))
-         (catch js/Error e ; Catch JS errors specifically
+                         (setup-socket-handlers log-uri socket handle-request)))]
+           (.on server "error"
+                (fn [err]
+                  (logging/error! log-uri "[Server] Server creation error:" err)
+                  (reject err)))
+           (.listen server 0
+                    (fn []
+                      (let [address (.address server)
+                            port (.-port address)]
+                        (logging/info! log-uri "[Server] Socket server listening on port" port)
+                        (resolve-fn {:server/instance server :server/port port})))))
+         (catch js/Error e
            (logging/error! log-uri "[Server] Error creating server:" (.-message e))
            (reject e)))))))
 
