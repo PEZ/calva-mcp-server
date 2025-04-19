@@ -20,19 +20,19 @@
 (defn- ensure-port-file-dir-exists!+ []
   (vscode/workspace.fs.createDirectory (get-server-dir)))
 
-(defn- delete-port-file!+ [^js log-uri ^js port-file-uri]
-  (p/create
-    (fn [resolve-fn _reject]
-      (if-not port-file-uri
-        (resolve-fn true)
-        (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
-            (p/then (fn [_]
-                      (logging/info! log-uri "Deleted port file:" (.-fsPath port-file-uri))
-                      (resolve-fn true)))
-            (p/catch (fn [err]
-                       (logging/warn! log-uri "Could not delete port file (maybe already gone?):" err)
-                       (resolve-fn true))))))))
 
+(defn- delete-port-file!+ [config ^js port-file-uri]
+  (p/create
+   (fn [resolve-fn _reject]
+     (if-not port-file-uri
+       (resolve-fn true)
+       (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
+           (p/then (fn [_]
+                     (logging/info! config "Deleted port file:" (.-fsPath port-file-uri))
+                     (resolve-fn true)))
+           (p/catch (fn [err]
+                      (logging/warn! config "Could not delete port file (maybe already gone?):" err)
+                      (resolve-fn true))))))))
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
 (def ^:private ^js calvaApi (-> calvaExt
@@ -59,8 +59,8 @@
                                                           :description "Clojure/ClojureScript code to evaluate"}}
                                      :required ["code"]}}])
 
-(defn- handle-request-fn [log-uri {:keys [id method params] :as request}]
-  (logging/debug! log-uri "BOOM! handle-request " (pr-str request))
+(defn- handle-request-fn [config {:keys [id method params] :as request}]
+  (logging/debug! config "BOOM! handle-request " (pr-str request))
   (cond
     (= method "initialize")
     (let [response {:jsonrpc "2.0"
@@ -76,7 +76,7 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools tools}}]
-      (logging/debug! log-uri "Formatted tools response:" (pr-str tools))
+      (logging/debug! config "Formatted tools response:" (pr-str tools))
       response)
 
     (= method "tools/call")
@@ -109,11 +109,17 @@
 
 (defn- split-buffer-on-newline [buffer]
   (let [lines (str/split buffer #"\n")]
-    (if (empty? lines)
+    (cond
+      (empty? lines)
       [[] ""]
-      (let [complete (butlast lines)
-            remainder (last lines)]
-        [complete remainder]))))
+
+      ;; Buffer ends with newline - all segments are complete
+      (str/ends-with? buffer "\n")
+      [(filter (comp not str/blank?) lines) ""]
+
+      :else
+      ;; Last line is incomplete
+      [(filter (comp not str/blank?) (butlast lines)) (last lines)])))
 
 (defn- parse-request-json [json-str]
   (try
@@ -128,120 +134,133 @@
 (defn- create-error-response [id code message]
   {:jsonrpc "2.0" :id id :error {:code code :message message}})
 
-(defn- process-segment [log-uri segment handler]
+(defn- process-segment [config segment handler]
   (let [request-json (str/trim segment)]
     (if (str/blank? request-json)
       (do
-        (logging/debug! log-uri "[Server] Blank line segment received, ignoring.")
+        (logging/debug! config "[Server] Blank line segment received, ignoring.")
         nil)
       (let [parsed (parse-request-json request-json)]
         (if (:error parsed)
           (do
-            (logging/error! log-uri "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)})
+            (logging/error! config "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)})
             (create-error-response nil -32700 "Parse error"))
           (do
-            (logging/debug! log-uri "[Server] Processing request for method:" (:method parsed))
+            (logging/debug! config "[Server] Processing request for method:" (:method parsed))
             (handler parsed)))))))
 
-(defn- process-segments [log-uri segments handler]
-  (keep #(process-segment log-uri % handler) segments))
+(defn- process-segments [config segments handler]
+  (keep #(process-segment config % handler) segments))
 
-(defn- handle-socket-data! [log-uri buffer-atom chunk handler]
-  (let [_ (logging/debug! log-uri "[Server] Socket received chunk:" chunk)
-        _ (vswap! buffer-atom str chunk)
+(defn- handle-socket-data! [config buffer-atom data-chunk handler]
+  (let [_ (logging/debug! config "[Server] Socket received chunk:" data-chunk)
+        _ (vswap! buffer-atom str data-chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
+        _ (logging/debug! config "[Server] Split segments:" (pr-str segments) "Remainder:" (pr-str remainder))
         _ (vreset! buffer-atom remainder)
-        responses (process-segments log-uri segments handler)]
+        responses (process-segments config segments handler)
+        _ (logging/debug! config "[Server] Generated responses:" (pr-str responses))]
     responses))
 
-(defn- setup-socket-handlers! [log-uri ^js socket handler]
+(defn- setup-socket-handlers! [config ^js socket handler]
   (.setEncoding socket "utf8")
   (let [buffer (volatile! "")]
     (.on socket "data"
-         (fn [chunk]
-           (let [responses (handle-socket-data! log-uri buffer chunk handler)]
+         (fn [data-chunk]
+           (let [responses (handle-socket-data! config buffer data-chunk handler)]
              (doseq [response responses]
                (when response
-                 (logging/debug! log-uri "[Server] Sending response for:" (pr-str response))
-                 (.write socket (format-response-json response)))))))
+                 (if (p/promise? response)
+                   (-> response
+                       (p/then (fn [resolved-response]
+                                 (logging/debug! config "[Server] Sending resolved response for:" (pr-str resolved-response))
+                                 (.write socket (format-response-json resolved-response))))
+                       (p/catch (fn [err]
+                                  (logging/error! config "[Server] Error resolving response:" err)
+                                  (let [error-response (create-error-response nil -32603 (str "Internal error: " err))]
+                                    (.write socket (format-response-json error-response))))))
+                   (do
+                     (logging/debug! config "[Server] Sending response for:" (pr-str response))
+                     (.write socket (format-response-json response))))))))
     (.on socket "error"
          (fn [err]
-           (logging/error! log-uri "[Server] Socket error:" err)))))
+           (logging/error! config "[Server] Socket error:" err))))))
 
-(defn- create-request-handler [log-uri]
+(defn- create-request-handler [config]
   (fn [request]
-    (handle-request-fn log-uri request)))
+    (handle-request-fn config request)))
 
-(defn- start-socket-server!+ [log-uri]
-  (let [handle-request (create-request-handler log-uri)]
+(defn- start-socket-server!+ [config]
+  (let [handle-request (create-request-handler config)]
     (p/create
      (fn [resolve-fn reject]
        (try
          (let [server (.createServer
                        net
                        (fn [^js socket]
-                         (setup-socket-handlers! log-uri socket handle-request)))]
+                         (setup-socket-handlers! config socket handle-request)))]
            (.on server "error"
                 (fn [err]
-                  (logging/error! log-uri "[Server] Server creation error:" err)
+                  (logging/error! config "[Server] Server creation error:" err)
                   (reject err)))
            (.listen server 0
                     (fn []
                       (let [address (.address server)
                             port (.-port address)]
-                        (logging/info! log-uri "[Server] Socket server listening on port" port)
+                        (logging/info! config "[Server] Socket server listening on port" port)
                         (resolve-fn {:server/instance server :server/port port})))))
          (catch js/Error e
-           (logging/error! log-uri "[Server] Error creating server:" (.-message e))
+           (logging/error! config "[Server] Error creating server:" (.-message e))
            (reject e)))))))
 
 (defn start-server!+
   "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
-   Takes a context map with `:app/log-uri`. Creates a socket server and writes the port to a file."
-  [{:app/keys [log-uri]}]
-  (p/let [server-info (start-socket-server!+ log-uri)
+   Takes a config map with `:ex/dispatch!` and `:app/log-dir-uri`.
+   Creates a socket server and writes the port to a file."
+  [config]
+  (p/let [server-info (start-socket-server!+ config)
           port (:server/port server-info)
           ^js port-file-uri (get-port-file-uri)]
     (if port-file-uri
       (p/do!
        (ensure-port-file-dir-exists!+)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
-       (logging/info! log-uri "Wrote port file:" (.-fsPath port-file-uri))
-       (assoc server-info :server/log-uri (logging/get-log-path log-uri)))
+       (logging/info! config "Wrote port file:" (.-fsPath port-file-uri))
+       (assoc server-info :server/log-uri (logging/get-log-path config)))
       (do
-        (logging/error! log-uri "Could not determine workspace root to write port file.")
+        (logging/error! config "Could not determine workspace root to write port file.")
         (p/rejected (js/Error. "Could not determine workspace root"))))))
 
-(defn- close-server!+ [log-uri instance]
-  (logging/info! log-uri "Stopping socket server...")
+(defn- close-server!+ [config instance]
+  (logging/info! config "Stopping socket server...")
   (p/create
     (fn [resolve-fn reject]
       (.close instance
         (fn [err]
           (if err
             (do
-              (logging/error! log-uri "Error stopping socket server:" err)
+              (logging/error! config "Error stopping socket server:" err)
               (reject err))
             (do
-              (logging/info! log-uri "Socket server stopped.")
+              (logging/info! config "Socket server stopped.")
               (resolve-fn true))))))))
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.
-   Takes a context map with `:app/log-uri` and `:server/instance`.
+   Takes a config map with `:ex/dispatch!`, `:app/log-dir-uri`, and `:server/instance`.
    Stops the MCP server and removes the port file."
-  [{:keys [app/log-uri server/instance]}]
+  [{:keys [server/instance] :as config}]
   (if-not instance
     (do
-      (logging/info! log-uri "No server instance provided to stop.")
+      (logging/info! config "No server instance provided to stop.")
       (p/resolved false))
-    (-> (close-server!+ log-uri instance)
+    (-> (close-server!+ config instance)
         (p/then (fn [_]
                   (let [port-file-uri (get-port-file-uri)]
-                    (delete-port-file!+ log-uri port-file-uri))))
+                    (delete-port-file!+ config port-file-uri))))
         (p/then (fn [_] true))
         (p/catch (fn [err]
-                   (logging/error! log-uri "Error during server shutdown:" err)
+                   (logging/error! config "Error during server shutdown:" err)
                    false)))))
 
 (comment

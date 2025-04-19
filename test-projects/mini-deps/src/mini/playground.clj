@@ -1,8 +1,15 @@
 (ns mini.playground)
 
-; This project has custom configuration.
-; See .vscode/settings.json
+;; NOTICE FOR AI ASSISTANTS:
+;; Before working in this file, please review the interactive programming instructions at:
+;; ../../AI_INTERACTIVE_PROGRAMMING.md
+;;
+;; The document explains the REPL-driven development workflow that should be followed
+;; when solving problems in this Clojure project using Calva's evaluation capabilities.
 
-; If you are new to Calva, you may want to use the command:
-; Calva: Create a “Getting Started” REPL project
-; which creates a project with a an interactive Calva (and Clojure) guide.
+;; Example rich comment form ready for use:
+(comment
+  ;; Start solving your problem here
+  ;; Remember to evaluate expressions as you go using Calva's REPL integration
+  
+)

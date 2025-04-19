@@ -4,6 +4,7 @@
    [calva-mcp-server.integrations.node.fxs :as node-fxs]
    [calva-mcp-server.integrations.vscode.fxs :as vscode-fxs]
    [calva-mcp-server.mcp.fxs :as mcp-fxs]
+   [calva-mcp-server.extension.fxs :as extension-fxs]
    [clojure.core.match :refer [match]]))
 
 (defn perform-effect! [dispatch! context [effect-kw :as effect]]
@@ -13,4 +14,5 @@
       "node" (node-fxs/perform-effect! dispatch! context enriched-effect)
       "vscode" (vscode-fxs/perform-effect! dispatch! context enriched-effect)
       "mcp" (mcp-fxs/perform-effect! dispatch! context enriched-effect)
+      "extension" (extension-fxs/perform-effect! dispatch! context enriched-effect)
       :else (js/console.warn "Unknown effect namespace:" (pr-str enriched-effect)))))

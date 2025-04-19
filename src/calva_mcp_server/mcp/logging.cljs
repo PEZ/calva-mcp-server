@@ -1,7 +1,14 @@
 (ns calva-mcp-server.mcp.logging
   (:require ["vscode" :as vscode]
             ["fs" :as fs]
-            [promesa.core :as p]))
+            [promesa.core :as p]
+            [clojure.string :as str]))
+
+;; Define log levels with numeric values for comparison
+(def log-levels {:error 0
+                 :warn 1
+                 :info 2
+                 :debug 3})
 
 (defn append-file+ [path data]
   (p/create
@@ -12,31 +19,33 @@
                         (reject err)
                         (resolve-fn)))))))
 
-(defn get-log-path [log-dir-uri]
-  (vscode/Uri.joinPath log-dir-uri "mcp-server.log"))
+(defn get-log-path [{:app/keys [log-uri]}]
+  (vscode/Uri.joinPath log-uri "mcp-server.log"))
 
-(defn log! [log-dir-uri level & messages]
-  (let [timestamp (.toISOString (js/Date.))
-        formatted-message (apply str timestamp " [" (name level) "] " (map pr-str messages))
-        log-entry (str formatted-message "\n")]
-    (-> (p/let [_ (vscode/workspace.fs.createDirectory log-dir-uri)
-                ^js log-uri (get-log-path log-dir-uri)]
-          (append-file+ (.-fsPath log-uri) log-entry))
-        (p/catch (fn [err]
-                   (js/console.error "Failed to write to MCP server log:" err))))))
+(defn should-log? [config level]
+  (let [min-level (get config :app/min-log-level :debug)]
+    (<= (get log-levels level)
+        (get log-levels min-level))))
 
-(defn info! [log-dir-uri & messages]
-  (apply js/console.log messages)
-  (apply log! log-dir-uri :info messages))
+(defn log! [{:app/keys [log-uri] :as config}level & messages]
+  (when (should-log? config level)
+    (let [timestamp (.toISOString (js/Date.))
+          formatted-message (apply str timestamp " [" (name level) "] " (map pr-str messages))
+          log-entry (str formatted-message "\n")]
+      (-> (p/let [_ (vscode/workspace.fs.createDirectory log-uri)
+                  ^js log-file-uri (get-log-path config)]
+            (append-file+ (.-fsPath log-file-uri) log-entry))
+          (p/catch (fn [err]
+                     (js/console.error "Failed to write to MCP server log:" err)))))))
 
-(defn error! [log-dir-uri & messages]
-  (apply js/console.error messages)
-  (apply log! log-dir-uri :error messages))
+(defn info! [config & messages]
+  (apply log! config :info messages))
 
-(defn warn! [log-dir-uri & messages]
-  (apply js/console.error messages)
-  (apply log! log-dir-uri :warn messages))
+(defn error! [config & messages]
+  (apply log! config :error messages))
 
-(defn debug! [log-dir-uri & messages]
-  (apply js/console.debug messages)
-  (apply log! log-dir-uri :debug messages))
+(defn warn! [config & messages]
+  (apply log! config :warn messages))
+
+(defn debug! [config & messages]
+  (apply log! config :debug messages))

@@ -9,6 +9,9 @@
     [:vscode/fx.show-information-message & args]
     (apply vscode/window.showInformationMessage args)
 
+    [:vscode/fx.show-error-message & args]
+    (apply vscode/window.showErrorMessage args)
+
     [:vscode/fx.show-input-box options]
     (let [{:ex/keys [then]} options]
       (if-not then
