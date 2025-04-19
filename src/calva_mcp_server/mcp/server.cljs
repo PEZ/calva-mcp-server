@@ -27,7 +27,10 @@
                                 .-v1
                                 (js->clj :keywordize-keys true)))
 
-(defn- evaluate-code+ [code session]
+(defn- evaluate-code+
+  "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
+   Takes a string of code to evaluate and an optional REPL session."
+  [code session]
   (p/let [evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
           result (.-result evaluation+)]
     result))
@@ -179,7 +182,10 @@
            (logging/error! log-uri "[Server] Error creating server:" (.-message e))
            (reject e)))))))
 
-(defn start-server!+ [{:app/keys [log-uri]}]
+(defn start-server!+
+  "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
+   Takes a context map with :app/log-uri. Creates a socket server and writes the port to a file."
+  [{:app/keys [log-uri]}]
   (p/let [server-info (start-socket-server!+ log-uri)
           port (:server/port server-info)
           ^js port-file-uri (get-port-file-uri)]
@@ -193,7 +199,11 @@
         (logging/error! log-uri "Could not determine workspace root to write port file.")
         (p/rejected (js/Error. "Could not determine workspace root"))))))
 
-(defn stop-server!+ [{:keys [app/log-uri server/instance]}]
+(defn stop-server!+
+  "Returns a promise that resolves to a boolean indicating success.
+   Takes a context map with :app/log-uri and :server/instance.
+   Stops the MCP server and removes the port file."
+  [{:keys [app/log-uri server/instance]}]
   (if instance
     (p/let [^js port-file-uri (get-port-file-uri)
             _ (logging/info! log-uri "Stopping socket server...")]
