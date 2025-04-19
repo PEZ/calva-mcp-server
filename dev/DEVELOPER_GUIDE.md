@@ -14,6 +14,23 @@ This project follows these key principles:
 - **Controlled Side Effects**: Isolate side effects in clearly defined effect handlers
 - **Error Handling**: Handle all predictable errors gracefully with proper fallbacks
 
+### Code Style Conventions
+
+#### Function Naming
+
+- **Side Effects**: Functions that perform side effects should end with `!`
+  - Example: `setup-socket-handlers!`
+- **Promise-returning**: Functions that return promises should end with `+`
+  - Example: `evaluate-code+`
+- **Both**: Functions that both perform side effects and return promises should end with `!+`
+  - Example: `ensure-port-file-dir-exists!+`
+
+#### Function Privacy
+
+- Functions should be private by default (`defn-`) unless they are part of the namespace API
+- Every public function should have a docstring that starts with what it returns
+- Docstrings should be terse and to the point
+
 ### One-Shot Changes
 
 - Each PR should be a focused, atomic change solving a single, well-defined problem
