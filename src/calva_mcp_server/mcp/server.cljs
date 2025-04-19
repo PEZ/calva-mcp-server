@@ -184,7 +184,7 @@
 
 (defn start-server!+
   "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
-   Takes a context map with :app/log-uri. Creates a socket server and writes the port to a file."
+   Takes a context map with `:app/log-uri`. Creates a socket server and writes the port to a file."
   [{:app/keys [log-uri]}]
   (p/let [server-info (start-socket-server!+ log-uri)
           port (:server/port server-info)
@@ -201,7 +201,7 @@
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.
-   Takes a context map with :app/log-uri and :server/instance.
+   Takes a context map with `:app/log-uri` and `:server/instance`.
    Stops the MCP server and removes the port file."
   [{:keys [app/log-uri server/instance]}]
   (if instance
