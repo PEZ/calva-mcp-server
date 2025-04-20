@@ -7,8 +7,7 @@
     [:mcp/ax.start-server]
     {:ex/db (assoc state :app/server-starting? true)
      :ex/dxs [[:extension/ax.set-when-context "calva-mcp:server-starting" true]]
-     :ex/fxs [[:mcp/fx.start-server {:app/log-uri :context/logUri
-                                     :ex/on-success [[:mcp/ax.server-started :ex/action-args]]
+     :ex/fxs [[:mcp/fx.start-server {:ex/on-success [[:mcp/ax.server-started :ex/action-args]]
                                      :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}]]}
 
     [:mcp/ax.server-started server-info]
@@ -22,8 +21,7 @@
     [:mcp/ax.stop-server]
     {:ex/db (assoc state :app/server-stopping? true)
      :ex/dxs [[:extension/ax.set-when-context "calva-mcp:server-stopping" true]]
-     :ex/fxs [[:mcp/fx.stop-server (merge {:app/log-uri :context/logUri
-                                           :ex/on-success [[:mcp/ax.server-stopped]]
+     :ex/fxs [[:mcp/fx.stop-server (merge {:ex/on-success [[:mcp/ax.server-stopped]]
                                            :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}
                                           (:app/server-info state))]]}
 

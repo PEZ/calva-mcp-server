@@ -11,11 +11,12 @@
     [:extension/ax.set-min-log-level level]
     {:ex/db (assoc state :app/min-log-level level)}
 
-    [:extension/ax.log {:keys [level message]}]
-    (let [min-level (get state :app/min-log-level :debug)
+    [:extension/ax.log level & messages]
+    (let [min-level (:app/min-log-level state :debug)
           levels {:error 0, :warn 1, :info 2, :debug 3}]
-      (when (<= (get levels level) (get levels min-level))
-        {:ex/fxs [[:extension/fx.log {:level level :message message}]]}))
+      (apply println "BOOM! :extension/ax.log" level messages)
+      (when (<= (levels level) (levels min-level))
+        {:ex/fxs [(conj [:extension/fx.log {:app/log-uri :context/logUri} level] messages)]}))
 
     :else nil))
 
