@@ -27,10 +27,10 @@
        (resolve-fn true)
        (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
            (p/then (fn [_]
-                     (dispatch! [[:extension/ax.log :info "Deleted port file:" (.-fsPath port-file-uri)]])
+                     (dispatch! [[:app/ax.log :info "Deleted port file:" (.-fsPath port-file-uri)]])
                      (resolve-fn true)))
            (p/catch (fn [err]
-                      (dispatch! [[:extension/ax.log :warn "Could not delete port file (maybe already gone?):" err]])
+                      (dispatch! [[:app/ax.log :warn "Could not delete port file (maybe already gone?):" err]])
                       (resolve-fn true))))))))
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
@@ -60,7 +60,7 @@
 
 (defn- handle-request-fn [{:ex/keys [dispatch!]}
                           {:keys [id method params] :as request}]
-  (dispatch! [[:extension/ax.log :debug "handle-request " (pr-str request)]])
+  (dispatch! [[:app/ax.log :debug "handle-request " (pr-str request)]])
   (cond
     (= method "initialize")
     (let [response {:jsonrpc "2.0"
@@ -137,15 +137,15 @@
   (let [request-json (str/trim segment)]
     (if (str/blank? request-json)
       (do
-        (dispatch! [[:extension/ax.log :debug "[Server] Blank line segment received, ignoring."]])
+        (dispatch! [[:app/ax.log :debug "[Server] Blank line segment received, ignoring."]])
         nil)
       (let [parsed (parse-request-json request-json)]
         (if (:error parsed)
           (do
-            (dispatch! [[:extension/ax.log :error "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)}]])
+            (dispatch! [[:app/ax.log :error "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)}]])
             (create-error-response nil -32700 "Parse error"))
           (do
-            (dispatch! [[:extension/ax.log :debug "[Server] Processing request for method:" (:method parsed)]])
+            (dispatch! [[:app/ax.log :debug "[Server] Processing request for method:" (:method parsed)]])
             (handler parsed)))))))
 
 (defn- process-segments [options segments handler]
@@ -153,13 +153,13 @@
 
 (defn- handle-socket-data! [{:ex/keys [dispatch!] :as options}
                             buffer-atom data-chunk handler]
-  (let [_ (dispatch! [[:extension/ax.log :debug "[Server] Socket received chunk:" data-chunk]])
+  (let [_ (dispatch! [[:app/ax.log :debug "[Server] Socket received chunk:" data-chunk]])
         _ (vswap! buffer-atom str data-chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
-        _ (dispatch! [[:extension/ax.log :debug "[Server] Split segments:" (pr-str segments) "Remainder:" (pr-str remainder)]])
+        _ (dispatch! [[:app/ax.log :debug "[Server] Split segments:" (pr-str segments) "Remainder:" (pr-str remainder)]])
         _ (vreset! buffer-atom remainder)
         responses (process-segments options segments handler)
-        _ (dispatch! [[:extension/ax.log :debug "[Server] Generated responses:" (pr-str responses)]])]
+        _ (dispatch! [[:app/ax.log :debug "[Server] Generated responses:" (pr-str responses)]])]
     responses))
 
 (defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket handler]
@@ -173,24 +173,24 @@
                  (if (p/promise? response)
                    (-> response
                        (p/then (fn [resolved-response]
-                                 (dispatch! [[:extension/ax.log :debug
+                                 (dispatch! [[:app/ax.log :debug
                                               "[Server] Sending resolved response:"
                                               (pr-str resolved-response)]])
                                  (.write socket (format-response-json resolved-response))))
                        (p/catch (fn [err]
-                                  (dispatch! [[:extension/ax.log :error
+                                  (dispatch! [[:app/ax.log :error
                                                "[Server] Error resolving response:" err]])
                                   (let [error-response (create-error-response nil -32603 (str "Internal error: " err))]
                                     (.write socket (format-response-json error-response))))))
                    ;; Handle non-promise responses
                    (do
-                     (dispatch! [[:extension/ax.log :debug
+                     (dispatch! [[:app/ax.log :debug
                                   "[Server] Sending response:"
                                   (pr-str response)]])
                      (.write socket (format-response-json response))))))))
     (.on socket "error"
          (fn [err]
-           (dispatch! [[:extension/ax.log :error "[Server] Socket error:" err]])
+           (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]])
            )))))
 
 (defn- create-request-handler [options]
@@ -208,16 +208,16 @@
                          (setup-socket-handlers! options socket handle-request)))]
            (.on server "error"
                 (fn [err]
-                  (dispatch! [[:extension/ax.log :error "[Server] Server creation error:" err]])
+                  (dispatch! [[:app/ax.log :error "[Server] Server creation error:" err]])
                   (reject err)))
            (.listen server 0
                     (fn []
                       (let [address (.address server)
                             port (.-port address)]
-                        (dispatch! [[:extension/ax.log :info "[Server] Socket server listening on port" port]])
+                        (dispatch! [[:app/ax.log :info "[Server] Socket server listening on port" port]])
                         (resolve-fn {:server/instance server :server/port port})))))
          (catch js/Error e
-           (dispatch! [[:extension/ax.log :error "[Server] Error creating server:" (.-message e)]])
+           (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
            (reject e)))))))
 
 (defn start-server!+
@@ -231,25 +231,25 @@
       (p/do!
        (ensure-port-file-dir-exists!+)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
-       (dispatch! [[:extension/ax.log :info "Wrote port file:" (.-fsPath port-file-uri)]])
+       (dispatch! [[:app/ax.log :info "Wrote port file:" (.-fsPath port-file-uri)]])
        server-info)
       (do
-        (dispatch! [[:extension/ax.log :error "Could not determine workspace root to write port file."]])
+        (dispatch! [[:app/ax.log :error "Could not determine workspace root to write port file."]])
         (p/rejected (js/Error. "Could not determine workspace root"))))))
 
 (defn- close-server!+ [{:ex/keys [dispatch!]
                         :server/keys [instance]}]
-  (dispatch! [[:extension/ax.log :info "Stopping socket server..."]])
+  (dispatch! [[:app/ax.log :info "Stopping socket server..."]])
   (p/create
    (fn [resolve-fn reject]
      (.close instance
              (fn [err]
                (if err
                  (do
-                   (dispatch! [[:extension/ax.log :error "Error stopping socket server:" err]])
+                   (dispatch! [[:app/ax.log :error "Error stopping socket server:" err]])
                    (reject err))
                  (do
-                   (dispatch! [[:extension/ax.log :info "Socket server stopped."]])
+                   (dispatch! [[:app/ax.log :info "Socket server stopped."]])
                    (resolve-fn true))))))))
 
 (defn stop-server!+
@@ -258,7 +258,7 @@
   [{:keys [server/instance ex/dispatch!] :as options}]
   (if-not instance
     (do
-      (dispatch! [[:extension/ax.log :info "No server instance provided to stop."]])
+      (dispatch! [[:app/ax.log :info "No server instance provided to stop."]])
       (p/resolved false))
     (-> (close-server!+ options)
         (p/then (fn [_]
@@ -266,7 +266,7 @@
                     (delete-port-file!+ options port-file-uri))))
         (p/then (fn [_] true))
         (p/catch (fn [err]
-                   (dispatch! [[:extension/ax.log :error "Error during server shutdown:" err]])
+                   (dispatch! [[:app/ax.log :error "Error during server shutdown:" err]])
                    false)))))
 
 (comment

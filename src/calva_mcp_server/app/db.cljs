@@ -1,4 +1,4 @@
-(ns calva-mcp-server.extension.db)
+(ns calva-mcp-server.app.db)
 
 (def init-db {:extension/context nil
               :extension/disposables []

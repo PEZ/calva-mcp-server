@@ -2,7 +2,7 @@
   (:require
    [calva-mcp-server.ex.ax :as ax]
    [calva-mcp-server.ex.fx :as fx]
-   [calva-mcp-server.extension.db :as db]))
+   [calva-mcp-server.app.db :as db]))
 
 (defn dispatch! [extension-context actions]
   (let [{:ex/keys [fxs dxs db]} (ax/handle-actions @db/!app-db extension-context actions)]

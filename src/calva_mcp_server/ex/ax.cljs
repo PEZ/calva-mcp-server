@@ -1,6 +1,6 @@
 (ns calva-mcp-server.ex.ax
   (:require
-   [calva-mcp-server.extension.axs :as extension-axs]
+   [calva-mcp-server.app.axs :as app-axs]
    [calva-mcp-server.hello.axs :as hello-axs]
    [calva-mcp-server.integrations.node.axs :as node-axs]
    [calva-mcp-server.integrations.vscode.axs :as vscode-axs]
@@ -77,7 +77,7 @@
       "node"         (node-axs/handle-action state context enriched-action)
       "ex-test"      (ex-test-axs/handle-action state context enriched-action)
       "mcp"          (mcp-axs/handle-action state context enriched-action)
-      "extension"    (extension-axs/handle-action state context enriched-action)
+      "app"          (app-axs/handle-action state context enriched-action)
       :else {:fxs [[:node/fx.log-error "Unknown action namespace for action:" (pr-str action)]]})))
 
 (defn handle-actions [state context actions]
