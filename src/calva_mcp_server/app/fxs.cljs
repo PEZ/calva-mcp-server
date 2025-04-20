@@ -17,15 +17,15 @@
         (apply logging/log! (assoc options :ex/dispatch! dispatch!) level messages)))
 
     [:app/fx.register-command command-id actions]
-    (let [disposable (.push (.-subscriptions context)
-                            (vscode/commands.registerCommand
-                             command-id
-                             (fn [& args]
-                               (dispatch!
-                                context
-                                (ax/enrich-with-args actions
-                                                     (js->clj args :keywordize-keys true))))))]
-      (dispatch! [[:db/ax.update-in [:extension/disposables] disposable]]))
+    (let [disposable (vscode/commands.registerCommand
+                      command-id
+                      (fn [& args]
+                        (dispatch!
+                         context
+                         (ax/enrich-with-args actions
+                                              (js->clj args :keywordize-keys true)))))]
+      (.push (.-subscriptions context) disposable)
+      (dispatch! context [[:db/ax.update-in [:extension/disposables] conj disposable]]))
 
     :else
     (js/console.warn "Unknown extension effect:" (pr-str effect))))
