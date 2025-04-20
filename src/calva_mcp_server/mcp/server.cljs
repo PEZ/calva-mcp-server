@@ -20,7 +20,7 @@
   (vscode/workspace.fs.createDirectory (get-server-dir)))
 
 
-(defn- delete-port-file!+ [{:ex/keys [dispatch!] :as config} ^js port-file-uri]
+(defn- delete-port-file!+ [{:ex/keys [dispatch!]} ^js port-file-uri]
   (p/create
    (fn [resolve-fn _reject]
      (if-not port-file-uri
@@ -58,7 +58,7 @@
                                                           :description "Clojure/ClojureScript code to evaluate"}}
                                      :required ["code"]}}])
 
-(defn- handle-request-fn [{:ex/keys [dispatch!] :as config}
+(defn- handle-request-fn [{:ex/keys [dispatch!]}
                           {:keys [id method params] :as request}]
   (dispatch! [[:extension/ax.log :debug "BOOM! handle-request " (pr-str request)]])
   (cond
@@ -134,7 +134,7 @@
 (defn- create-error-response [id code message]
   {:jsonrpc "2.0" :id id :error {:code code :message message}})
 
-(defn- process-segment [{:ex/keys [dispatch!] :as config} segment handler]
+(defn- process-segment [{:ex/keys [dispatch!]} segment handler]
   (let [request-json (str/trim segment)]
     (if (str/blank? request-json)
       (do
@@ -149,26 +149,26 @@
             (dispatch! [[:extension/ax.log :debug "[Server] Processing request for method:" (:method parsed)]])
             (handler parsed)))))))
 
-(defn- process-segments [config segments handler]
-  (keep #(process-segment config % handler) segments))
+(defn- process-segments [options segments handler]
+  (keep #(process-segment options % handler) segments))
 
-(defn- handle-socket-data! [{:ex/keys [dispatch!] :as config}
+(defn- handle-socket-data! [{:ex/keys [dispatch!] :as options}
                             buffer-atom data-chunk handler]
   (let [_ (dispatch! [[:extension/ax.log :debug "[Server] Socket received chunk:" data-chunk]])
         _ (vswap! buffer-atom str data-chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
         _ (dispatch! [[:extension/ax.log :debug "[Server] Split segments:" (pr-str segments) "Remainder:" (pr-str remainder)]])
         _ (vreset! buffer-atom remainder)
-        responses (process-segments config segments handler)
+        responses (process-segments options segments handler)
         _ (dispatch! [[:extension/ax.log :debug "[Server] Generated responses:" (pr-str responses)]])]
     responses))
 
-(defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as config} ^js socket handler]
+(defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket handler]
   (.setEncoding socket "utf8")
   (let [buffer (volatile! "")]
     (.on socket "data"
          (fn [data-chunk]
-           (let [responses (handle-socket-data! config buffer data-chunk handler)]
+           (let [responses (handle-socket-data! options buffer data-chunk handler)]
              (doseq [response responses]
                (when response
                  (if (p/promise? response)
@@ -189,19 +189,19 @@
            (dispatch! [[:extension/ax.log :error "[Server] Socket error:" err]])
            )))))
 
-(defn- create-request-handler [config]
+(defn- create-request-handler [options]
   (fn [request]
-    (handle-request-fn config request)))
+    (handle-request-fn options request)))
 
-(defn- start-socket-server!+ [{:ex/keys [dispatch!] :as config}]
-  (let [handle-request (create-request-handler config)]
+(defn- start-socket-server!+ [{:ex/keys [dispatch!] :as options}]
+  (let [handle-request (create-request-handler options)]
     (p/create
      (fn [resolve-fn reject]
        (try
          (let [server (.createServer
                        net
                        (fn [^js socket]
-                         (setup-socket-handlers! config socket handle-request)))]
+                         (setup-socket-handlers! options socket handle-request)))]
            (.on server "error"
                 (fn [err]
                   (dispatch! [[:extension/ax.log :error "[Server] Server creation error:" err]])
@@ -218,10 +218,9 @@
 
 (defn start-server!+
   "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
-   Takes a config map with `:ex/dispatch!` and `:app/log-dir-uri`.
    Creates a socket server and writes the port to a file."
-  [{:ex/keys [dispatch!] :as config}]
-  (p/let [server-info (start-socket-server!+ config)
+  [{:ex/keys [dispatch!] :as options}]
+  (p/let [server-info (start-socket-server!+ options)
           port (:server/port server-info)
           ^js port-file-uri (get-port-file-uri)]
     (if port-file-uri
@@ -251,17 +250,16 @@
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.
-   Takes a config map with `:ex/dispatch!`, `:app/log-dir-uri`, and `:server/instance`.
    Stops the MCP server and removes the port file."
-  [{:keys [server/instance ex/dispatch!] :as config}]
+  [{:keys [server/instance ex/dispatch!] :as options}]
   (if-not instance
     (do
       (dispatch! [[:extension/ax.log :info "No server instance provided to stop."]])
       (p/resolved false))
-    (-> (close-server!+ config)
+    (-> (close-server!+ options)
         (p/then (fn [_]
                   (let [port-file-uri (get-port-file-uri)]
-                    (delete-port-file!+ config port-file-uri))))
+                    (delete-port-file!+ options port-file-uri))))
         (p/then (fn [_] true))
         (p/catch (fn [err]
                    (dispatch! [[:extension/ax.log :error "Error during server shutdown:" err]])
