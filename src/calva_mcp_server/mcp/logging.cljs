@@ -2,7 +2,11 @@
   (:require
    ["fs" :as fs]
    ["vscode" :as vscode]
-   [promesa.core :as p]))
+   [promesa.core :as p]
+   [clojure.string :as string]))
+
+(defn init!+ [{:app/keys [log-file-uri]}]
+  (vscode/workspace.fs.createDirectory (vscode/Uri.joinPath log-file-uri "..")))
 
 (defn append-file+ [path data]
   (p/create
@@ -13,15 +17,12 @@
                         (reject err)
                         (resolve-fn)))))))
 
-(defn get-log-path [{:app/keys [log-uri]}]
-  (vscode/Uri.joinPath log-uri "mcp-server.log"))
-
-(defn log! [{:app/keys [log-uri] :as config} level & messages]
+(defn log! [{:app/keys [^js log-file-uri]} level & messages]
   (let [timestamp (.toISOString (js/Date.))
-        formatted-message (apply str timestamp " [" (name level) "] " (map pr-str messages))
+        formatted-message (str timestamp " [" (name level) "] "
+                               (string/join " " (map pr-str messages)))
         log-entry (str formatted-message "\n")]
-    (-> (p/let [_ (vscode/workspace.fs.createDirectory log-uri)
-                ^js log-file-uri (get-log-path config)]
-          (append-file+ (.-fsPath log-file-uri) log-entry))
+    (-> (p/do!
+         (append-file+ (.-fsPath log-file-uri) log-entry))
         (p/catch (fn [err]
                    (js/console.error "Failed to write to MCP server log:" err))))))

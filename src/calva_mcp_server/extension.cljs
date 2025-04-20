@@ -1,17 +1,22 @@
 (ns calva-mcp-server.extension
   (:require
+   ["vscode" :as vscode]
    [calva-mcp-server.ex.ex :as ex]
    [calva-mcp-server.extension.db :as db]
    [calva-mcp-server.extension.life-cycle-helpers :as lc-helpers]))
 
 ;;;;; Extension activation entry point
 
-(defn ^:export activate [context]
+(defn ^:export activate [^js context]
   (js/console.time "activation")
   (js/console.timeLog "activation" "Calva MCP Server activate START")
 
   (when context
     (swap! db/!app-db assoc :extension/context context))
+  (ex/dispatch! context [[:extension/ax.init {:app/log-file-uri
+                                              (vscode/Uri.joinPath
+                                               (.-logUri context) "mcp-server.log")
+                                              :app/min-log-level :debug}]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args%1}]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args%1}]])
   (lc-helpers/register-command! context db/!app-db "calva-mcp-server.startServer" [[:mcp/ax.start-server]])

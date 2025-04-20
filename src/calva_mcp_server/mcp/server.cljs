@@ -60,7 +60,7 @@
 
 (defn- handle-request-fn [{:ex/keys [dispatch!]}
                           {:keys [id method params] :as request}]
-  (dispatch! [[:extension/ax.log :debug "BOOM! handle-request " (pr-str request)]])
+  (dispatch! [[:extension/ax.log :debug "handle-request " (pr-str request)]])
   (cond
     (= method "initialize")
     (let [response {:jsonrpc "2.0"
@@ -76,7 +76,6 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools tools}}]
-      (dispatch! [[:extension/ax.log :debug "Formatted tools response:" (pr-str tools)]])
       response)
 
     (= method "tools/call")
@@ -174,15 +173,20 @@
                  (if (p/promise? response)
                    (-> response
                        (p/then (fn [resolved-response]
-                                 (dispatch! [[:extension/ax.log :debug "[Server] Sending resolved response for:" (pr-str resolved-response)]])
+                                 (dispatch! [[:extension/ax.log :debug
+                                              "[Server] Sending resolved response:"
+                                              (pr-str resolved-response)]])
                                  (.write socket (format-response-json resolved-response))))
                        (p/catch (fn [err]
-                                  (dispatch! [[:extension/ax.log :error "[Server] Error resolving response:" err]])
+                                  (dispatch! [[:extension/ax.log :error
+                                               "[Server] Error resolving response:" err]])
                                   (let [error-response (create-error-response nil -32603 (str "Internal error: " err))]
                                     (.write socket (format-response-json error-response))))))
                    ;; Handle non-promise responses
                    (do
-                     (dispatch! [[:extension/ax.log :debug "[Server] Sending response:" (pr-str response)]])
+                     (dispatch! [[:extension/ax.log :debug
+                                  "[Server] Sending response:"
+                                  (pr-str response)]])
                      (.write socket (format-response-json response))))))))
     (.on socket "error"
          (fn [err]
