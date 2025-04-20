@@ -22,5 +22,8 @@
                level
                messages]]}
 
+    [:app/ax.register-command command-id actions]
+    {:ex/fxs [[:app/fx.register-command command-id actions]]}
+
     :else nil))
 

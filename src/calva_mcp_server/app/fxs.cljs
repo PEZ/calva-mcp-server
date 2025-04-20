@@ -1,9 +1,11 @@
 (ns calva-mcp-server.app.fxs
   (:require
+   ["vscode" :as vscode]
+   [calva-mcp-server.ex.ax :as ax]
    [calva-mcp-server.mcp.logging :as logging]
    [clojure.core.match :refer [match]]))
 
-(defn perform-effect! [dispatch! _context effect]
+(defn perform-effect! [dispatch! ^js context effect]
   (match effect
     [:app/fx.init-logging options]
     (logging/init!+ options)
@@ -13,6 +15,17 @@
           levels {:error 0, :warn 1, :info 2, :debug 3}]
       (when (<= (levels level) (levels min-level))
         (apply logging/log! (assoc options :ex/dispatch! dispatch!) level messages)))
+
+    [:app/fx.register-command command-id actions]
+    (let [disposable (.push (.-subscriptions context)
+                            (vscode/commands.registerCommand
+                             command-id
+                             (fn [& args]
+                               (dispatch!
+                                context
+                                (ax/enrich-with-args actions
+                                                     (js->clj args :keywordize-keys true))))))]
+      (dispatch! [[:db/ax.update-in [:extension/disposables] disposable]]))
 
     :else
     (js/console.warn "Unknown extension effect:" (pr-str effect))))

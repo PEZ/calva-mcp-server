@@ -14,15 +14,17 @@
   (when context
     (swap! db/!app-db assoc :extension/context context))
   (ex/dispatch! context [[:app/ax.init {:app/log-file-uri
-                                              (vscode/Uri.joinPath
-                                               (.-logUri context) "mcp-server.log")
-                                              :app/min-log-level :debug}]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc {:greetee :ex/action-args%1}]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.hello" [[:hello/ax.command.hello {:greetee :ex/action-args%1}]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.startServer" [[:mcp/ax.start-server]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]])
-  (lc-helpers/register-command! context db/!app-db "calva-mcp-server.openServerLog" [[:mcp/ax.open-server-log]])
-  (ex/dispatch! context [[:app/ax.set-when-context :calva-mcp-server/active? true]])
+                                        (vscode/Uri.joinPath
+                                         (.-logUri context) "mcp-server.log")
+                                        :app/min-log-level :debug}]
+                         [:app/ax.register-command "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc
+                                                                                         {:greetee :ex/action-args%1}]]]
+                         [:app/ax.register-command "calva-mcp-server.hello" [[:hello/ax.command.hello
+                                                                              {:greetee :ex/action-args%1}]]]
+                         [:app/ax.register-command "calva-mcp-server.startServer" [[:mcp/ax.start-server]]]
+                         [:app/ax.register-command "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]]]
+                         [:app/ax.register-command "calva-mcp-server.openServerLog" [[:mcp/ax.open-server-log]]]
+                         [:app/ax.set-when-context :calva-mcp-server/active? true]])
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")
   (js/console.timeEnd "activation")
