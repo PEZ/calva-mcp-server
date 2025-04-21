@@ -6,7 +6,7 @@
   (match action
     [:mcp/ax.start-server]
     {:ex/db (assoc state :app/server-starting? true)
-     :ex/dxs [[:app/ax.set-when-context "calva-mcp:server-starting" true]]
+     :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/starting? true]]
      :ex/fxs [[:mcp/fx.start-server {:ex/on-success [[:mcp/ax.server-started :ex/action-args]]
                                      :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}]]}
 
@@ -14,13 +14,13 @@
     {:ex/db (assoc state
                    :app/server-info server-info
                    :app/server-starting? false)
-     :ex/dxs [[:app/ax.set-when-context "calva-mcp:server-starting" false]
-              [:app/ax.set-when-context "calva-mcp:server-started" true]]
+     :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/starting? false]
+              [:app/ax.set-when-context :calva-mcp-server/started? true]]
      :ex/fxs [[:vscode/fx.show-information-message (str "MCP server started on port" (:server/port server-info))]]}
 
     [:mcp/ax.stop-server]
     {:ex/db (assoc state :app/server-stopping? true)
-     :ex/dxs [[:app/ax.set-when-context "calva-mcp:server-stopping" true]]
+     :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/stopping? true]]
      :ex/fxs [[:mcp/fx.stop-server (merge {:ex/on-success [[:mcp/ax.server-stopped]]
                                            :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}
                                           (:app/server-info state))]]}
@@ -29,8 +29,8 @@
     {:ex/db (dissoc state
                     :app/server-info
                     :app/server-stopping?)
-     :ex/dxs [[:app/ax.set-when-context "calva-mcp:server-stopping" false]
-              [:app/ax.set-when-context "calva-mcp:server-started" false]]
+     :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/stopping? false]
+              [:app/ax.set-when-context :calva-mcp-server/started? false]]
      :ex/fxs [[:vscode/fx.show-information-message "MCP server stopped"]]}
 
     [:mcp/ax.open-server-log]
