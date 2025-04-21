@@ -59,8 +59,11 @@
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and an optional REPL session."
   [code session]
-  (p/let [evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
-          result (.-result evaluation+)]
+  (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
+          result {:result (.-result evaluation+)
+                  :ns (.-ns evaluation+)
+                  :stdout (.-output evaluation+)
+                  :stderr (.-errorOutput evaluation+)}]
     result))
 
 (comment
@@ -72,7 +75,9 @@
                        :inputSchema {:type "object"
                                      :properties {"code" {:type "string"
                                                           :description "Clojure/ClojureScript code to evaluate"}}
-                                     :required ["code"]}}])
+                                     :required ["code"]}
+                       :audience ["user"]
+                       :priority 1}])
 
 (defn- handle-request-fn [{:ex/keys [dispatch!]}
                           {:keys [id method params] :as request}]
@@ -85,7 +90,8 @@
                                           :version "0.0.1"}
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}}
-                             :instructions "Gives access to the the Clojure REPL connection (via Calva). Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code."}}]
+                             :instructions "Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code."
+                             :description "Gives access to the Clojure REPL connection (via Calva). Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
       response)
 
     (= method "tools/list")
@@ -104,7 +110,7 @@
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
-                               :text (str result)}]}}
+                               :text (pr-str result)}]}}
           {:jsonrpc "2.0"
            :id id
            :error {:code -32601
