@@ -162,8 +162,15 @@
         _ (dispatch! [[:app/ax.log :debug "[Server] Generated responses:" (pr-str responses)]])]
     responses))
 
+(def ^:private active-sockets (atom #{}))
+
 (defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket handler]
   (.setEncoding socket "utf8")
+  ;; Track this socket
+  (swap! active-sockets conj socket)
+  ;; When socket closes, remove it from tracking
+  (.on socket "close" (fn [] (swap! active-sockets disj socket)))
+
   (let [buffer (volatile! "")]
     (.on socket "data"
          (fn [data-chunk]
@@ -190,8 +197,7 @@
                      (.write socket (format-response-json response))))))))
     (.on socket "error"
          (fn [err]
-           (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]])
-           )))))
+           (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]]))))))
 
 (defn- create-request-handler [options]
   (fn [request]
@@ -242,6 +248,15 @@
   (dispatch! [[:app/ax.log :info "Stopping socket server..."]])
   (-> (p/create
        (fn [resolve-fn reject]
+         (when (seq @active-sockets)
+           (dispatch! [[:app/ax.log :info "Closing all active socket connections (" (count @active-sockets) ")..."]])
+           (doseq [^js socket @active-sockets]
+             (try
+               (.end socket)
+               (.destroy socket)
+               (catch js/Error e
+                 (dispatch! [[:app/ax.log :warn "Error closing socket:" (.-message e)]])))))
+         (reset! active-sockets #{})
          (.close instance
                  (fn [err]
                    (if err
