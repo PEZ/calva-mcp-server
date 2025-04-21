@@ -35,7 +35,7 @@
 
     [:mcp/ax.open-server-log]
     {:ex/fxs [[:vscode/fx.workspace.open-text-document
-               {:open/uri (:log-file-uri state)
+               {:open/uri (:app/log-file-uri state)
                 :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}
 
     [:mcp/ax.server-error err]
