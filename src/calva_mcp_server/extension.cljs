@@ -4,6 +4,9 @@
    [calva-mcp-server.ex.ex :as ex]
    [calva-mcp-server.app.db :as db]))
 
+(defn- extension-context []
+  (:extension/context @db/!app-db))
+
 (defn- initial-state [^js context]
   {:app/log-file-uri
    (vscode/Uri.joinPath
@@ -23,11 +26,11 @@
 
 
 (defn ^:export deactivate []
-  (ex/dispatch! (:extension/context @db/!app-db) [:app/ax.deactivate]))
+  (ex/dispatch! (extension-context) [[:app/ax.deactivate]]))
 
 (comment
-  (deactivate)
-  (activate (:extension/context @db/!app-db))
+  (ex/dispatch! (extension-context) [[:app/ax.cleanup]])
+  (activate (extension-context))
   :rcf)
 
 ;;;;; shadow-cljs hot reload hooks

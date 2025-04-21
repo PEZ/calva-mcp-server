@@ -40,9 +40,12 @@
     {:ex/db (assoc state :extension/disposables [])
      :ex/fxs [[:app/fx.clear-disposables (:extension/disposables state)]]}
 
-    [:app/ax.deactivate]
+    [:app/ax.cleanup]
     {:ex/dxs [[:app/ax.set-when-context :calva-mcp-extension/activated? false]
               [:app/ax.clear-disposables]]}
+
+    [:app/ax.deactivate]
+    {:ex/dxs [[:app/ax.cleanup]]}
 
     :else nil))
 

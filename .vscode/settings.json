@@ -31,7 +31,7 @@
             "name": "Re-activate extension",
             "key": ".",
             "repl": "cljs",
-            "snippet": "(calva-mcp-server.extension.life-cycle-helpers/cleanup! calva-mcp-server.extension.db/!app-db) (calva-mcp-server.extension/activate (:extension/context @calva-mcp-server.extension.db/!app-db))",
+            "snippet": "(calva-mcp-server.ex.ex/dispatch! (calva-mcp-server.extension/extension-context) [[:app/ax.cleanup]]) (calva-mcp-server.extension/activate (calva-mcp-server.extension/extension-context))",
             "evaluationSendCodeToOutputWindow": true
         }
     ]
