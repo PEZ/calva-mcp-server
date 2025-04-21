@@ -67,8 +67,8 @@
   (evaluate-code+ "(+ 41 1)" js/undefined)
   :rcf)
 
-(def ^:private tools [{:name "calva-eval"
-                       :description "Evaluate Clojure/ClojureScript code"
+(def ^:private tools [{:name "evaluate-clojure-code"
+                       :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
                        :inputSchema {:type "object"
                                      :properties {"code" {:type "string"
                                                           :description "Clojure/ClojureScript code to evaluate"}}
@@ -85,7 +85,7 @@
                                           :version "0.0.1"}
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}}
-                             :instructions "Use the calva-eval tool to evaluate Clojure/ClojureScript code in the current project."}}]
+                             :instructions "Gives access to the the Clojure REPL connection (via Calva). Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code."}}]
       response)
 
     (= method "tools/list")
@@ -97,7 +97,7 @@
     (= method "tools/call")
     (let [{:keys [arguments]
            tool :name} params]
-      (p/let [result (if (= tool "calva-eval")
+      (p/let [result (if (= tool "evaluate-clojure-code")
                        (evaluate-code+ (:code arguments) js/undefined)
                        nil)]
         (if result
