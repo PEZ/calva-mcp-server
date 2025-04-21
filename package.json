@@ -45,7 +45,7 @@
       {
         "command": "calva-mcp-server.newHelloDocument",
         "category": "Calva MCP Server",
-        "enablement": ":calva-mcp-server/active?",
+        "enablement": ":calva-mcp-extension/activated?",
         "title": "Open a new Hello document"
       },
       {

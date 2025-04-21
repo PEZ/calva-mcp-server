@@ -240,17 +240,19 @@
 (defn- close-server!+ [{:ex/keys [dispatch!]
                         :server/keys [instance]}]
   (dispatch! [[:app/ax.log :info "Stopping socket server..."]])
-  (p/create
-   (fn [resolve-fn reject]
-     (.close instance
-             (fn [err]
-               (if err
-                 (do
-                   (dispatch! [[:app/ax.log :error "Error stopping socket server:" err]])
-                   (reject err))
-                 (do
-                   (dispatch! [[:app/ax.log :info "Socket server stopped."]])
-                   (resolve-fn true))))))))
+  (-> (p/create
+       (fn [resolve-fn reject]
+         (.close instance
+                 (fn [err]
+                   (if err
+                     (do
+                       (dispatch! [[:app/ax.log :error "Error stopping socket server:" err]])
+                       (reject err))
+                     (do
+                       (dispatch! [[:app/ax.log :info "Socket server stopped."]])
+                       (resolve-fn true)))))))
+      (p/catch (fn [err2]
+                 (dispatch! [[:app/ax.log :error "Error stopping socket server:" err2]])))))
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.

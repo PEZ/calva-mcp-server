@@ -5,6 +5,17 @@
 
 (defn handle-action [state _context action]
   (match action
+    [:app/ax.activate initial-state]
+    {:ex/dxs [[:app/ax.init initial-state]
+              [:app/ax.register-command "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc
+                                                                              {:greetee :ex/action-args%1}]]]
+              [:app/ax.register-command "calva-mcp-server.hello" [[:hello/ax.command.hello
+                                                                   {:greetee :ex/action-args%1}]]]
+              [:app/ax.register-command "calva-mcp-server.startServer" [[:mcp/ax.start-server]]]
+              [:app/ax.register-command "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]]]
+              [:app/ax.register-command "calva-mcp-server.openServerLog" [[:mcp/ax.open-server-log]]]
+              [:app/ax.set-when-context :calva-mcp-extension/activated? true]]}
+
     [:app/ax.init initial-state]
     {:ex/db (merge state initial-state)
      :ex/fxs [[:app/fx.init-logging initial-state]]}
@@ -24,6 +35,14 @@
 
     [:app/ax.register-command command-id actions]
     {:ex/fxs [[:app/fx.register-command command-id actions]]}
+
+    [:app/ax.clear-disposables]
+    {:ex/db (assoc state :extension/disposables [])
+     :ex/fxs [[:app/fx.clear-disposables (:extension/disposables state)]]}
+
+    [:app/ax.deactivate]
+    {:ex/dxs [[:app/ax.set-when-context :calva-mcp-extension/activated? false]
+              [:app/ax.clear-disposables]]}
 
     :else nil))
 

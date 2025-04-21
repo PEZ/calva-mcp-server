@@ -27,5 +27,9 @@
       (.push (.-subscriptions context) disposable)
       (dispatch! context [[:db/ax.update-in [:extension/disposables] conj disposable]]))
 
+    [:app/fx.clear-disposables disposables]
+    (doseq [^js disposable disposables]
+      (.dispose disposable))
+
     :else
     (js/console.warn "Unknown extension effect:" (pr-str effect))))

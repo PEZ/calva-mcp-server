@@ -2,7 +2,7 @@
 
 (def init-db {:extension/context nil
               :extension/disposables []
-              :extension/when-contexts {:calva-mcp-server/active? false}})
+              :extension/when-contexts {:calva-mcp-extension/activated? false}})
 
 (defonce !app-db (atom init-db))
 
