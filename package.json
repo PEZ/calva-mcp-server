@@ -52,19 +52,19 @@
         "command": "calva-mcp-server.startServer",
         "category": "Calva MCP Server",
         "enablement": "!calva-mcp:server-started",
-        "title": "Start the Calva MCP Server"
+        "title": "Start the Calva MCP socket server"
       },
       {
         "command": "calva-mcp-server.stopServer",
         "category": "Calva MCP Server",
         "enablement": "calva-mcp:server-started",
-        "title": "Stop the Calva MCP Server"
+        "title": "Stop the Calva MCP socket server"
       },
       {
         "command": "calva-mcp-server.openServerLog",
         "category": "Calva MCP Server",
         "enablement": "calva-mcp:server-started",
-        "title": "Open the Calva MCP Server Log"
+        "title": "Open the Calva MCP socket server log file"
       }
     ],
     "keybindings": []
