@@ -45,7 +45,8 @@
               [:app/ax.clear-disposables]]}
 
     [:app/ax.deactivate]
-    {:ex/dxs [[:app/ax.cleanup]]}
+    {:ex/dxs [[:mcp/ax.stop-server]
+              [:app/ax.cleanup]]}
 
     :else nil))
 

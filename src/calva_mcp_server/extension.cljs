@@ -17,7 +17,8 @@
   (js/console.time "activation")
   (js/console.timeLog "activation" "Calva MCP Server activate START")
 
-  (swap! db/!app-db assoc :extension/context context)
+  (when-not (extension-context)
+    (swap! db/!app-db assoc :extension/context context))
   (ex/dispatch! context [[:app/ax.activate (initial-state context)]])
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")

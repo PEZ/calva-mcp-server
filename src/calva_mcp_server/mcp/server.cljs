@@ -1,5 +1,6 @@
 (ns calva-mcp-server.mcp.server
   (:require
+   ["fs" :as fs]
    ["net" :as net]
    ["vscode" :as vscode]
    [clojure.string :as str]
@@ -30,8 +31,23 @@
                      (dispatch! [[:app/ax.log :info "Deleted port file:" (.-fsPath port-file-uri)]])
                      (resolve-fn true)))
            (p/catch (fn [err]
-                      (dispatch! [[:app/ax.log :warn "Could not delete port file (maybe already gone?):" err]])
-                      (resolve-fn true))))))))
+                      (dispatch! [[:app/ax.log :error "Could not delete port file with VS Code API:"
+                                   err (.-message err)]])
+                      ;; Probably VS Code API unavailable during shutdown - try Node fs fallback
+                      (try
+                        (let [fs-path (.-fsPath port-file-uri)]
+                          (if (.existsSync fs fs-path)
+                            (do
+                              (.unlinkSync fs fs-path)
+                              (dispatch! [[:app/ax.log :info "Deleted port file with fs fallback:" fs-path]])
+                              (resolve-fn true))
+                            (do
+                              (dispatch! [[:app/ax.log :debug "Port file already gone (fs fallback check)"]])
+                              (resolve-fn true))))
+                        (catch js/Error fs-err
+                          (dispatch! [[:app/ax.log :warn "Could not delete port file with fallback either:" fs-err (.-message fs-err)]])
+                          (resolve-fn true))))))))))
+
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
 (def ^:private ^js calvaApi (-> calvaExt
