@@ -11,7 +11,7 @@
   "icon": "assets/extension-icon-128x128.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PEZ/calva-mcp-server.git"
+    "url": "https://github.com/BetterThanTomorrow/calva-mcp-server.git"
   },
   "engines": {
     "vscode": ">=1.99.1",
@@ -38,32 +38,21 @@
   "contributes": {
     "commands": [
       {
-        "command": "calva-mcp-server.hello",
-        "category": "Calva MCP Server",
-        "title": "Say Hello!"
-      },
-      {
-        "command": "calva-mcp-server.newHelloDocument",
-        "category": "Calva MCP Server",
-        "enablement": ":calva-mcp-extension/activated?",
-        "title": "Open a new Hello document"
-      },
-      {
         "command": "calva-mcp-server.startServer",
         "category": "Calva MCP Server",
         "enablement": "!:calva-mcp-server/started?",
-        "title": "Start the Calva MCP socket server"
+        "title": "Start the socket server"
       },
       {
         "command": "calva-mcp-server.stopServer",
         "category": "Calva MCP Server",
         "enablement": ":calva-mcp-server/started?",
-        "title": "Stop the Calva MCP socket server"
+        "title": "Stop the socket server"
       },
       {
         "command": "calva-mcp-server.openServerLog",
         "category": "Calva MCP Server",
-        "title": "Open the Calva MCP socket server log file"
+        "title": "Open the socket server log file"
       }
     ],
     "keybindings": []
