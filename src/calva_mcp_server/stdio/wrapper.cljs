@@ -2,7 +2,6 @@
   (:require
    ["fs" :as fs]
    ["net" :as net]
-   ["path" :as path]
    ["process" :as process]
    [clojure.string :as string]
    [promesa.core :as p]))
@@ -31,20 +30,19 @@
 
 (def original-stdout (.-stdout process))
 
-(defn read-port-from-file [workspace-path]
-  (let [port-file-path (path/join workspace-path ".calva" "mcp-server" "port")]
-    (p/create
-     (fn [resolve-fn _reject]
-       (.readFile fs port-file-path #js {:encoding "utf8"}
-                  (fn [err data]
-                    (if err
-                      (do (log-stderr :error "Port file read error:" err)
-                          (resolve-fn nil))
-                      (let [port-num (js/parseInt data 10)]
-                        (if (js/isNaN port-num)
-                          (do (log-stderr :error "Invalid port number in file:" data)
-                              (resolve-fn nil))
-                          (resolve-fn port-num))))))))))
+(defn read-port-from-file [port-file-path]
+  (p/create
+   (fn [resolve-fn _reject]
+     (.readFile fs port-file-path #js {:encoding "utf8"}
+                (fn [err data]
+                  (if err
+                    (do (log-stderr :error "Port file read error:" err)
+                        (resolve-fn nil))
+                    (let [port-num (js/parseInt data 10)]
+                      (if (js/isNaN port-num)
+                        (do (log-stderr :error "Invalid port number in file:" data)
+                            (resolve-fn nil))
+                        (resolve-fn port-num)))))))))
 
 (defn handle-stdin [^js stdin ^js socket]
   (let [stdin-buffer (volatile! "")]
@@ -115,18 +113,18 @@
          (.exit process (if had-error? 1 0)))))
 
 (defn ^:export main [& args]
-  (let [workspace-path (first args)]
-    (if-not workspace-path
+  (let [port-file-path (first args)]
+    (if-not port-file-path
       (do
-        (log-stderr :error "Error: Workspace path argument missing.")
+        (log-stderr :error "Error: Port file path argument missing.")
         (.write original-stdout
                 (str (js/JSON.stringify
                       #js {:jsonrpc "2.0"
                            :error #js {:code -32002
-                                       :message "Configuration error: Workspace path not provided."}})
+                                       :message "Configuration error: Port file path not provided."}})
                      "\n"))
         (.exit process 1))
-      (p/let [port (read-port-from-file workspace-path)]
+      (p/let [port (read-port-from-file port-file-path)]
         (if port
           (let [socket (net/connect #js {:port port})
                 stdin (.-stdin process)]
@@ -134,7 +132,7 @@
             (handle-socket socket)
             (log-stderr :info "Connected to MCP server on port" port))
           (do
-            (log-stderr :error "Error: Port file not found or invalid in workspace:" workspace-path)
+            (log-stderr :error "Error: Port file not found:" port-file-path)
             (.write original-stdout
                     (str (js/JSON.stringify
                           #js {:jsonrpc "2.0"

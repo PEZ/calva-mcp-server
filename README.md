@@ -47,33 +47,38 @@ As Clojure developers, we know the REPL isn't just a console - it's the center o
 
 ### Installation
 
-The Calva MCP Server is internally a socket server (because that's the only way I could figure out to make an MCP server inside a VS Code extension). Since it needs to be a `stdio` server, a node script is bundled with the extension that will start a `stdio` wrapper for the socket MCP server.
-
-These instructions are for VS Code CoPilot.
+VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the MCP client to start a `stdio` server inside a VS Code extension. (I don't think it is possible, really.) Thus, the Calva MCP Server is internally a socket server, which at startup writes the port it binds to to a port file. A node script (a.k.a the **wrapper**) is bundled with the extension that will start a `stdio` server wrapping the socket MCP server. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva MCP server per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 
 1. Install Calva MCP Server from the Extensions pane in VS Code
 1. Start the Calva MCP socket server
-1. Add the MCP server config in you project's `.vscode/mcp.json`:
-    ```json
-    {
-      "servers": {
-        "calva": {
-          "type": "stdio",
-          "command": "node",
-          "args": [
-            "${extensionInstallFolder:betterthantomorrow.calva-mcp-server}/dist/calva-mcp-server.js",
-            "${workspaceFolder}"
-          ]
-        }
-      }
-    }
-    ```
-   (If the file doesn't exist, create it with this exact content. If it exists, just add the `"calva"` server part.)
+1. Add the MCP server config (may vary depending on MCP Client)
 1. Stop the Calva MCP socket server (it's a habit to consider, at least)
+
+
+#### CoPilot configuration
+
+In you project's `.vscode/mcp.json` add a `"calva"` entry like so:
+```json
+{
+  "servers": {
+    // other servers (if any) ...
+    "calva": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${extensionInstallFolder:betterthantomorrow.calva-mcp-server}/dist/calva-mcp-server.js",
+        "${workspaceFolder}/.calva/mcp-server/port"
+      ]
+    }
+  }
+}
+```
+
+The VS Code editor for this file is also the UI for starting and stopping the `stdio` server.
 
 ### Using
 
-For CoPilot (or any MCP client) to use the Calva MCP Server, the socket server needs to be started and then the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
+For CoPilot (or any MCP client) to use the Calva MCP Server, the socket server needs to be started before the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
 
 1. Connect Calva to your Clojure/ClojureScript project
 1. Issue the command: **Calva MCP Server: Start the socket server**
