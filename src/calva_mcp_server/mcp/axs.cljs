@@ -16,7 +16,7 @@
                    :app/server-starting? false)
      :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/starting? false]
               [:app/ax.set-when-context :calva-mcp-server/started? true]]
-     :ex/fxs [[:vscode/fx.show-information-message (str "MCP server started on port" (:server/port server-info))]]}
+     :ex/fxs [[:vscode/fx.show-information-message (str "MCP server started on port: " (:server/port server-info))]]}
 
     [:mcp/ax.stop-server]
     {:ex/db (assoc state :app/server-stopping? true)

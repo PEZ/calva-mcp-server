@@ -1,8 +1,8 @@
 (ns calva-mcp-server.integrations.vscode.fxs
   (:require
    ["vscode" :as vscode]
-   [clojure.core.match :refer [match]]
-   [calva-mcp-server.ex.ax :as ax]))
+   [calva-mcp-server.ex.ax :as ax]
+   [clojure.core.match :refer [match]]))
 
 (defn perform-effect! [dispatch! context effect]
   (match effect
