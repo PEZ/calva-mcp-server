@@ -103,18 +103,16 @@
     (= method "tools/call")
     (let [{:keys [arguments]
            tool :name} params]
-      (p/let [result (if (= tool "evaluate-clojure-code")
-                       (evaluate-code+ (:code arguments) js/undefined)
-                       nil)]
-        (if result
+      (if (= tool "evaluate-clojure-code")
+        (p/let [result (evaluate-code+ (:code arguments) js/undefined)]
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
-                               :text (pr-str result)}]}}
-          {:jsonrpc "2.0"
-           :id id
-           :error {:code -32601
-                   :message "Unknown tool"}})))
+                               :text (pr-str result)}]}})
+        {:jsonrpc "2.0"
+         :id id
+         :error {:code -32601
+                 :message "Unknown tool"}}))
 
     (= method "ping")
     (let [response {:jsonrpc "2.0"
