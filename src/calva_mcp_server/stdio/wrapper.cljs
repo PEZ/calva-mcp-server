@@ -13,8 +13,8 @@
 
 (def min-log-level
   (let [arg-level (some #(when (.startsWith % "--min-log-level=")
-                          (subs % (count "--min-log-level=")))
-                       (js->clj (.-argv process)))
+                           (subs % (count "--min-log-level=")))
+                        (js->clj (.-argv process)))
         level-kw (when arg-level (keyword arg-level))]
     (get log-levels level-kw :debug)))
 

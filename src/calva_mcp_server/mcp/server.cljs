@@ -217,9 +217,9 @@
                                   "[Server] Sending response:"
                                   (pr-str response)]])
                      (.write socket (format-response-json response))))))))
-    (.on socket "error"
-         (fn [err]
-           (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]]))))))
+         (.on socket "error"
+              (fn [err]
+                (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]]))))))
 
 (defn- create-request-handler [options]
   (fn [request]

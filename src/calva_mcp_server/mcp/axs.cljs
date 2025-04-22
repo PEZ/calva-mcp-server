@@ -40,7 +40,7 @@
 
     [:mcp/ax.server-error err]
     (do (js/console.error err)
-      {:ex/fxs [[:vscode/fx.show-error-message (str "MCP server error: " err)]]})
+        {:ex/fxs [[:vscode/fx.show-error-message (str "MCP server error: " err)]]})
 
     :else
     {:ex/fxs [[:node/fx.log-error "Unknown action:" (pr-str action)]]}))
