@@ -59,16 +59,8 @@
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and an optional REPL session."
   [{:ex/keys [dispatch!]} code session]
-  (p/let [output #js {:stdout (fn [msg]
-                                (dispatch! [[:app/ax.log :debug "[Server] Stdout from evaluation:" msg]])
-                                (dispatch! [[:mcp/ax.send-notification-params {:params {:type "stdout"
-                                                                                        :message msg}}]]))
-                      :stderr (fn [msg]
-                                (dispatch! [[:app/ax.log :debug "[Server] Stderr from evaluation:" msg]])
-                                (dispatch! [[:mcp/ax.send-notification-params {:params {:type "stderr"
-                                                                                        :message msg}}]]))}
-          result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
-                                              session code "user" output)]
+  (p/let [result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
+                                              session code)]
                        (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
                        {:result (.-result evaluation+)
                         :ns (.-ns evaluation+)
@@ -81,17 +73,6 @@
                                 {:result "nil"
                                  :stderr (pr-str err)})))]
     result))
-
-(comment
-  (p/let [p ((get-in calvaApi [:repl :evaluateCode]) js/undefined
-                                                     "(throw (Exception. :foo))" "user"
-                                                     #js {:stdout (fn [msg]
-                                                                    (println "BOOM! stdout" msg))
-                                                          :stderr (fn [msg]
-                                                                    (println "BOOM! stderr" msg))})]
-    (def p p))
-
-  :rcf)
 
 (def ^:private tools [{:name "evaluate-clojure-code"
                        :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
@@ -267,14 +248,12 @@
            (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
            (reject e)))))))
 
-(defn send-notification-params [{:ex/keys [dispatch!]} params]
+(defn send-notification-params [{:ex/keys [dispatch!]} notification]
   (let [sockets @active-sockets]
     (when (seq sockets)
       (doseq [socket sockets]
         (try
-          (.write socket (str (js/JSON.stringify (clj->js {:jsonrpc "2.0"
-                                                           :method "notifications/progress"
-                                                           :params params})) "\n"))
+          (.write socket (str (js/JSON.stringify (clj->js notification)) "\n"))
           (catch js/Error e
             (dispatch! [:app/ax.log :error "[Server] Error sending notification:" (.-message e)])))))))
 

@@ -27,8 +27,8 @@
           (p/then (fn [_]
                     (dispatch! context on-success)))))
 
-    [:mcp/fx.send-notification-params params]
-    (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} params)
+    [:mcp/fx.send-notification notification]
+    (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} notification)
 
     :else
     (js/console.warn "Unknown MCP effect:" (pr-str effect))))

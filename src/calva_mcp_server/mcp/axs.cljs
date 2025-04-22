@@ -38,8 +38,8 @@
                {:open/uri (:app/log-file-uri state)
                 :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}
 
-    [:mcp/ax.send-notification-params params]
-    {:ex/fxs [[:mcp/fx.send-notification-params params]]}
+    [:mcp/ax.send-notification notification]
+    {:ex/fxs [[:mcp/fx.send-notification notification]]}
 
     [:mcp/ax.server-error err]
     (do (js/console.error err)
