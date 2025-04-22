@@ -11,5 +11,4 @@
 (comment
   ;; Start solving your problem here
   ;; Remember to evaluate expressions as you go using Calva's REPL integration
-
-)
+  (+ 1 2 3))

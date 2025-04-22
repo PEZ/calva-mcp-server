@@ -17,9 +17,9 @@
 (defn evaluate-code+
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
-  [{:ex/keys [dispatch!]} code session]
+  [{:ex/keys [dispatch!]} code session ns]
   (p/let [result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
-                                              session code)]
+                                              session code ns)]
                        (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
                        {:result (.-result evaluation+)
                         :ns (.-ns evaluation+)
