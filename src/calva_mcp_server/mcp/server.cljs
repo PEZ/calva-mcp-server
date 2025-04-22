@@ -28,10 +28,10 @@
        (resolve-fn true)
        (-> (vscode/workspace.fs.delete port-file-uri #js {:recursive false, :useTrash false})
            (p/then (fn [_]
-                     (dispatch! [[:app/ax.log :info "Deleted port file:" (.-fsPath port-file-uri)]])
+                     (dispatch! [[:app/ax.log :info "[Server] Deleted port file:" (.-fsPath port-file-uri)]])
                      (resolve-fn true)))
            (p/catch (fn [err]
-                      (dispatch! [[:app/ax.log :error "Could not delete port file with VS Code API:"
+                      (dispatch! [[:app/ax.log :error "[Server] Could not delete port file with VS Code API:"
                                    err (.-message err)]])
                       ;; Probably VS Code API unavailable during shutdown - try Node fs fallback
                       (try
@@ -39,13 +39,13 @@
                           (if (.existsSync fs fs-path)
                             (do
                               (.unlinkSync fs fs-path)
-                              (dispatch! [[:app/ax.log :info "Deleted port file with fs fallback:" fs-path]])
+                              (dispatch! [[:app/ax.log :info "[Server] Deleted port file with fs fallback:" fs-path]])
                               (resolve-fn true))
                             (do
-                              (dispatch! [[:app/ax.log :debug "Port file already gone (fs fallback check)"]])
+                              (dispatch! [[:app/ax.log :debug "[Server] Port file already gone (fs fallback check)"]])
                               (resolve-fn true))))
                         (catch js/Error fs-err
-                          (dispatch! [[:app/ax.log :warn "Could not delete port file with fallback either:" fs-err (.-message fs-err)]])
+                          (dispatch! [[:app/ax.log :warn "[Server] Could not delete port file with fallback either:" fs-err (.-message fs-err)]])
                           (resolve-fn true))))))))))
 
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
@@ -58,16 +58,39 @@
 (defn- evaluate-code+
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and an optional REPL session."
-  [code session]
-  (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode]) session code)
-          result {:result (.-result evaluation+)
-                  :ns (.-ns evaluation+)
-                  :stdout (.-output evaluation+)
-                  :stderr (.-errorOutput evaluation+)}]
+  [{:ex/keys [dispatch!]} code session]
+  (p/let [output #js {:stdout (fn [msg]
+                                (dispatch! [[:app/ax.log :debug "[Server] Stdout from evaluation:" msg]])
+                                (dispatch! [[:mcp/ax.send-notification-params {:params {:type "stdout"
+                                                                                        :message msg}}]]))
+                      :stderr (fn [msg]
+                                (dispatch! [[:app/ax.log :debug "[Server] Stderr from evaluation:" msg]])
+                                (dispatch! [[:mcp/ax.send-notification-params {:params {:type "stderr"
+                                                                                        :message msg}}]]))}
+          result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
+                                              session code "user" output)]
+                       (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
+                       {:result (.-result evaluation+)
+                        :ns (.-ns evaluation+)
+                        :stdout (.-output evaluation+)
+                        :stderr (.-errorOutput evaluation+)})
+                     (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
+                                        ; in the REPL. For now we send the error as the result like this...
+                                (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
+                                             err]])
+                                {:result "nil"
+                                 :stderr (pr-str err)})))]
     result))
 
 (comment
-  (evaluate-code+ "(+ 41 1)" js/undefined)
+  (p/let [p ((get-in calvaApi [:repl :evaluateCode]) js/undefined
+                                                     "(throw (Exception. :foo))" "user"
+                                                     #js {:stdout (fn [msg]
+                                                                    (println "BOOM! stdout" msg))
+                                                          :stderr (fn [msg]
+                                                                    (println "BOOM! stderr" msg))})]
+    (def p p))
+
   :rcf)
 
 (def ^:private tools [{:name "evaluate-clojure-code"
@@ -79,9 +102,9 @@
                        :audience ["user"]
                        :priority 1}])
 
-(defn- handle-request-fn [{:ex/keys [dispatch!]}
+(defn- handle-request-fn [{:ex/keys [dispatch!] :as options}
                           {:keys [id method params] :as request}]
-  (dispatch! [[:app/ax.log :debug "handle-request " (pr-str request)]])
+  (dispatch! [[:app/ax.log :debug "[Server] handle-request " (pr-str request)]])
   (cond
     (= method "initialize")
     (let [response {:jsonrpc "2.0"
@@ -104,7 +127,7 @@
     (let [{:keys [arguments]
            tool :name} params]
       (if (= tool "evaluate-clojure-code")
-        (p/let [result (evaluate-code+ (:code arguments) js/undefined)]
+        (p/let [result (evaluate-code+ options (:code arguments) js/undefined)]
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
@@ -186,9 +209,7 @@
 
 (defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket handler]
   (.setEncoding socket "utf8")
-  ;; Track this socket
   (swap! active-sockets conj socket)
-  ;; When socket closes, remove it from tracking
   (.on socket "close" (fn [] (swap! active-sockets disj socket)))
 
   (let [buffer (volatile! "")]
@@ -246,6 +267,17 @@
            (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
            (reject e)))))))
 
+(defn send-notification-params [{:ex/keys [dispatch!]} params]
+  (let [sockets @active-sockets]
+    (when (seq sockets)
+      (doseq [socket sockets]
+        (try
+          (.write socket (str (js/JSON.stringify (clj->js {:jsonrpc "2.0"
+                                                           :method "notifications/progress"
+                                                           :params params})) "\n"))
+          (catch js/Error e
+            (dispatch! [:app/ax.log :error "[Server] Error sending notification:" (.-message e)])))))))
+
 (defn start-server!+
   "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
    Creates a socket server and writes the port to a file."
@@ -260,7 +292,7 @@
        (dispatch! [[:app/ax.log :info "Wrote port file:" (.-fsPath port-file-uri)]])
        server-info)
       (do
-        (dispatch! [[:app/ax.log :error "Could not determine workspace root to write port file."]])
+        (dispatch! [[:app/ax.log :error "[Server] Could not determine workspace root to write port file."]])
         (p/rejected (js/Error. "Could not determine workspace root"))))))
 
 (defn- close-server!+ [{:ex/keys [dispatch!]
@@ -275,19 +307,19 @@
                (.end socket)
                (.destroy socket)
                (catch js/Error e
-                 (dispatch! [[:app/ax.log :warn "Error closing socket:" (.-message e)]])))))
+                 (dispatch! [[:app/ax.log :warn "[Server] Error closing socket:" (.-message e)]])))))
          (reset! active-sockets #{})
          (.close instance
                  (fn [err]
                    (if err
                      (do
-                       (dispatch! [[:app/ax.log :error "Error stopping socket server:" err]])
+                       (dispatch! [[:app/ax.log :error "[Server] Error stopping socket server:" err]])
                        (reject err))
                      (do
                        (dispatch! [[:app/ax.log :info "Socket server stopped."]])
                        (resolve-fn true)))))))
       (p/catch (fn [err2]
-                 (dispatch! [[:app/ax.log :error "Error stopping socket server:" err2]])))))
+                 (dispatch! [[:app/ax.log :error "[Server] Error stopping socket server:" err2]])))))
 
 (defn stop-server!+
   "Returns a promise that resolves to a boolean indicating success.
@@ -303,7 +335,7 @@
                     (delete-port-file!+ options port-file-uri))))
         (p/then (fn [_] true))
         (p/catch (fn [err]
-                   (dispatch! [[:app/ax.log :error "Error during server shutdown:" err]])
+                   (dispatch! [[:app/ax.log :error "[Server] Error during server shutdown:" err]])
                    false)))))
 
 (comment
