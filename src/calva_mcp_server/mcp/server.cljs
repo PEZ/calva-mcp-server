@@ -3,6 +3,7 @@
    ["fs" :as fs]
    ["net" :as net]
    ["vscode" :as vscode]
+   [calva-mcp-server.integrations.calva.api :as calva]
    [clojure.string :as str]
    [promesa.core :as p]))
 
@@ -19,7 +20,6 @@
 
 (defn- ensure-port-file-dir-exists!+ []
   (vscode/workspace.fs.createDirectory (get-server-dir)))
-
 
 (defn- delete-port-file!+ [{:ex/keys [dispatch!]} ^js port-file-uri]
   (p/create
@@ -48,41 +48,6 @@
                           (dispatch! [[:app/ax.log :warn "[Server] Could not delete port file with fallback either:" fs-err (.-message fs-err)]])
                           (resolve-fn true))))))))))
 
-(def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
-
-(def ^:private ^js calvaApi (-> calvaExt
-                                .-exports
-                                .-v1
-                                (js->clj :keywordize-keys true)))
-
-(defn- evaluate-code+
-  "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
-   Takes a string of code to evaluate and an optional REPL session."
-  [{:ex/keys [dispatch!]} code session]
-  (p/let [result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
-                                              session code)]
-                       (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
-                       {:result (.-result evaluation+)
-                        :ns (.-ns evaluation+)
-                        :stdout (.-output evaluation+)
-                        :stderr (.-errorOutput evaluation+)})
-                     (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
-                                        ; in the REPL. For now we send the error as the result like this...
-                                (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
-                                             err]])
-                                {:result "nil"
-                                 :stderr (pr-str err)})))]
-    result))
-
-(def ^:private tools [{:name "evaluate-clojure-code"
-                       :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
-                       :inputSchema {:type "object"
-                                     :properties {"code" {:type "string"
-                                                          :description "Clojure/ClojureScript code to evaluate"}}
-                                     :required ["code"]}
-                       :audience ["user"]
-                       :priority 1}])
-
 (defn- handle-request-fn [{:ex/keys [dispatch!] :as options}
                           {:keys [id method params] :as request}]
   (dispatch! [[:app/ax.log :debug "[Server] handle-request " (pr-str request)]])
@@ -101,14 +66,21 @@
     (= method "tools/list")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:tools tools}}]
+                    :result {:tools [{:name "evaluate-clojure-code"
+                                      :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
+                                      :inputSchema {:type "object"
+                                                    :properties {"code" {:type "string"
+                                                                         :description "Clojure/ClojureScript code to evaluate"}}
+                                                    :required ["code"]}
+                                      :audience ["user"]
+                                      :priority 1}]}}]
       response)
 
     (= method "tools/call")
     (let [{:keys [arguments]
            tool :name} params]
       (if (= tool "evaluate-clojure-code")
-        (p/let [result (evaluate-code+ options (:code arguments) js/undefined)]
+        (p/let [result (calva/evaluate-code+ options (:code arguments) js/undefined)]
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
@@ -258,18 +230,18 @@
             (dispatch! [:app/ax.log :error "[Server] Error sending notification:" (.-message e)])))))))
 
 (defn start-server!+
-  "Returns a promise that resolves to a map with server info when the MCP server starts successfully.
-   Creates a socket server and writes the port to a file."
+  "Creates a socket server and writes the port to a file.
+   Returns a promise that resolves to a map with server info when the MCP server starts successfully."
   [{:ex/keys [dispatch!] :as options}]
-  (p/let [server-info (start-socket-server!+ options)
-          port (:server/port server-info)
+  (p/let [server-info+ (start-socket-server!+ options)
+          port (:server/port server-info+)
           ^js port-file-uri (get-port-file-uri)]
     (if port-file-uri
       (p/do!
        (ensure-port-file-dir-exists!+)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
        (dispatch! [[:app/ax.log :info "Wrote port file:" (.-fsPath port-file-uri)]])
-       server-info)
+       server-info+)
       (do
         (dispatch! [[:app/ax.log :error "[Server] Could not determine workspace root to write port file."]])
         (p/rejected (js/Error. "Could not determine workspace root"))))))
@@ -301,8 +273,8 @@
                  (dispatch! [[:app/ax.log :error "[Server] Error stopping socket server:" err2]])))))
 
 (defn stop-server!+
-  "Returns a promise that resolves to a boolean indicating success.
-   Stops the MCP server and removes the port file."
+  "Stops the MCP server and removes the port file.
+   Returns a promise that resolves to a boolean indicating success."
   [{:keys [server/instance ex/dispatch!] :as options}]
   (if-not instance
     (do
