@@ -3,6 +3,10 @@
    ["vscode" :as vscode]
    [promesa.core :as p]))
 
+(defn get-document-from-path [path]
+  (let [uri (vscode/Uri.file path)]
+    (.openTextDocument vscode/workspace uri)))
+
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
 (def ^:private ^js calvaApi (-> calvaExt
@@ -28,3 +32,35 @@
                                 {:result "nil"
                                  :stderr (pr-str err)})))]
     result))
+
+(defn get-namespace-and-ns-form+
+  "Returns a tuple `[ns ns-form]` for the document at `path`, if provided.
+   Otherwise will use the currently active editor's document."
+  ([]
+   ((get-in calvaApi [:document :getNamespaceAndNsForm])))
+  ([path]
+   (p/let [doc+ (get-document-from-path path)]
+     ((get-in calvaApi [:document :getNamespaceAndNsForm]) doc+))))
+
+(defn get-namespace-info+
+  "Returns structured namespace information for a given file path.
+   This adds a layer over get-namespace-and-ns-form+ that formats
+   the data in a more consumable structure."
+  [path]
+  (p/let [[ns-name ns-form] (get-namespace-and-ns-form+ path)]
+    {:namespace ns-name
+     :ns-form (pr-str ns-form)
+     :file path}))
+
+(comment
+  (p/let [[ns ns-form] (get-namespace-and-ns-form+ "/Users/pez/Projects/calva-mcp-server/src/calva_mcp_server/integrations/calva/api.cljs")]
+    (def ns ns)
+    ;;=> #'calva-mcp-server.integrations.calva.api/ns
+    (def ns-form ns-form))
+    ;;=> "(ns calva-mcp-server.integrations.calva.api\n  (:require\n   [\"vscode\" :as vscode]\n   [promesa.core :as p]))"
+
+  (p/let [[ns ns-form] (get-namespace-and-ns-form+ "/Users/pez/Projects/calva-mcp-server/test-projects/mini-deps/src/mini/playground.clj")]
+    (def ns ns)
+    (def ns-form ns-form))
+  :rcf)
+

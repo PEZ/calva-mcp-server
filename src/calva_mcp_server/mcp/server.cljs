@@ -58,9 +58,10 @@
                     :result {:serverInfo {:name "calva-mcp-server"
                                           :version "0.0.1"}
                              :protocolVersion "2024-11-05"
-                             :capabilities {:tools {:listChanged true}}
-                             :instructions "Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code."
-                             :description "Gives access to the Clojure REPL connection (via Calva). Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
+                             :capabilities {:tools {:listChanged true}
+                                            :resources {:listChanged true}}
+                             :instructions "Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code. Use workspace resources to get namespace info for files."
+                             :description "Gives access to the Clojure REPL connection (via Calva) and Clojure namespace info (via Calva). Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
       response)
 
     (= method "tools/list")
@@ -75,6 +76,28 @@
                                       :audience ["user"]
                                       :priority 1}]}}]
       response)
+
+    (= method "resources/templates/list")
+    (let [response {:jsonrpc "2.0"
+                    :id id
+                    :result {:resourceTemplates [{:uriTemplate "/workspace/ns-info/{path}"
+                                                  :name "Namespace Info"
+                                                  :description "Returns the namespace and ns-form for a given Clojure/ClojureScript file path in the workspace as a tuple `[namespace, ns-form]`."
+                                                  :mimeType "application/json"}]}}]
+      response)
+
+    (= method "resources/read")
+    (let [{:keys [uri]} params]
+      (if-let [path (second (re-find #"^/workspace/ns-info/(.+)$" uri))]
+        (p/let [info (calva/get-namespace-and-ns-form+ path)]
+          {:jsonrpc "2.0"
+           :id id
+           :result {:contents [{:uri uri
+                                :text (js/JSON.stringify (clj->js info))}]}})
+        {:jsonrpc "2.0"
+         :id id
+         :error {:code -32601
+                 :message "Unknown resource URI"}}))
 
     (= method "tools/call")
     (let [{:keys [arguments]
