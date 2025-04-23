@@ -55,18 +55,5 @@
   //// (There's a command for opening the REPL window.)
   "calva.autoOpenREPLWindow": false,
 
-  //// https://calva.io/pprint/
-  // "calva.prettyPrintingOptions": {
-  //   "printEngine": "pprint",
-  //   "enabled": true,
-  //   "width": 120,
-  //// Truncate sequences to print at most 50 items
-  //   "maxLength": 50
-  //// Or use `null` maxLength for non-truncated sequences
-  //   "maxLength": null
-  //// NB: that will lock up the REPL if you evaluate an
-  ////     infinite sequence, e.g. (range)
-  ////     There's a Calva command for interrupting running
-  ////     evaluations. (Which doesn't always work.)
-  // },
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }
