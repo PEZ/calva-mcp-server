@@ -7,6 +7,11 @@
    [clojure.string :as str]
    [promesa.core :as p]))
 
+(defn- get-extension-version []
+  (some-> (vscode/extensions.getExtension "betterthantomorrow.calva-mcp-server")
+          .-packageJSON
+          .-version))
+
 (defn- get-workspace-root-uri []
   (some-> vscode/workspace.workspaceFolders
           first
@@ -56,7 +61,7 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:serverInfo {:name "calva-mcp-server"
-                                          :version "0.0.2"}
+                                          :version (get-extension-version)}
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}
                                             :resources {:listChanged true}}
