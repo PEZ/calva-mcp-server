@@ -10,12 +10,23 @@
 
 (deftest-async command-registration
   (testing "MCP server commands are registered"
-    (p/let [commands (vscode/commands.getCommands true)
-            commands-set (set commands)]
-      (is (contains? commands-set "calva-mcp-server.startServer")
-          "Start server command should be registered")
-      (is (contains? commands-set "calva-mcp-server.stopServer")
-          "Stop server command should be registered"))))
+    (p/let [#_#__ (vscode/commands.executeCommand "calva-mcp-server.startServer")
+            pre-activation (vscode/commands.getCommands true)]
+      (is (= false
+             (.includes pre-activation "calva-mcp-server.startServer"))
+          "there is no start server command before activation")
+      (is (= false
+             (.includes pre-activation "calva-mcp-server.stopServer"))
+          "there is no stop server command before activation")
+      (p/let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-mcp-server")
+              _ (.activate extension)
+              post-activation (vscode/commands.getCommands true)]
+        (is (= true
+               (.includes post-activation "calva-mcp-server.startServer"))
+            "there is a start server command after activation")
+        (is (= true
+               (.includes post-activation "calva-mcp-server.stopServer"))
+            "there is a stop server command before server start")))))
 
 (deftest-async server-lifecycle
   (testing "MCP server can be started and stopped via commands"
