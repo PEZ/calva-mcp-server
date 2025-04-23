@@ -66,37 +66,20 @@
                              :capabilities {:tools {:listChanged true}
                                             :resources {:listChanged true}}
                              :instructions "Use the `evaluate-clojure-code` tool to evaluate Clojure/ClojureScript code. Use workspace resources to get namespace info for files."
-                             :description "Effectively turning the AI Agent into a Clojure Interactive Programmer by giving access to the Clojure REPL connection (via Calva). Also provides Clojure namespace info (via Calva)."}}]
+                             :description "Gives access to the Clojure REPL connection (via Calva) and Clojure namespace info (via Calva). Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
       response)
 
     (= method "tools/list")
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools [{:name "evaluate-clojure-code"
-                                      :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming.
-
-Returns evaluation results as a map with:
-- :result - the evaluation result as a string
-- :ns - the namespace the code was evaluated in
-- :stdout - captured standard output (if any)
-- :stderr - captured standard error/exceptions (if any)"
+                                      :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
                                       :inputSchema {:type "object"
                                                     :properties {"code" {:type "string"
                                                                          :description "Clojure/ClojureScript code to evaluate"}
                                                                  "namespace" {:type "string"
-                                                                              :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided.
-
-When switching namespaces, consider the following strategies:
-1. Preferred: Initialize namespace from 'user'
-   `(ns target.namespace) (in-ns 'target.namespace)`
-   Note: This avoids triggering expensive computations in top-level forms
-2. Alternative: Require the namespace
-   `(require 'target.namespace)`
-   Note: This may trigger expensive computations in the namespace's top-level forms
-3. Ask the user to load the namespace using Calva.
-4. Direct evaluation in target namespace
-   Note: May be problematic if namespace isn't properly initialized. "}}
-                                                    :required ["code" "namespace"]}
+                                                                              :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}}
+                                                    :required ["code"]}
                                       :audience ["user"]
                                       :priority 1}]}}]
       response)
@@ -127,7 +110,12 @@ When switching namespaces, consider the following strategies:
     (let [{:keys [arguments]
            tool :name} params]
       (if (= tool "evaluate-clojure-code")
-        (p/let [result (calva/evaluate-code+ options (:code arguments) js/undefined (:namespace arguments))]
+        (p/let [{:keys [code namespace]} arguments
+                result (calva/evaluate-code+ (merge options
+                                                    {:calva/code code
+                                                     :calva/session js/undefined}
+                                                    (when namespace
+                                                      {:calva/ns namespace})))]
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"

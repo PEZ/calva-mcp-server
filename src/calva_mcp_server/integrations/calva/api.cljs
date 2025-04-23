@@ -14,17 +14,25 @@
                                 .-v1
                                 (js->clj :keywordize-keys true)))
 
+(def ^:private no-ns-eval-note
+  "When evaluating without providing a namespace argument the evaluation is performed in the `user` namespace. Most often this is not what you want, and instead you should be evaluating providing the namespace argument. If it is the first time you are using a namespace, evaluate its ns-form first.")
+
 (defn evaluate-code+
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
-  [{:ex/keys [dispatch!]} code session ns]
-  (p/let [result (-> (p/let [^js evaluation+ ((get-in calvaApi [:repl :evaluateCode])
-                                              session code ns)]
+  [{:ex/keys [dispatch!]
+    :calva/keys [code session ns]}]
+  (p/let [evaluate (get-in calvaApi [:repl :evaluateCode])
+          result (-> (p/let [^js evaluation+ (if ns
+                                               (evaluate session code ns)
+                                               (evaluate session code))]
                        (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
-                       {:result (.-result evaluation+)
-                        :ns (.-ns evaluation+)
-                        :stdout (.-output evaluation+)
-                        :stderr (.-errorOutput evaluation+)})
+                       (merge {:result (.-result evaluation+)
+                               :ns (.-ns evaluation+)
+                               :stdout (.-output evaluation+)
+                               :stderr (.-errorOutput evaluation+)}
+                              (when-not ns
+                                {:note no-ns-eval-note})))
                      (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
                                         ; in the REPL. For now we send the error as the result like this...
                                 (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
