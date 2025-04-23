@@ -55,5 +55,4 @@
   //// (There's a command for opening the REPL window.)
   "calva.autoOpenREPLWindow": false,
 
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true
 }
