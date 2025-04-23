@@ -17,6 +17,9 @@
 (def ^:private no-ns-eval-note
   "When evaluating without providing a namespace argument the evaluation is performed in the `user` namespace. Most often this is not what you want, and instead you should be evaluating providing the namespace argument. If it is the first time you are using a namespace, evaluate its ns-form first.")
 
+(def ^:private empty-result-note
+  "Not expecting a empty string as a result? If it is the first time you are using a namespace, evaluate its ns-form first.")
+
 (defn evaluate-code+
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
@@ -31,14 +34,19 @@
                                :ns (.-ns evaluation+)
                                :stdout (.-output evaluation+)
                                :stderr (.-errorOutput evaluation+)}
-                              (when-not ns
-                                {:note no-ns-eval-note})))
+                              (cond
+                                (not ns)
+                                {:note no-ns-eval-note}
+
+                                (= "" (.-output evaluation+))
+                                {:note empty-result-note})))
                      (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
                                         ; in the REPL. For now we send the error as the result like this...
                                 (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
                                              err]])
                                 {:result "nil"
-                                 :stderr (pr-str err)})))]
+                                 :stderr (pr-str err)
+                                 :note "Think a bit about why your evaluation resulted i an exception brefore proceeding. Consider asking your pair programmer (the user) about it, relaying what error you got."})))]
     result))
 
 (defn get-namespace-and-ns-form+
