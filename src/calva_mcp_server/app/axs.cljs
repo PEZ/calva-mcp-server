@@ -7,14 +7,20 @@
   (match action
     [:app/ax.activate initial-state]
     {:ex/dxs [[:app/ax.init initial-state]
-              [:app/ax.register-command "calva-mcp-server.newHelloDocument" [[:hello/ax.command.hello-doc
-                                                                              {:greetee :ex/action-args%1}]]]
-              [:app/ax.register-command "calva-mcp-server.hello" [[:hello/ax.command.hello
-                                                                   {:greetee :ex/action-args%1}]]]
-              [:app/ax.register-command "calva-mcp-server.startServer" [[:mcp/ax.start-server]]]
-              [:app/ax.register-command "calva-mcp-server.stopServer" [[:mcp/ax.stop-server]]]
-              [:app/ax.register-command "calva-mcp-server.openServerLog" [[:mcp/ax.open-server-log]]]
-              [:app/ax.set-when-context :calva-mcp-extension/activated? true]]}
+              [:app/ax.register-command "calva-mcp-server.newHelloDocument"
+               [[:hello/ax.command.hello-doc
+                 {:greetee :ex/action-args%1}]]]
+              [:app/ax.register-command "calva-mcp-server.hello"
+               [[:hello/ax.command.hello
+                 {:greetee :ex/action-args%1}]]]
+              [:app/ax.register-command "calva-mcp-server.startServer"
+               [[:mcp/ax.start-server]]]
+              [:app/ax.register-command "calva-mcp-server.stopServer"
+               [[:mcp/ax.stop-server]]]
+              [:app/ax.register-command "calva-mcp-server.openServerLog"
+               [[:mcp/ax.open-server-log]]]
+              [:app/ax.set-when-context :calva-mcp-extension/activated?
+               true]]}
 
     [:app/ax.init initial-state]
     {:ex/db (merge state initial-state)

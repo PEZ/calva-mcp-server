@@ -6,7 +6,9 @@
    [clojure.string :as string]))
 
 (defn init!+ [{:app/keys [log-file-uri]}]
-  (vscode/workspace.fs.createDirectory (vscode/Uri.joinPath log-file-uri "..")))
+  (-> (vscode/workspace.fs.createDirectory (vscode/Uri.joinPath log-file-uri ".."))
+      (p/catch (fn [err]
+                 (js/console.error "logging/init+ failed creating log file:" err)))))
 
 (defn append-file+ [path data]
   (p/create
