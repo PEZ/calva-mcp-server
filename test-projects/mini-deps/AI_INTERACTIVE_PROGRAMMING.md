@@ -14,7 +14,7 @@ When helping users with Clojure code:
      ```clojure
      ;; First switch to namespace
      (ns my.namespace)
-     
+
      ;; Then evaluate the file content, skipping heavy computations
      (comment
        ;; Skip evaluating this expensive computation
@@ -64,15 +64,15 @@ When helping users with Clojure code:
                    (swap! !debug-history-process-sequence conj {:item item :timestamp (System/currentTimeMillis)})
                    ;; Just do the actual business logic
                    (inc item)))))
-     
+
      ;; Examine history in a rich comment
      (comment
        ;; View just the first few entries
        (take 3 @!debug-history-process-sequence)
-       
+
        ;; "Inline" def an item from the history for deeper inspection
        (def item (:item (first @!debug-history-process-sequence))) ; Now you can evaluate parts of the function using `item`
-       
+
        :rcf)
      ```
    - Examine captured state after execution to understand flow
