@@ -72,33 +72,39 @@
     (= method "tools/list")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:tools [{:name "evaluate-clojure-code"
-                                      :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
-                                      :inputSchema {:type "object"
-                                                    :properties {"code" {:type "string"
-                                                                         :description "Clojure/ClojureScript code to evaluate"}
-                                                                 "namespace" {:type "string"
-                                                                              :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}}
-                                                    :required ["code"]}}
-                                     {:name "get-clojuredocs"
-                                      :description calva/description-clojure-docs
-                                      :inputSchema {:type "object"
-                                                    :properties {"clojure-symbol" {:type "string"
-                                                                                   :description "The symbol to look up clojuredocs.org info from."}}
-                                                    :required ["clojure-symbol"]}}]}}]
+                    :result {:tools (cond-> [{:name "evaluate-clojure-code"
+                                              :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
+                                              :inputSchema {:type "object"
+                                                            :properties {"code" {:type "string"
+                                                                                 :description "Clojure/ClojureScript code to evaluate"}
+                                                                         "namespace" {:type "string"
+                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}}
+                                                            :required ["code"]}}]
+
+                                      (calva/exists-get-clojuredocs?)
+                                      (conj {:name "get-clojuredocs"
+                                             :description calva/description-clojure-docs
+                                             :inputSchema {:type "object"
+                                                           :properties {"clojure-symbol" {:type "string"
+                                                                                          :description "The symbol to look up clojuredocs.org info from."}}
+                                                           :required ["clojure-symbol"]}}))}}]
       response)
 
     (= method "resources/templates/list")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:resourceTemplates [#_{:uriTemplate "/get-symbol-info/{namespace}@{symbol}"
-                                                    :name "get-symbol-info"
-                                                    :description calva/symbol-info-description
-                                                    :mimeType "application/json"}
-                                                 {:uriTemplate "/clojuredocs/{symbol}"
-                                                  :name "clojuredocs"
-                                                  :description calva/description-clojure-docs
-                                                  :mimeType "application/json"}]}}]
+                    :result {:resourceTemplates (cond-> []
+                                                  #_#_(calva/exists-get-symbol-info?)
+                                                    (conj {:uriTemplate "/get-symbol-info/{namespace}@{symbol}"
+                                                           :name "get-symbol-info"
+                                                           :description calva/symbol-info-description
+                                                           :mimeType "application/json"})
+
+                                                  (calva/exists-get-clojuredocs?)
+                                                  (conj {:uriTemplate "/clojuredocs/{symbol}"
+                                                         :name "clojuredocs"
+                                                         :description calva/description-clojure-docs
+                                                         :mimeType "application/json"}))}}]
       response)
 
     (= method "resources/read")
