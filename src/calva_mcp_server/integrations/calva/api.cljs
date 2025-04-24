@@ -52,25 +52,29 @@
 (def description-clojure-docs
   "Returns clojuredocs.org info on `symbol`.")
 
-(defn get-clojuredocs+
-  [{:ex/keys [dispatch!]
-    :calva/keys [clojure-symbol]}]
+(defn get-clojuredocs+ [{:ex/keys [dispatch!]
+                         :calva/keys [clojure-symbol]}]
   (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
   ((get-in calva-api [:info :getClojureDocsDotOrg]) clojure-symbol "user"))
 
-(def exists-get-clojuredocs? (boolean (get-in calva-api [:info :getClojureDocsDotOrg])))
+(defn exists-get-clojuredocs? [] (boolean (get-in calva-api [:info :getClojureDocsDotOrg])))
 
 (def description-symbol-info
   "Returns info on the `symbol` as resolved in `namespace`.")
 
-(defn get-symbol-info+ [ns clojure-symbol]
-  ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol ns))
+(defn get-symbol-info+ [{:ex/keys [dispatch!]
+                         :calva/keys [clojure-symbol ns session-key]}]
+  (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
+  ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol session-key ns))
 
-(def exists-get-symbol-info? (boolean (get-in calva-api [:info :getSymbolInfo])))
+(defn exists-get-symbol-info? [] (boolean (get-in calva-api [:info :getSymbolInfo])))
 
 
 (comment
-  (p/let [info (get-symbol-info+ "user" "clojure.core/reductions")]
+  (p/let [info (get-symbol-info+ {:ex/dispatch! (comp pr-str println)
+                                  :calva/clojure-symbol "clojure.core/reductions"
+                                  :calva/session-key "clj"
+                                  :calva/ns "user"})]
     (def info info))
   (js->clj info :keywordize-keys true)
 
