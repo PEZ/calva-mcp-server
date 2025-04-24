@@ -64,9 +64,9 @@
   "Returns info on the `symbol` as resolved in `namespace`.")
 
 (defn get-symbol-info+ [ns clojure-symbol]
-  ((get-in calva-api [:info :symbolInfo]) clojure-symbol ns))
+  ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol ns))
 
-(def exists-get-symbol-info? (boolean (get-in calva-api [:info :symbolInfo])))
+(def exists-get-symbol-info? (boolean (get-in calva-api [:info :getSymbolInfo])))
 
 
 (comment
