@@ -31,23 +31,22 @@
       (catch :default e
         (js/console.error (.-message e) e)))))
 
-;; TODO: Figure out why this test errors in e2e
-#_(deftest-async server-lifecycle
+(deftest-async server-lifecycle
   (testing "MCP server can be started and stopped via commands"
-    (js/console.log "🧪 Testing MCP server start/stop...")
+    (-> (p/let [_ (p/delay 500) ; Allow log file to have been created
+                _ (js/console.log "[server-lifecycle] Attempting to start MCP server...")
+                server-info+ (vscode/commands.executeCommand "calva-mcp-server.startServer")
+                {:keys [instance port]} (js->clj server-info+ :keywordize-keys true)
 
-    (-> (p/let [;; Start the server
-                _ (p/delay 500)
-                _ (js/console.log "📡 Attempting to start MCP server...")
-                _ (p/timeout (vscode/commands.executeCommand "calva-mcp-server.startServer")
-                             500)
-                _ (js/console.log "📡 Server start command executed")
-
-               ;; Stop the server
-                _ (js/console.log "🛑 Attempting to stop MCP server...")
-                _ (vscode/commands.executeCommand "calva-mcp-server.stopServer")
-                _ (js/console.log "🛑 Server stop command executed")]
-
-          (is true "Server commands executed without errors"))
+                _ (js/console.log "[server-lifecycle] Attempting to stop MCP server...")
+                success?+ (vscode/commands.executeCommand "calva-mcp-server.stopServer")]
+          (is (not= nil
+                    instance)
+              "Server instance is something")
+          (is (number? port)
+              "Server started on a port")
+          (is (= true
+                 success?+)
+              "Server stopped successfully"))
         (p/catch (fn [e]
                    (js/console.error (.-message e) e))))))

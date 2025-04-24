@@ -24,8 +24,8 @@
                                         (partial dispatch! context)))
            (fn [e]
              (dispatch! context (ax/enrich-with-args on-error (.-message e)))))
-          (p/then (fn [_]
-                    (dispatch! context on-success)))))
+          (p/then (fn [success?]
+                    (dispatch! context (ax/enrich-with-args on-success success?))))))
 
     [:mcp/fx.send-notification notification]
     (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} notification)

@@ -16,22 +16,24 @@
                    :app/server-starting? false)
      :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/starting? false]
               [:app/ax.set-when-context :calva-mcp-server/started? true]]
-     :ex/fxs [[:vscode/fx.show-information-message (str "MCP server started on port: " (:server/port server-info))]]}
+     :ex/fxs [[:vscode/fx.show-information-message (str "MCP server started on port: " (:server/port server-info))]
+              [:app/fx.return (clj->js server-info)]]}
 
     [:mcp/ax.stop-server]
     {:ex/db (assoc state :app/server-stopping? true)
      :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/stopping? true]]
-     :ex/fxs [[:mcp/fx.stop-server (merge {:ex/on-success [[:mcp/ax.server-stopped]]
+     :ex/fxs [[:mcp/fx.stop-server (merge {:ex/on-success [[:mcp/ax.server-stopped :ex/action-args]]
                                            :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}
                                           (:app/server-info state))]]}
 
-    [:mcp/ax.server-stopped]
+    [:mcp/ax.server-stopped success?]
     {:ex/db (dissoc state
                     :app/server-info
                     :app/server-stopping?)
      :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/stopping? false]
               [:app/ax.set-when-context :calva-mcp-server/started? false]]
-     :ex/fxs [[:vscode/fx.show-information-message "MCP server stopped"]]}
+     :ex/fxs [[:vscode/fx.show-information-message "MCP server stopped"]
+              [:app/fx.return success?]]}
 
     [:mcp/ax.open-server-log]
     {:ex/fxs [[:vscode/fx.workspace.open-text-document

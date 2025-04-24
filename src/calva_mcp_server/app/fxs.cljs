@@ -16,6 +16,9 @@
       (when (<= (levels level) (levels min-level))
         (apply logging/log! (assoc options :ex/dispatch! dispatch!) level messages)))
 
+    [:app/fx.return v]
+    v
+
     [:app/fx.register-command command-id actions]
     (let [disposable (vscode/commands.registerCommand
                       command-id
