@@ -9,10 +9,10 @@
 
 (def ^:private ^js calvaExt (vscode/extensions.getExtension "betterthantomorrow.calva"))
 
-(def ^:private ^js calvaApi (-> calvaExt
-                                .-exports
-                                .-v1
-                                (js->clj :keywordize-keys true)))
+(def ^:private calva-api (-> calvaExt
+                             .-exports
+                             .-v1
+                             (js->clj :keywordize-keys true)))
 
 (def ^:private no-ns-eval-note
   "When evaluating without providing a namespace argument the evaluation is performed in the `user` namespace. Most often this is not what you want, and instead you should be evaluating providing the namespace argument. If it is the first time you are using a namespace, evaluate its ns-form first.")
@@ -25,7 +25,7 @@
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
   [{:ex/keys [dispatch!]
     :calva/keys [code session ns]}]
-  (p/let [evaluate (get-in calvaApi [:repl :evaluateCode])
+  (p/let [evaluate (get-in calva-api [:repl :evaluateCode])
           result (-> (p/let [^js evaluation+ (if ns
                                                (evaluate session code ns)
                                                (evaluate session code))]
@@ -49,34 +49,35 @@
                                  :note "Think a bit about why your evaluation resulted i an exception brefore proceeding. Consider asking your pair programmer (the user) about it, relaying what error you got."})))]
     result))
 
-(defn get-namespace-and-ns-form+
-  "Returns a tuple `[ns ns-form]` for the document at `path`, if provided.
-   Otherwise will use the currently active editor's document."
-  ([]
-   ((get-in calvaApi [:document :getNamespaceAndNsForm])))
-  ([path]
-   (p/let [doc+ (get-document-from-path path)]
-     ((get-in calvaApi [:document :getNamespaceAndNsForm]) doc+))))
+(def description-clojure-docs
+  "Returns clojuredocs.org info on `symbol`.")
 
-(defn get-namespace-info+
-  "Returns structured namespace information for a given file path.
-   This adds a layer over get-namespace-and-ns-form+ that formats
-   the data in a more consumable structure."
-  [path]
-  (p/let [[ns-name ns-form] (get-namespace-and-ns-form+ path)]
-    {:namespace ns-name
-     :ns-form (pr-str ns-form)
-     :file path}))
+(defn get-clojuredocs+
+  [{:ex/keys [dispatch!]
+    :calva/keys [clojure-symbol]}]
+  (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
+  ((get-in calva-api [:info :getClojureDocsDotOrg]) clojure-symbol "user"))
+
+(def exists-get-clojuredocs? (boolean (get-in calva-api [:info :getClojureDocsDotOrg])))
+
+(def description-symbol-info
+  "Returns info on the `symbol` as resolved in `namespace`.")
+
+(defn get-symbol-info+ [ns clojure-symbol]
+  ((get-in calva-api [:info :symbolInfo]) clojure-symbol ns))
+
+(def exists-get-symbol-info? (boolean (get-in calva-api [:info :symbolInfo])))
+
 
 (comment
-  (p/let [[ns ns-form] (get-namespace-and-ns-form+ "/Users/pez/Projects/calva-mcp-server/src/calva_mcp_server/integrations/calva/api.cljs")]
-    (def ns ns)
-    ;;=> #'calva-mcp-server.integrations.calva.api/ns
-    (def ns-form ns-form))
-    ;;=> "(ns calva-mcp-server.integrations.calva.api\n  (:require\n   [\"vscode\" :as vscode]\n   [promesa.core :as p]))"
+  (p/let [info (get-symbol-info+ "user" "clojure.core/reductions")]
+    (def info info))
+  (js->clj info :keywordize-keys true)
 
-  (p/let [[ns ns-form] (get-namespace-and-ns-form+ "/Users/pez/Projects/calva-mcp-server/test-projects/mini-deps/src/mini/playground.clj")]
-    (def ns ns)
-    (def ns-form ns-form))
+  (p/let [docs (get-clojuredocs+ {:ex/dispatch! (comp pr-str println)
+                                  :calva/clojure-symbol "clojure.core/reductions"})]
+    (def docs docs))
+  (js->clj docs :keywordize-keys true)
+
   :rcf)
 

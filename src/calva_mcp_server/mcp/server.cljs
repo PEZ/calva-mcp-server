@@ -73,34 +73,43 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools [{:name "evaluate-clojure-code"
-                                      :description "Evaluate Clojure/ClojureScript code, enabling AI Interactive Programming."
+                                      :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
                                       :inputSchema {:type "object"
                                                     :properties {"code" {:type "string"
                                                                          :description "Clojure/ClojureScript code to evaluate"}
                                                                  "namespace" {:type "string"
                                                                               :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}}
-                                                    :required ["code"]}
-                                      :audience ["user"]
-                                      :priority 1}]}}]
+                                                    :required ["code"]}}
+                                     {:name "get-clojuredocs"
+                                      :description calva/description-clojure-docs
+                                      :inputSchema {:type "object"
+                                                    :properties {"clojure-symbol" {:type "string"
+                                                                                   :description "The symbol to look up clojuredocs.org info from."}}
+                                                    :required ["clojure-symbol"]}}]}}]
       response)
 
     (= method "resources/templates/list")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:resourceTemplates [{:uriTemplate "/workspace/ns-info/{path}"
-                                                  :name "Namespace Info"
-                                                  :description "Returns the namespace and ns-form for a given Clojure/ClojureScript file path in the workspace as a tuple `[namespace, ns-form]`."
+                    :result {:resourceTemplates [#_{:uriTemplate "/get-symbol-info/{namespace}@{symbol}"
+                                                    :name "get-symbol-info"
+                                                    :description calva/symbol-info-description
+                                                    :mimeType "application/json"}
+                                                 {:uriTemplate "/clojuredocs/{symbol}"
+                                                  :name "clojuredocs"
+                                                  :description calva/description-clojure-docs
                                                   :mimeType "application/json"}]}}]
       response)
 
     (= method "resources/read")
     (let [{:keys [uri]} params]
-      (if-let [path (second (re-find #"^/workspace/ns-info/(.+)$" uri))]
-        (p/let [info (calva/get-namespace-and-ns-form+ path)]
+      (if-let [[_ clojure-symbol] (re-find #"^/clojuredocs/([^@]+)$" uri)]
+        (p/let [info (calva/get-clojuredocs+ (merge options
+                                                    {:calva/clojure-symbol clojure-symbol}))]
           {:jsonrpc "2.0"
            :id id
            :result {:contents [{:uri uri
-                                :text (js/JSON.stringify (clj->js info))}]}})
+                                :text (js/JSON.stringify info)}]}})
         {:jsonrpc "2.0"
          :id id
          :error {:code -32601
@@ -109,17 +118,30 @@
     (= method "tools/call")
     (let [{:keys [arguments]
            tool :name} params]
-      (if (= tool "evaluate-clojure-code")
-        (p/let [{:keys [code namespace]} arguments
+      (cond
+        (= tool "evaluate-clojure-code")
+        (p/let [{:keys [code]
+                 ns :namespace} arguments
                 result (calva/evaluate-code+ (merge options
                                                     {:calva/code code
                                                      :calva/session js/undefined}
-                                                    (when namespace
-                                                      {:calva/ns namespace})))]
+                                                    (when ns
+                                                      {:calva/ns ns})))]
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
                                :text (pr-str result)}]}})
+
+        (= tool "get-clojuredocs")
+        (p/let [{:keys [clojure-symbol]} arguments
+                clojure-docs (calva/get-clojuredocs+ (merge options
+                                                            {:calva/clojure-symbol clojure-symbol}))]
+          {:jsonrpc "2.0"
+           :id id
+           :result {:content [{:type "text"
+                               :text (js/JSON.stringify clojure-docs)}]}})
+
+        :else
         {:jsonrpc "2.0"
          :id id
          :error {:code -32601
