@@ -35,7 +35,8 @@
                                                             :properties {"code" {:type "string"
                                                                                  :description "Clojure/ClojureScript code to evaluate"}
                                                                          "namespace" {:type "string"
-                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}}
+                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}
+                                                                         "" {}}
                                                             :required ["code"]}}]
 
                                       (calva/exists-get-symbol-info?)
@@ -122,7 +123,7 @@
           {:jsonrpc "2.0"
            :id id
            :result {:content [{:type "text"
-                               :text (pr-str result)}]}})
+                               :text (js/JSON.stringify result)}]}})
 
         (= tool "get-symbol-info")
         (p/let [{:keys [clojure-symbol session-key]

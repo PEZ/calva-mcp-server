@@ -20,6 +20,11 @@
 (def ^:private empty-result-note
   "Not expecting a empty string as a result? If it is the first time you are using a namespace, evaluate its ns-form first.")
 
+
+(def ^:private error-result-note
+  "* clj: Evaluating `*e` will give your information about the error.
+   * cljs: Evaluating `(.-stack *e), gives you a stack trace")
+
 (defn evaluate-code+
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
@@ -30,24 +35,28 @@
                                                (evaluate session code ns)
                                                (evaluate session code))]
                        (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
-                       (merge {:result (.-result evaluation+)
-                               :ns (.-ns evaluation+)
-                               :stdout (.-output evaluation+)
-                               :stderr (.-errorOutput evaluation+)}
-                              (cond
-                                (not ns)
-                                {:note no-ns-eval-note}
+                       (cond-> {:result (.-result evaluation+)
+                                :ns (.-ns evaluation+)
+                                :stdout (.-output evaluation+)
+                                :stderr (.-errorOutput evaluation+)
+                                :session-key (.-sessionKey evaluation+)}
+                         (.-error evaluation+)
+                         (merge {:error (.-error evaluation+)
+                                 :stacktrace (.-stacktrace evaluation+)})
 
-                                (= "" (.-output evaluation+))
-                                {:note empty-result-note})))
+                         (not ns)
+                         (merge {:note no-ns-eval-note})
+
+                         (= "" (.-result evaluation+))
+                         (merge {:note empty-result-note})))
                      (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
                                         ; in the REPL. For now we send the error as the result like this...
                                 (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
                                              err]])
                                 {:result "nil"
                                  :stderr (pr-str err)
-                                 :note "Think a bit about why your evaluation resulted i an exception brefore proceeding. Consider asking your pair programmer (the user) about it, relaying what error you got."})))]
-    result))
+                                 :note error-result-note})))]
+    (clj->js result)))
 
 (def description-clojure-docs
   "Returns clojuredocs.org info on `symbol`.")
