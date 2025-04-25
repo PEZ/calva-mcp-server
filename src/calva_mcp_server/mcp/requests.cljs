@@ -37,7 +37,9 @@
                                                                          "namespace" {:type "string"
                                                                                       :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}
                                                                          "" {}}
-                                                            :required ["code"]}}]
+                                                            :required ["code"]
+                                                            :audience ["user"]
+                                                            :priority 1}}]
 
                                       (calva/exists-get-symbol-info?)
                                       (conj {:name "get-symbol-info"
@@ -49,7 +51,8 @@
                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}
                                                                         "session-key" {:type "string"
                                                                                        :description "One of `clj`, `cljs`, or `cljc`. For Clojure, ClojureScript, and Common, respectively. Often the same as the extension of the file you are working with."}}
-                                                           :required ["clojure-symbol"  "session-key" "namespace"]}})
+                                                           :required ["clojure-symbol"  "session-key" "namespace"]
+                                                           :audience ["user"]}})
 
                                       (calva/exists-get-clojuredocs?)
                                       (conj {:name "get-clojuredocs"
@@ -59,7 +62,8 @@
                                                                                           :description "The symbol to look up clojuredocs.org info from."}
                                                                         "namespace" {:type "string"
                                                                                      :description "Fully qualified namespace in which to evaluate the code. Often the namespace of that file you are working with."}}
-                                                           :required ["clojure-symbol"]}}))}}]
+                                                           :required ["clojure-symbol"]
+                                                           :audience ["user"]}}))}}]
       response)
 
     (= method "resources/templates/list")
