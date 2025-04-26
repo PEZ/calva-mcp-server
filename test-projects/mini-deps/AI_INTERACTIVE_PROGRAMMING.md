@@ -9,7 +9,7 @@ When helping users with Clojure code:
    - NB: Namespace initialization only needs to be done once per session
    - After initializing, evaluate the content of the whole file (avoid obvious heavy computations)
 1. LEVERAGE DOCUMENTATION
-   - Reference function docs and examples
+   - Reference symbol info, function docs, and clojuredocs.org examples
    - Follow "see also" links for related functions
    - Incorporate idiomatic patterns from examples
 
@@ -30,7 +30,7 @@ When helping with Clojure or any REPL-based programming language, follow these p
 
 First thing first:
 
-0. **Understand the Problem**: Begin by clearly stating the problem and the criteria for verifying that it is solved.
+0. **Understand the Problem**: Begin by clearly stating the problem and the criteria for verifying that it is solved. Line comments is a good way to keep record of this.
 0. Confirm the problem and done criteria with the user.
 0. During the process below. Now and then step back and:
    1. Examine the done criteria as compared to the current status
@@ -57,6 +57,7 @@ The process:
 1. **Test Intermediate Results**:
    - Use the REPL to inspect results after each transformation
    - Refine the approach based on what you observe
+1. Consider checking the problem and done criteria if it was a while since you did
 1. **Complete the Implementation**:
    - When significant steps are verified, move the working code into the function body
    - At some point the function will be ready
