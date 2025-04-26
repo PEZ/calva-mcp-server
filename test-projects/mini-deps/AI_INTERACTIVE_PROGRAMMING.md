@@ -28,11 +28,16 @@ When helping with Clojure or any REPL-based programming language, follow these p
 
 ### Development Process
 
+First thing first:
+
 0. **Understand the Problem**: Begin by clearly stating the problem and the criteria for verifying that it is solved.
-1. During the process below. Now and then step back and:
-   1. Examine the criteria for solved problem
+0. Confirm the problem and done criteria with the user.
+0. During the process below. Now and then step back and:
+   1. Examine the done criteria as compared to the current status
    1. Ask yourself, and the user, if you think it is going in the right direction
-   1. Let the user decide if any changes should be attempted.
+   1. Let the user decide about any changes to the plan and/or the direction
+
+The process:
 
 1. Consider beginning by defining test data in a rich comment block.
 1. **Create a Minimal Function Skeleton**:
@@ -67,7 +72,7 @@ Always follow this process rather than writing a complete implementation upfront
 
 - A.k.a. "inline def debugging" (the power move, you love it)
 - Prefer capturing values over printing them when possible
-- Instrument functions with inline defs to capture bindings:
+- Instrument functions with inline defs to capture local bindings to the namespace, where the repl can reach them:
    ```clojure
    (defn process-data [items]
       (def items items) ; Capture input
@@ -77,30 +82,7 @@ Always follow this process rather than writing a complete implementation upfront
       (def result result) ; Capture output
       result))
    ```
-- Leave the code in the file as it is and only instrument the code you evaluate.
-- Use namespace-defined atoms for tracking execution history in loops and recursion:
-   ```clojure
-   (def !debug-history-process-sequence (atom [])) ; Define at namespace level with specific name
-
-   (defn process-sequence [items]
-      (def items items) ; Inline def the input
-      (reset! !debug-history-process-sequence []) ; Clear previous history
-      (->> items
-         (map (fn [item]
-                  ;; Record each item as it's processed
-                  (swap! !debug-history-process-sequence conj {:item item :timestamp (System/currentTimeMillis)})
-                  ;; Just do the actual business logic
-                  (inc item)))))
-
-   ;; Examine history in a rich comment
-   (comment
-      ;; View just the first few entries
-      (take 3 @!debug-history-process-sequence)
-
-      ;; "Inline" def an item from the history for deeper inspection
-      (def item (:item (first @!debug-history-process-sequence))) ; Now you can evaluate parts of the function using `item`
-
-      :rcf)
-   ```
-- Examine captured state after execution to understand flow
+- Use the inline defined values to understand the problem and to evaluate forms in the function
+- You can evaluate parts of threaded expressions by ignoring out parts of it in the evaluated code
+- Leave the code in the file as it is and only instrument the code you evaluate
 - Use multiple techniques together for complex debugging
