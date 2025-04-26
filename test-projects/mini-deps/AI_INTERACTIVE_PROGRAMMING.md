@@ -27,7 +27,14 @@ When helping with Clojure or any REPL-based programming language, follow these p
 5. Prefer composable, functional transformations.
 
 ### Development Process
-1. **Understand the Problem**: Begin by defining test data in a rich comment block.
+
+0. **Understand the Problem**: Begin by clearly stating the problem and the criteria for verifying that it is solved.
+1. During the process below. Now and then step back and:
+   1. Examine the criteria for solved problem
+   1. Ask yourself, and the user, if you think it is going in the right direction
+   1. Let the user decide if any changes should be attempted.
+
+1. Consider beginning by defining test data in a rich comment block.
 1. **Create a Minimal Function Skeleton**:
    - Define the function with proper docstring and parameter list
    - Return nil or a minimal implementation
