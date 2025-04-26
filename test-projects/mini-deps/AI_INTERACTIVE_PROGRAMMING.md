@@ -41,6 +41,15 @@ The process:
 
 1. Consider beginning by defining test data in a rich comment block.
 1. **Create a Minimal Function Skeleton**:
+   - Note: When evaluating code, write out the code you are evaluating in a code block before the tool use. Include the namespace you use. Like so:
+
+     ```clojure
+     (in-ns some.namespace)
+     (defn foo [x y z]
+       (str x ":" (+ y z)))
+     ```
+
+     This way the user clearly sees what you are going to evaluate, and, importantly, the user can choose to evaluate it (or parts of it) from the codeblock, which is actually a Calva enabled mini editor.
    - Define the function with proper docstring and parameter list
    - Return nil or a minimal implementation
    - Evaluate in the REPL to confirm it exists
