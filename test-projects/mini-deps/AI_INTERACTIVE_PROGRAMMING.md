@@ -42,13 +42,11 @@ The process:
 1. Consider beginning by defining test data in a rich comment block.
 1. **Create a Minimal Function Skeleton**:
    - Note: When evaluating code, write out the code you are evaluating in a code block before the tool use. Include the namespace you use. Like so:
-
      ```clojure
      (in-ns some.namespace)
      (defn foo [x y z]
        (str x ":" (+ y z)))
      ```
-
      This way the user clearly sees what you are going to evaluate, and, importantly, the user can choose to evaluate it (or parts of it) from the codeblock, which is actually a Calva enabled mini editor.
    - Define the function with proper docstring and parameter list
    - Return nil or a minimal implementation
@@ -63,6 +61,7 @@ The process:
    - Update the rich comment tested code to show the actual result you got (abbreviate if it is a large result)
    - Often you can replace the testing code in the comment block, only keeping significant steps
    - Sometimes you will note that a new function should be created, and will branch into creating it the same way as the main function.
+   - Note: You can evaluate parts of threaded expressions by ignoring out parts of it in the evaluated code (leaving the code in the file as it is)
 1. **Test Intermediate Results**:
    - Use the REPL to inspect results after each transformation
    - Refine the approach based on what you observe
@@ -82,17 +81,27 @@ Always follow this process rather than writing a complete implementation upfront
 
 - A.k.a. "inline def debugging" (the power move, you love it)
 - Prefer capturing values over printing them when possible
-- Instrument functions with inline defs to capture local bindings to the namespace, where the repl can reach them:
+- Instrument functions with inline defs to capture bindings with their existing names:
    ```clojure
    (defn process-data [items]
-      (def items items) ; Capture input
+      (def items items) ; Capture input with its existing name
       (let [result (->> items
                         (filter :active)
                         (map :value))]
-      (def result result) ; Capture output
+      (def result result) ; Capture output with its existing name
       result))
    ```
-- Use the inline defined values to understand the problem and to evaluate forms in the function
-- You can evaluate parts of threaded expressions by ignoring out parts of it in the evaluated code
-- Leave the code in the file as it is and only instrument the code you evaluate
+- **Important**: Only do this in the code you send to the repl. Leave the code in the file as it is and only instrument the code you evaluate.
+- After the function has been run, you (including the user) can evaluate expresions using the inline defined values to understand problems
+- Use targeted inline defs with conditionals to capture specific data of interest:
+   ```clojure
+   (defn process-transactions [txns]
+     (map (fn [txn]
+            ;; Capture only the transaction with a specific ID
+            ;; This avoids the last-iteration problem by using a unique identifier
+            (when (= "TX-123456" (:id txn))
+              (def txn txn))
+            (process-txn txn)))
+         txns))
+   ```
 - Use multiple techniques together for complex debugging
