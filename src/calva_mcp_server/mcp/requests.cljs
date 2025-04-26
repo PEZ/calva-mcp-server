@@ -35,9 +35,10 @@
                                                             :properties {"code" {:type "string"
                                                                                  :description "Clojure/ClojureScript code to evaluate"}
                                                                          "namespace" {:type "string"
-                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."}
-                                                                         "" {}}
-                                                            :required ["code"]
+                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided. If it is the first time you use a namespace, start with evaluating its ns-form in the `user` namespace."}
+                                                                         "repl-session-key" {:type "string"
+                                                                                             :description "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files."}}
+                                                            :required ["code" "namespace" "repl-session-key"]
                                                             :audience ["user"]
                                                             :priority 1}}]
 
@@ -90,7 +91,7 @@
         (p/let [[_ clojure-symbol session-key ns] (re-find #"^/symbol-info/([^@]+)@([^@]+)@(.+)$" uri)
                 info (calva/get-symbol-info+ (merge options
                                                     {:calva/clojure-symbol clojure-symbol
-                                                     :calva/session-key session-key
+                                                     :calva/repl-session-key session-key
                                                      :calva/ns ns}))]
           {:jsonrpc "2.0"
            :id id
@@ -117,11 +118,11 @@
            tool :name} params]
       (cond
         (= tool "evaluate-clojure-code")
-        (p/let [{:keys [code]
+        (p/let [{:keys [code repl-session-key]
                  ns :namespace} arguments
                 result (calva/evaluate-code+ (merge options
                                                     {:calva/code code
-                                                     :calva/session js/undefined}
+                                                     :calva/repl-session-key repl-session-key}
                                                     (when ns
                                                       {:calva/ns ns})))]
           {:jsonrpc "2.0"
@@ -130,11 +131,11 @@
                                :text (js/JSON.stringify result)}]}})
 
         (= tool "get-symbol-info")
-        (p/let [{:keys [clojure-symbol session-key]
+        (p/let [{:keys [clojure-symbol repl-session-key]
                  ns :namespace} arguments
                 clojure-docs (calva/get-clojuredocs+ (merge options
                                                             {:calva/clojure-symbol clojure-symbol
-                                                             :calva/session-key session-key
+                                                             :calva/repl-session-key repl-session-key
                                                              :calva/ns ns}))]
           {:jsonrpc "2.0"
            :id id

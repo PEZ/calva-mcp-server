@@ -18,7 +18,7 @@
   "When evaluating without providing a namespace argument the evaluation is performed in the `user` namespace. Most often this is not what you want, and instead you should be evaluating providing the namespace argument. If it is the first time you are using a namespace, evaluate its ns-form first.")
 
 (def ^:private empty-result-note
-  "Not expecting a empty string as a result? If it is the first time you are using a namespace, evaluate its ns-form first.")
+  "Not expecting a empty string as a result? If it is the first time you are using a namespace, evaluate its ns-form in the `user` namespace first.")
 
 
 (def ^:private error-result-note
@@ -29,11 +29,11 @@
   "Returns a promise that resolves to the result of evaluating Clojure/ClojureScript code.
    Takes a string of code to evaluate and a session key (clj/cljs/cljc), js/undefined means current session."
   [{:ex/keys [dispatch!]
-    :calva/keys [code session ns]}]
+    :calva/keys [code repl-session-key ns]}]
   (p/let [evaluate (get-in calva-api [:repl :evaluateCode])
           result (-> (p/let [^js evaluation+ (if ns
-                                               (evaluate session code ns)
-                                               (evaluate session code))]
+                                               (evaluate repl-session-key code ns)
+                                               (evaluate repl-session-key code))]
                        (dispatch! [[:app/ax.log :debug "[Server] Evaluating code:" code]])
                        (cond-> {:result (.-result evaluation+)
                                 :ns (.-ns evaluation+)
@@ -72,9 +72,9 @@
   "Returns info on the `symbol` as resolved in `namespace`.")
 
 (defn get-symbol-info+ [{:ex/keys [dispatch!]
-                         :calva/keys [clojure-symbol ns session-key]}]
+                         :calva/keys [clojure-symbol ns repl-session-key]}]
   (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
-  ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol session-key ns))
+  ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol repl-session-key ns))
 
 (defn exists-get-symbol-info? [] (boolean (get-in calva-api [:info :getSymbolInfo])))
 
@@ -82,7 +82,7 @@
 (comment
   (p/let [info (get-symbol-info+ {:ex/dispatch! (comp pr-str println)
                                   :calva/clojure-symbol "clojure.core/reductions"
-                                  :calva/session-key "clj"
+                                  :calva/repl-session-key "clj"
                                   :calva/ns "user"})]
     (def info info))
   (js->clj info :keywordize-keys true)
