@@ -8,6 +8,21 @@
 
 A Model Context Protocol server extension for [Calva](https://calva.io), the Clojure/ClojureScript extension for VS Code, enabling AI assistants to harness the power of the REPL.
 
+## Features
+
+* Tool: **Evaluate Code** (disabled by default), access to the Clojure REPL to evaluate code at will
+* Tool: **Symbol info lookup**, the AI can look up symbols it is interested in, and will get doc strings, argument info etcetera
+* Tool: **clojuredocs.org lookup**, docs, examples, and *see also* information on Clojure core-ish symbols
+* Resource: **Symbol info lookup**, (a bit experimental) same as the tool
+* Resource: **clojuredocs.org lookup**, (a bit experimental) same as the tool
+
+
+### Evaluation power is opt-in
+
+Since evaluating Clojure code could be a bit risky, the server defaults to this being disabled, so you can use the server for other things. Search for *Calva MCP* in VS Code Settings to enable it.
+
+Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
+
 ## Why Calva MCP Server?
 
 "I wish Copilot could actually run my Clojure code instead of just guessing what it might do."
@@ -24,17 +39,11 @@ Tired of AI tools that write plausible-looking Clojure that falls apart at runti
 - **Debug alongside you** with access to runtime errors
 - **Learn from your codebase's actual behavior**
 
-### For Clojurians who value Iiteractive Programming
+### For Clojurians who value Interactive Programming
 
 As Clojure developers, we know the REPL isn't just a console - it's the center of our workflow. Now your AI assistant can join that workflow, understanding your data and functions as they actually exist, not just as they appear in static code.
 
-## Key Features
-
-- Seamless integration between GitHub Copilot and your Calva REPL
-- AI-driven code evaluation with full access to your project's runtime (⚠️)
-- Interactive data exploration for smarter code suggestions
-- REPL-powered debugging assistance
-- Works with your existing Clojure/ClojureScript projects
+In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/AI_INTERACTIVE_PROGRAMMING.md) you'll find an attempt to prompt the AI to leverage the REPL for interactive programming. (With varying success, help with this is much appreciated!)
 
 ## Getting Started
 
@@ -42,6 +51,7 @@ As Clojure developers, we know the REPL isn't just a console - it's the center o
 
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
+- [Calva MCP Server](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
 - An AI coding assistant (e.g., GitHub Copilot)
 - Any Clojure environment dependencies your project has (e.g. Clojure, Babashka, etc)
 
@@ -76,6 +86,8 @@ In you project's `.vscode/mcp.json` add a `"calva"` entry like so:
 
 The VS Code editor for this file is also the UI for starting and stopping the `stdio` server.
 
+Please add configuration for other AI clients! 🙏
+
 ### Using
 
 For CoPilot (or any MCP client) to use the Calva MCP Server, the socket server needs to be started before the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
@@ -83,15 +95,8 @@ For CoPilot (or any MCP client) to use the Calva MCP Server, the socket server n
 1. Connect Calva to your Clojure/ClojureScript project
 1. Issue the command: **Calva MCP Server: Start the socket server**
 1. In `.vscode/mcp.json`, use the **Start** button on the `"calva"` server.
+1. If you want the AI to have full REPL powers, enable this in settings
 1. Start using your AI Agent with REPL superpowers!
-
-**⚠️ NB**: You are at the mercy of the AI Agent. Using your REPL it can do anything that you can do from that REPL...
-
-When you are done:
-
-1. Issue the command: **Calva MCP Server: Stop the socket server**
-
-This way your Clojure REPL is not exposed to any AI Agents (at least not by the Calva MCP Server extension).
 
 ## How It Works
 
@@ -157,9 +162,9 @@ flowchart TD
 
 ## WIP
 
-This is a super early, bare bones, MCP server. Currently it only has one tool: `evaluate-clojure-code`. And currently that tool only evaluates code towards the current REPL connection. (Typically, whatever the REPL Window prompt would use.) Also, it only receives results, so the Agent does not see `stdout`/`stderr` output.
+This is a super early, bare bones, MCP server.
 
-The “plan” (hope) is that the code evaluation tool will grow more sophisticated, and that we will expose much more of Calva's features.
+The “plan” (hope) is that we will expose much more of Calva's features. Please let us now what features you would like to see.
 
 ## Contributing
 
