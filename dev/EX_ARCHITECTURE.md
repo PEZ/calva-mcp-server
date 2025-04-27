@@ -1,6 +1,6 @@
 # Calva MCP Server - Ex Architecture
 
-**Ex** is a pico-framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way) and [Replicant](https://replicant.fun).
+**Ex** is a pico-framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way). It's also a lot how I found myself holding [Replicant](https://replicant.fun) to keep my re-frame habits.
 
 (Appologies in advance for any marketing language used here. A lot of this description is written by Claude when I asked it to summarize the architecture it found in the calva-mcp-server codebase.)
 
