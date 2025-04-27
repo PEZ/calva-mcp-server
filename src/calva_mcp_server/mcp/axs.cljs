@@ -45,5 +45,8 @@
     (do (js/console.error err)
         {:ex/fxs [[:vscode/fx.show-error-message (str "MCP server error: " err)]]})
 
+    [:mcp/ax.handle-request request]
+    {:ex/fxs [[:mcp/fx.handle-request {:mcp/repl-enabled? :vscode/config.enableReplEvaluation} request]]}
+
     :else
     {:ex/fxs [[:node/fx.log-error "Unknown action:" (pr-str action)]]}))

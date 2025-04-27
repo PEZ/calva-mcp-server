@@ -75,7 +75,7 @@
 (defn- create-error-response [id code message]
   {:jsonrpc "2.0" :id id :error {:code code :message message}})
 
-(defn- process-segment [{:ex/keys [dispatch!]} segment handler]
+(defn- process-segment [{:ex/keys [dispatch!]} segment]
   (let [request-json (string/trim segment)]
     (if (string/blank? request-json)
       (do
@@ -86,27 +86,26 @@
           (do
             (dispatch! [[:app/ax.log :error "[Server] Error parsing request JSON segment:" (:message parsed) {:json (:json parsed)}]])
             (create-error-response nil -32700 "Parse error"))
-          (do
-            (dispatch! [[:app/ax.log :debug "[Server] Processing request for method:" (:method parsed)]])
-            (handler parsed)))))))
+          (dispatch! [[:app/ax.log :debug "[Server] Processing request for method:" (:method parsed)]
+                      [:mcp/ax.handle-request parsed]]))))))
 
-(defn- process-segments [options segments handler]
-  (keep #(process-segment options % handler) segments))
+(defn- process-segments [options segments]
+  (keep (partial process-segment options) segments))
 
 (defn- handle-socket-data! [{:ex/keys [dispatch!] :as options}
-                            buffer-atom data-chunk handler]
+                            buffer-atom data-chunk]
   (let [_ (dispatch! [[:app/ax.log :debug "[Server] Socket received chunk:" data-chunk]])
         _ (vswap! buffer-atom str data-chunk)
         [segments remainder] (split-buffer-on-newline @buffer-atom)
         _ (dispatch! [[:app/ax.log :debug "[Server] Split segments:" (pr-str segments) "Remainder:" (pr-str remainder)]])
         _ (vreset! buffer-atom remainder)
-        responses (process-segments options segments handler)
+        responses (process-segments options segments)
         _ (dispatch! [[:app/ax.log :debug "[Server] Generated responses:" (pr-str responses)]])]
     responses))
 
 (def ^:private active-sockets (atom #{}))
 
-(defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket handler]
+(defn- setup-socket-handlers! [{:ex/keys [dispatch!] :as options} ^js socket]
   (.setEncoding socket "utf8")
   (swap! active-sockets conj socket)
   (.on socket "close" (fn [] (swap! active-sockets disj socket)))
@@ -114,7 +113,7 @@
   (let [buffer (volatile! "")]
     (.on socket "data"
          (fn [data-chunk]
-           (let [responses (handle-socket-data! options buffer data-chunk handler)]
+           (let [responses (handle-socket-data! options buffer data-chunk)]
              (doseq [response responses]
                (when response
                  (if (p/promise? response)
@@ -139,32 +138,27 @@
               (fn [err]
                 (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]]))))))
 
-(defn- create-request-handler [options]
-  (fn [request]
-    (requests/handle-request-fn options request)))
-
 (defn- start-socket-server!+ [{:ex/keys [dispatch!] :as options}]
-  (let [handle-request (create-request-handler options)]
-    (p/create
-     (fn [resolve-fn reject]
-       (try
-         (let [server (.createServer
-                       net
-                       (fn [^js socket]
-                         (setup-socket-handlers! options socket handle-request)))]
-           (.on server "error"
-                (fn [err]
-                  (dispatch! [[:app/ax.log :error "[Server] Server creation error:" err]])
-                  (reject err)))
-           (.listen server 0
-                    (fn []
-                      (let [address (.address server)
-                            port (.-port address)]
-                        (dispatch! [[:app/ax.log :info "[Server] Socket server listening on port" port]])
-                        (resolve-fn {:server/instance server :server/port port})))))
-         (catch js/Error e
-           (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
-           (reject e)))))))
+  (p/create
+   (fn [resolve-fn reject]
+     (try
+       (let [server (.createServer
+                     net
+                     (fn [^js socket]
+                       (setup-socket-handlers! options socket)))]
+         (.on server "error"
+              (fn [err]
+                (dispatch! [[:app/ax.log :error "[Server] Server creation error:" err]])
+                (reject err)))
+         (.listen server 0
+                  (fn []
+                    (let [address (.address server)
+                          port (.-port address)]
+                      (dispatch! [[:app/ax.log :info "[Server] Socket server listening on port" port]])
+                      (resolve-fn {:server/instance server :server/port port})))))
+       (catch js/Error e
+         (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
+         (reject e))))))
 
 (defn send-notification-params [{:ex/keys [dispatch!]} notification]
   (let [sockets @active-sockets]

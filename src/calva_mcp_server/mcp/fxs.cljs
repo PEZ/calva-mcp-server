@@ -1,6 +1,7 @@
 (ns calva-mcp-server.mcp.fxs
   (:require
    [calva-mcp-server.ex.ax :as ax]
+   [calva-mcp-server.mcp.requests :as requests]
    [calva-mcp-server.mcp.server :as server]
    [cljs.core.match :refer [match]]
    [promesa.core :as p]))
@@ -29,6 +30,9 @@
 
     [:mcp/fx.send-notification notification]
     (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} notification)
+
+    [:mcp/fx.handle-request options request]
+    (requests/handle-request-fn (assoc options :ex/dispatch! dispatch!) request)
 
     :else
     (js/console.warn "Unknown MCP effect:" (pr-str effect))))
