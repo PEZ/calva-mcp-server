@@ -48,8 +48,6 @@
                           (dispatch! [[:app/ax.log :warn "[Server] Could not delete port file with fallback either:" fs-err (.-message fs-err)]])
                           (resolve-fn true))))))))))
 
-
-
 (defn- split-buffer-on-newline [buffer]
   (let [lines (string/split buffer #"\n")]
     (cond

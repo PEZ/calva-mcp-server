@@ -35,6 +35,17 @@
   "activationEvents": [],
   "main": "out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Calva MCP Server",
+      "properties": {
+        "calva-mcp-server.enableREPLEvaluation": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable the REPL evaluation tool. **⚠️ SECURITY WARNING**: _When enabled, any network client with access to the MCP server can execute arbitrary code in your REPL environment._ That said, compliant MCP clients will default to a low-trust mode with confirmation before any evaluation.",
+          "scope": "resource"
+        }
+      }
+    },
     "commands": [
       {
         "command": "calva-mcp-server.startServer",

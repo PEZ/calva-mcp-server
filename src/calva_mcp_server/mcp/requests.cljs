@@ -10,7 +10,8 @@
           .-packageJSON
           .-version))
 
-(defn handle-request-fn [{:ex/keys [dispatch!] :as options}
+(defn handle-request-fn [{:ex/keys [dispatch!] :as options
+                          :mcp/keys [repl-enabled?]}
                          {:keys [id method params] :as request}]
   (dispatch! [[:app/ax.log :debug "[Server] handle-request " (pr-str request)]])
   (cond
@@ -29,18 +30,20 @@
     (= method "tools/list")
     (let [response {:jsonrpc "2.0"
                     :id id
-                    :result {:tools (cond-> [{:name "evaluate-clojure-code"
-                                              :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
-                                              :inputSchema {:type "object"
-                                                            :properties {"code" {:type "string"
-                                                                                 :description "Clojure/ClojureScript code to evaluate"}
-                                                                         "namespace" {:type "string"
-                                                                                      :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided. If it is the first time you use a namespace, start with evaluating its ns-form in the `user` namespace."}
-                                                                         "repl-session-key" {:type "string"
-                                                                                             :description "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files."}}
-                                                            :required ["code" "namespace" "repl-session-key"]
-                                                            :audience ["user"]
-                                                            :priority 1}}]
+                    :result {:tools (cond-> []
+                                      repl-enabled?
+                                      (conj {:name "evaluate-clojure-code"
+                                             :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
+                                             :inputSchema {:type "object"
+                                                           :properties {"code" {:type "string"
+                                                                                :description "Clojure/ClojureScript code to evaluate"}
+                                                                        "namespace" {:type "string"
+                                                                                     :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided. If it is the first time you use a namespace, start with evaluating its ns-form in the `user` namespace."}
+                                                                        "repl-session-key" {:type "string"
+                                                                                            :description "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files."}}
+                                                           :required ["code" "namespace" "repl-session-key"]
+                                                           :audience ["user"]
+                                                           :priority 1}})
 
                                       (calva/exists-get-symbol-info?)
                                       (conj {:name "get-symbol-info"
