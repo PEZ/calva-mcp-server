@@ -1,6 +1,8 @@
 # Calva MCP Server - Ex Architecture
 
-**Ex** is a micro framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way) and [Replicant](https://replicant.fun).
+**Ex** is a pico-framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way) and [Replicant](https://replicant.fun).
+
+(Appologies in advance for any marketing language used here. A lot of this description is written by Claude when I asked it to summarize the architecture it found in the calva-mcp-server codebase.)
 
 ## Core Concepts
 
@@ -190,7 +192,7 @@ This capability enables:
 
 ### Promise Continuation with :ex/then
 
-A powerful pattern used throughout the framework is the `:ex/then` option for effects that return promises:
+For nested Async Flows a pattern used throughout the framework is the `:ex/then` option for effects that return promises:
 
 ```clojure
 ;; In an action handler:
@@ -212,18 +214,7 @@ When the promise resolves, the result is passed to `enrich-with-args` which inje
 
 The indexed placeholders (`%n` syntax) let you access specific elements of collection results, supporting both simple cases and more complex scenarios where effects produce multiple values that need to be addressed individually.
 
-### Nested Async Flows
-
-The architecture supports nested async operations:
-
-```clojure
-[:vscode/fx.show-input-box
- {:ex/then [[:vscode/fx.open-text-document
-             {:content :ex/action-args
-              :ex/then [[:vscode/ax.show-text-document :ex/action-args]]}]]}]
-```
-
-This creates a clean, declarative way to express complex async workflows while maintaining the pure data representation at each step.
+For other types of effects similar patterns are used, such as `:ex/on-success`, `:ex/on-failure`. (You may find it better to stick to just one pattern.)
 
 ## Action Processing Pipeline
 
@@ -268,7 +259,7 @@ The architecture uses namespaced actions and effects to create clear domain boun
 1. **vscode**: VS Code-specific operations
 1. **node**: Node.js operations like logging
 1. **mcp**: the mcp server
-1. **test**: used by the unit tests testing Ex itself
+1. **test**: used by the unit tests for testing Ex itself
 
 Each domain has its own action and effect handlers, following a consistent pattern.
 
