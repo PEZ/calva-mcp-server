@@ -4,5 +4,9 @@ Changes to Calva MCP Server
 
 ## [Unreleased]
 
-- Initial Release
-- [Some cool thing that was lacking on the marketplace](https://github.com/BetterThanTomorrow/calva-mcp-server/issues/1)
+- **Initial Release**, WIP af
+- **Tool**: Clojure Code Evaluation
+- **Tool**: Symbol info lookup
+- **Tool**: Clojuredocs lookup
+- **Resource**: Symbol info lookup
+- **Resource**: Clojuredocs lookup
