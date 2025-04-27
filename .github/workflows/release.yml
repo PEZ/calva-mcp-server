@@ -84,9 +84,9 @@ jobs:
           merge-multiple: true
 
       - name: Publish to VS Code Marketplace
-        run: | # TODO: Actually publish to the marketplace. For now, only verify that the personal access token will work
+        run: |
           npx vsce verify-pat --pat ${{ secrets.MARKETPLACE_PAT }}
-          echo npx vsce publish --packagePath /tmp/*.vsix --pat ${{ secrets.MARKETPLACE_PAT }} --githubBranch master
+          npx vsce publish --packagePath /tmp/*.vsix --pat ${{ secrets.MARKETPLACE_PAT }} --githubBranch master --allow-all-proposed-apis
 
   publish-to-open-vsx:
     runs-on: ubuntu-latest
@@ -119,9 +119,9 @@ jobs:
           merge-multiple: true
 
       - name: Publish to Open VSX
-        run: | # TODO: Actually publish to open-vsx. For now, only verify that the personal access token will work
+        run: |
           npx ovsx verify-pat --pat ${{ secrets.OPEN_VSX_PAT }}
-          echo npx ovsx publish /tmp/*.vsix --pat ${{ secrets.OPEN_VSX_PAT }}
+          npx ovsx publish /tmp/*.vsix --pat ${{ secrets.OPEN_VSX_PAT }}
 
   bump-version:
     runs-on: ubuntu-latest
@@ -136,7 +136,7 @@ jobs:
 
       - name: Get Source Branch
         id: source-branch
-        run: echo "BUMP_BRANCH=$(git name-rev --name-only --exclude=tags/* HEAD)" >> $GITHUB_ENV
+        run: echo "BUMP_BRANCH=$(git symbolic-ref --short HEAD || echo 'master')" >> $GITHUB_ENV
 
       - name: Setup Babashka
         uses: DeLaGuardo/setup-clojure@12.5

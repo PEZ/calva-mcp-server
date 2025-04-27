@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Build Pre-release VSIX
-        if: startsWith(github.ref, 'refs/heads/')
+        if: startsWith(github.ref, 'refs/heads/') || startsWith(github.ref, 'refs/pull/')
         run: bb package-pre-release ${GITHUB_REF#refs/heads/}
 
       - name: Build Release VSIX
@@ -68,6 +68,14 @@ jobs:
         run: |
           set -x
           npm run package
+
+      - name: Validate VSIX File
+        run: |
+          if ! ls *.vsix 1> /dev/null 2>&1; then
+            echo "Error: VSIX file not found!"
+            exit 1
+          fi
+        shell: bash
 
       - name: Get VSIX File Name
         id: get-vsix-name
