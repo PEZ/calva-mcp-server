@@ -31,7 +31,7 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools (cond-> []
-                                      repl-enabled?
+                                      (= true repl-enabled?)
                                       (conj {:name "evaluate-clojure-code"
                                              :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
                                              :inputSchema {:type "object"

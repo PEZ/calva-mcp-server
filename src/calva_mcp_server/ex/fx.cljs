@@ -9,7 +9,7 @@
 
 (defn perform-effect! [dispatch! context [effect-kw :as effect]]
   (let [enriched-effect (-> effect
-                            (ax/enrich-action-from-context context))]
+                            (ax/enrich-from-context context))]
     (match (namespace effect-kw)
       "node"   (node-fxs/perform-effect! dispatch! context enriched-effect)
       "vscode" (vscode-fxs/perform-effect! dispatch! context enriched-effect)

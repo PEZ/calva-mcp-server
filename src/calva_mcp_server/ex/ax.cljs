@@ -32,7 +32,7 @@
           object
           path))
 
-(defn enrich-action-from-context [action context]
+(defn enrich-from-context [action-or-effect context]
   (walk/postwalk
    (fn [x]
      (if (keyword? x)
@@ -40,17 +40,25 @@
                                            (js-get-in context path))
              :else x)
        x))
-   action))
+   action-or-effect))
 
-(defn- enrich-action-from-state [action state]
+(defn- enrich-from-state [action-or-effect state]
   (walk/postwalk
    (fn [x]
      (cond
-       (and (vector? x) (= :db/get (first x)))
+       (and (vector? x)
+            (= :db/get (first x)))
        (get state (second x))
 
+       (and (keyword? x)
+            (string/starts-with? (str x) ":vscode/config."))
+       (some-> ^js (:vscode/vscode state)
+               .-workspace
+               (.getConfiguration "calva-mcp-server")
+               (.get (second (re-find #"(?:\.)(.*?)$" (str x)))))
+
        :else x))
-   action))
+   action-or-effect))
 
 (defn enrich-with-args [actions args]
   (walk/postwalk
@@ -70,8 +78,8 @@
 
 (defn handle-action [state context [action-kw :as action]]
   (let [enriched-action (-> action
-                            (enrich-action-from-context context)
-                            (enrich-action-from-state state))]
+                            (enrich-from-context context)
+                            (enrich-from-state state))]
     (match (namespace action-kw)
       "hello"        (hello-axs/handle-action state context enriched-action)
       "db"           (db-axs/handle-action state context enriched-action)
@@ -88,7 +96,9 @@
               (cond-> acc
                 db (assoc :ex/db db)
                 dxs (update :ex/dxs into dxs)
-                fxs (update :ex/fxs into fxs))))
+                fxs (update :ex/fxs into (-> fxs
+                                             (enrich-from-context state)
+                                             (enrich-from-state state))))))
           {:ex/db state
            :ex/fxs []
            :ex/dxs []}

@@ -38,10 +38,10 @@
     "configuration": {
       "title": "Calva MCP Server",
       "properties": {
-        "calva-mcp-server.enableREPLEvaluation": {
+        "calva-mcp-server.enableReplEvaluation": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable the REPL evaluation tool. **⚠️ SECURITY WARNING**: _When enabled, any network client with access to the MCP server can execute arbitrary code in your REPL environment._ That said, compliant MCP clients will default to a low-trust mode with confirmation before any evaluation.",
+          "markdownDescription": "Enable the REPL evaluation tool. *Takes effect on socket server start.*\n\n **⚠️ SECURITY WARNING**: _When enabled, any network client with access to the MCP server can execute arbitrary code in your REPL environment._ That said, compliant MCP clients will default to a low-trust mode with confirmation before any evaluation.",
           "scope": "resource"
         }
       }

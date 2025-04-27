@@ -1,6 +1,6 @@
 (ns calva-mcp-server.app.db)
 
-(def init-db {:extension/context nil
+(def init-db {:vscode/extension-context nil
               :extension/disposables []
               :extension/when-contexts {:calva-mcp-extension/activated? false}})
 
