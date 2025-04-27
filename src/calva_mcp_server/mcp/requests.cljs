@@ -120,7 +120,8 @@
     (let [{:keys [arguments]
            tool :name} params]
       (cond
-        (= tool "evaluate-clojure-code")
+        (and (= tool "evaluate-clojure-code")
+             (= true repl-enabled?))
         (p/let [{:keys [code repl-session-key]
                  ns :namespace} arguments
                 result (calva/evaluate-code+ (merge options
