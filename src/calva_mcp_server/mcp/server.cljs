@@ -3,7 +3,6 @@
    ["fs" :as fs]
    ["net" :as net]
    ["vscode" :as vscode]
-   [calva-mcp-server.mcp.requests :as requests]
    [clojure.string :as string]
    [promesa.core :as p]))
 
