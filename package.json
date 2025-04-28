@@ -2,7 +2,7 @@
   "name": "calva-mcp-server",
   "displayName": "Calva MCP Server",
   "description": "Make CoPilot an Interactive Programmer",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
