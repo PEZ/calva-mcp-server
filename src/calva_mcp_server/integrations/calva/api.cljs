@@ -14,6 +14,15 @@
                              .-v1
                              (js->clj :keywordize-keys true)))
 
+(defn when-calva-activated [{:ex/keys [dispatch! then]}]
+  (vscode/window.showInformationMessage (str "BOOM! activating. " (pr-str then)))
+  (let [!interval-id (atom nil)]
+    (reset! !interval-id (js/setInterval (fn []
+                                           (when (.-isActive calvaExt)
+                                             (js/clearInterval @!interval-id)
+                                             (dispatch! then)))
+                                         100))))
+
 (def ^:private no-ns-eval-note
   "When evaluating without providing a namespace argument the evaluation is performed in the `user` namespace. Most often this is not what you want, and instead you should be evaluating providing the namespace argument. If it is the first time you are using a namespace, evaluate its ns-form first.")
 
@@ -90,6 +99,7 @@
 
 (defn get-output [{:ex/keys [dispatch!]
                    :calva/keys [since-line]}]
+  ;; TODO: Figure out why we get a `dispatch!` function here that needs the context argument..
   (clj->js
    (dispatch! nil [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
                    [:calva/ax.get-output since-line]])))

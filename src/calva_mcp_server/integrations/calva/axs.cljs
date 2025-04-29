@@ -3,6 +3,9 @@
 
 (defn handle-action [state _context action]
   (match action
+    [:calva/ax.when-activated actions]
+    {:ex/fxs [[:calva/fx.when-activated actions]]}
+
     [:calva/ax.subscribe-to-output]
     {:ex/fxs [[:calva/fx.subscribe-to-output [:calva/ax.add-output]]]}
 
@@ -18,8 +21,8 @@
 
     [:calva/ax.get-output since-line]
     {:ex/fxs [[:app/fx.return (filter (fn [message]
-                                        (> since-line (:line message 0)))
-                               (:calva/output-buffer state))]]}
+                                        (> (:line message 0) since-line))
+                                      (:calva/output-buffer state))]]}
 
     :else
     {:ex/fxs [[:node/fx.log-error "Unknown action:" (pr-str action)]]}))

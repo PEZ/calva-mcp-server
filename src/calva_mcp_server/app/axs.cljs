@@ -6,8 +6,11 @@
 (defn handle-action [state _context action]
   (match action
     [:app/ax.activate initial-state]
-    {:ex/dxs [[:app/ax.init initial-state]
-              [:app/ax.register-command "calva-mcp-server.newHelloDocument"
+    {:ex/db (merge state initial-state)
+     :ex/dxs [[:calva/ax.when-activated [[:app/ax.init]]]]}
+
+    [:app/ax.init]
+    {:ex/dxs [[:app/ax.register-command "calva-mcp-server.newHelloDocument"
                [[:hello/ax.command.hello-doc
                  {:greetee :ex/action-args%1}]]]
               [:app/ax.register-command "calva-mcp-server.hello"
@@ -21,11 +24,8 @@
                [[:mcp/ax.open-server-log]]]
               [:calva/ax.subscribe-to-output]
               [:app/ax.set-when-context :calva-mcp-extension/activated?
-               true]]}
-
-    [:app/ax.init initial-state]
-    {:ex/db (merge state initial-state)
-     :ex/fxs [[:app/fx.init-logging initial-state]]}
+               true]]
+     :ex/fxs [[:app/fx.init-logging state]]}
 
     [:app/ax.set-when-context k v]
     {:ex/db (assoc-in state [:extension/when-contexts k] v)
