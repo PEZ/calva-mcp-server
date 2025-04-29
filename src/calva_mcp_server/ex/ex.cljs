@@ -13,6 +13,6 @@
       (dispatch! extension-context dxs))
     (when (seq fxs)
       (last (map (fn [fx]
-                   (when js/goog.DEBUG (js/console.debug "Ex Triggered effect" fx))
+                   (when js/goog.DEBUG (js/console.debug "Ex Triggered effect" (pr-str fx)))
                    (fx/perform-effect! dispatch! extension-context fx))
                  fxs)))))

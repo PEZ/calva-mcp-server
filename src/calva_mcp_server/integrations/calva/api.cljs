@@ -81,7 +81,7 @@
 
 (defn subscribe-to-output [{:ex/keys [dispatch!]
                             :calva/keys [on-output]}]
-  ((get-in calva-api [:output :onOutput])
+  ((get-in calva-api [:repl :onOutputLogged])
    (fn [message]
      (dispatch! (conj on-output (js->clj message :keywordize-keys true))))))
 
@@ -90,10 +90,11 @@
 
 (defn get-output [{:ex/keys [dispatch!]
                    :calva/keys [since-line]}]
-  (dispatch! [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]])
-  ((get-in calva-api [:output :getOutput]) since-line "user"))
+  (clj->js
+   (dispatch! nil [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
+                   [:calva/ax.get-output since-line]])))
 
-(defn exists-on-output? [] (boolean (get-in calva-api [:output :onOutput])))
+(defn exists-on-output? [] (boolean (get-in calva-api [:repl :onOutputLogged])))
 
 (comment
   (p/let [info (get-symbol-info+ {:ex/dispatch! (comp pr-str println)
