@@ -3,6 +3,7 @@
    [calva-mcp-server.app.axs :as app-axs]
    [calva-mcp-server.db.axs :as db-axs]
    [calva-mcp-server.hello.axs :as hello-axs]
+   [calva-mcp-server.integrations.calva.axs :as calva-axs]
    [calva-mcp-server.integrations.node.axs :as node-axs]
    [calva-mcp-server.integrations.vscode.axs :as vscode-axs]
    [calva-mcp-server.ex.test.axs :as ex-test-axs]
@@ -85,6 +86,7 @@
       "db"           (db-axs/handle-action state context enriched-action)
       "vscode"       (vscode-axs/handle-action state context enriched-action)
       "node"         (node-axs/handle-action state context enriched-action)
+      "calva"        (calva-axs/handle-action state context enriched-action)
       "ex-test"      (ex-test-axs/handle-action state context enriched-action)
       "mcp"          (mcp-axs/handle-action state context enriched-action)
       "app"          (app-axs/handle-action state context enriched-action)

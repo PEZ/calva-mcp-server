@@ -7,5 +7,5 @@
 (defonce !app-db (atom init-db))
 
 (comment
-  @!app-db
+  (:calva/output-buffer @!app-db)
   :rcf)

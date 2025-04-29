@@ -19,6 +19,7 @@
                [[:mcp/ax.stop-server]]]
               [:app/ax.register-command "calva-mcp-server.openServerLog"
                [[:mcp/ax.open-server-log]]]
+              [:calva/ax.subscribe-to-output]
               [:app/ax.set-when-context :calva-mcp-extension/activated?
                true]]}
 

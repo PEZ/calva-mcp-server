@@ -39,7 +39,8 @@
                                 :ns (.-ns evaluation+)
                                 :stdout (.-output evaluation+)
                                 :stderr (.-errorOutput evaluation+)
-                                :session-key (.-sessionKey evaluation+)}
+                                :session-key (.-sessionKey evaluation+)
+                                :note "Remember to check the output tool now and then to see what's happening in the application."}
                          (.-error evaluation+)
                          (merge {:error (.-error evaluation+)
                                  :stacktrace (.-stacktrace evaluation+)})
@@ -78,6 +79,21 @@
 
 (defn exists-get-symbol-info? [] (boolean (get-in calva-api [:info :getSymbolInfo])))
 
+(defn subscribe-to-output [{:ex/keys [dispatch!]
+                            :calva/keys [on-output]}]
+  ((get-in calva-api [:output :onOutput])
+   (fn [message]
+     (dispatch! (conj on-output (js->clj message :keywordize-keys true))))))
+
+(def description-get-output
+  "CRITICAL: Returns REPL output since `since-line`. Start with since-line=0 and use the last line number from previous output for subsequent calls. This is your window into the running application.")
+
+(defn get-output [{:ex/keys [dispatch!]
+                   :calva/keys [since-line]}]
+  (dispatch! [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]])
+  ((get-in calva-api [:output :getOutput]) since-line "user"))
+
+(defn exists-on-output? [] (boolean (get-in calva-api [:output :onOutput])))
 
 (comment
   (p/let [info (get-symbol-info+ {:ex/dispatch! (comp pr-str println)
