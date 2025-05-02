@@ -53,9 +53,7 @@
 
        (and (keyword? x)
             (string/starts-with? (str x) ":vscode/config."))
-       (some-> ^js (:vscode/vscode state)
-               .-workspace
-               (.getConfiguration "calva-mcp-server")
+       (some-> ^js ((:app/getConfiguration state) "calva-mcp-server")
                (.get (second (re-find #"(?:\.)(.*?)$" (str x)))))
 
        :else x))

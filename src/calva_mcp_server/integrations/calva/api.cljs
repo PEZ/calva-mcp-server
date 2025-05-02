@@ -15,7 +15,6 @@
                              (js->clj :keywordize-keys true)))
 
 (defn when-calva-activated [{:ex/keys [dispatch! then]}]
-  (vscode/window.showInformationMessage (str "BOOM! activating. " (pr-str then)))
   (let [!interval-id (atom nil)]
     (reset! !interval-id (js/setInterval (fn []
                                            (when (.-isActive calvaExt)

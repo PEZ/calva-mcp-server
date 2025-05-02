@@ -8,7 +8,8 @@
 (defn perform-effect! [dispatch! ^js context effect]
   (match effect
     [:app/fx.init-logging options]
-    (logging/init!+ options)
+    (logging/init!+ (merge options
+                           {:ex/dispatch! (partial dispatch! context)}))
 
     [:app/fx.log options level messages]
     (let [min-level (:app/min-log-level options :debug)

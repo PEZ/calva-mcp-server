@@ -20,7 +20,7 @@
   (when-not (extension-context)
     (swap! db/!app-db assoc
            :vscode/extension-context context
-           :vscode/vscode vscode))
+           :app/getConfiguration vscode/workspace.getConfiguration))
   (ex/dispatch! context [[:app/ax.activate (initial-state context)]])
 
   (js/console.timeLog "activation" "Calva MCP Server activate END")

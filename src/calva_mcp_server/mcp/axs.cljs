@@ -7,7 +7,8 @@
     [:mcp/ax.start-server]
     {:ex/db (assoc state :app/server-starting? true)
      :ex/dxs [[:app/ax.set-when-context :calva-mcp-server/starting? true]]
-     :ex/fxs [[:mcp/fx.start-server {:mcp/repl-enabled? :vscode/config.enableReplEvaluation
+     :ex/fxs [[:mcp/fx.start-server {:app/log-dir-initialized+ (:app/log-dir-initialized+ state)
+                                     :mcp/repl-enabled? :vscode/config.enableReplEvaluation
                                      :ex/on-success [[:mcp/ax.server-started :ex/action-args]]
                                      :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}]]}
 
