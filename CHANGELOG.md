@@ -4,6 +4,8 @@ Changes to Calva MCP Server
 
 ## [Unreleased]
 
+## [v0.0.10] - 2025-05-02
+
 - Add tool: REPL Output log
 
 ## [v0.0.9] - 2025-04-27
