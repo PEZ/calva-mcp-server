@@ -30,6 +30,6 @@
                                (string/join " " (map pr-str messages)))
         log-entry (str formatted-message "\n")]
     (-> (p/let [_ log-dir-initialized+]
-         (append-file+ (.-fsPath log-file-uri) log-entry))
+          (append-file+ (.-fsPath log-file-uri) log-entry))
         (p/catch (fn [err]
                    (js/console.error "Failed to write to MCP server log:" err))))))
