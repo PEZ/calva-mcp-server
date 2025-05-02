@@ -21,7 +21,7 @@
 			]
 		},
 		{
-			"name": "Launch Extension w/ e2e-test-ws folder",
+			"name": "Launch Extension w/ example-ws folder",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
@@ -29,7 +29,7 @@
 				"--extensionDevelopmentPath=${workspaceRoot}",
 				"--enable-proposed-api",
 				"betterthantomorrow.calva-mcp-server",
-				"${workspaceFolder}/e2e-test-ws/",
+				"${workspaceFolder}/test-projects/example",
 			],
 			"sourceMaps": true,
 			"outFiles": [
