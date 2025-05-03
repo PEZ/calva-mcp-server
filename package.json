@@ -154,10 +154,10 @@
           "clojure",
           "documentation"
         ],
-        "toolReferenceName": "clojure-docs",
-        "displayName": "ClojureDocs Lookup",
+        "toolReferenceName": "clojuredocs",
+        "displayName": "clojuredocs.org Lookup",
         "modelDescription": "Look up information, examples, see also:s, and more about a Clojure Core symbol from clojuredocs.org.",
-        "userDescription": "Get examples and usage from ClojureDocs.",
+        "userDescription": "Get examples and usage from clojuredocs.org",
         "canBeReferencedInPrompt": true,
         "icon": "$(globe)",
         "inputSchema": {
