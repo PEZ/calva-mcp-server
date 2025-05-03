@@ -18,9 +18,10 @@
                [[:mcp/ax.stop-server]]]
               [:app/ax.register-command "calva-mcp-server.openServerLog"
                [[:mcp/ax.open-server-log]]]
+              [:app/ax.register-language-model-tools]
+              [:calva/ax.when-activated [[:app/ax.init-output-listener]]]
               [:app/ax.set-when-context :calva-mcp-extension/activated?
-               true]
-              [:calva/ax.when-activated [[:app/ax.init-output-listener]]]]}
+               true]]}
 
     [:app/ax.init-output-listener]
     {:ex/dxs [[:calva/ax.subscribe-to-output]]}
@@ -48,6 +49,9 @@
     [:app/ax.cleanup]
     {:ex/dxs [[:app/ax.set-when-context :calva-mcp-extension/activated? false]
               [:app/ax.clear-disposables]]}
+
+    [:app/ax.register-language-model-tools]
+    {:ex/fxs [[:app/fx.register-language-model-tools]]}
 
     [:app/ax.deactivate]
     {:ex/dxs [[:mcp/ax.stop-server]

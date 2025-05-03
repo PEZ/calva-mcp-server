@@ -65,7 +65,108 @@
         "title": "Open the socket server log file"
       }
     ],
-    "keybindings": []
+    "keybindings": [],
+    "languageModelTools": [
+      {
+        "name": "evaluate_clojure_code",
+        "tags": ["clojure", "repl"],
+        "toolReferenceName": "eval-clojure",
+        "displayName": "Evaluate Clojure Code",
+        "modelDescription": "Evaluate Clojure/ClojureScript code via Calva. Works with all REPL types.",
+        "userDescription": "Evaluate Clojure or ClojureScript code in a connected REPL.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(terminal-bash)",
+        "when": "config.calva-mcp-server.enableReplEvaluation",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "Code to evaluate"
+            },
+            "namespace": {
+              "type": "string",
+              "description": "Namespace in which to evaluate the code"
+            },
+            "replSessionKey": {
+              "type": "string",
+              "description": "The REPL session to use: 'clj' for Clojure, 'cljs' for ClojureScript, 'cljc' for current session for `.cljc` files",
+              "enum": ["clj", "cljs", "cljc"]
+            }
+          },
+          "required": ["code", "namespace", "replSessionKey"]
+        }
+      },
+      {
+        "name": "get_symbol_info",
+        "tags": ["clojure", "documentation"],
+        "toolReferenceName": "clojure-symbol",
+        "displayName": "Clojure Symbol Info",
+        "modelDescription": "Get detailed information about a Clojure symbol from the connected REPL.",
+        "userDescription": "Look up documentation for a Clojure symbol.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(symbol-namespace)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "clojureSymbol": {
+              "type": "string",
+              "description": "The symbol to look up info for"
+            },
+            "namespace": {
+              "type": "string",
+              "description": "Namespace in which to resolve the symbol"
+            },
+            "sessionKey": {
+              "type": "string",
+              "description": "One of 'clj', 'cljs', or 'cljc'",
+              "enum": ["clj", "cljs", "cljc"]
+            }
+          },
+          "required": ["clojureSymbol", "namespace", "sessionKey"]
+        }
+      },
+      {
+        "name": "get_clojuredocs_info",
+        "tags": ["clojure", "documentation"],
+        "toolReferenceName": "clojure-docs",
+        "displayName": "ClojureDocs Lookup",
+        "modelDescription": "Look up information about a Clojure symbol from clojuredocs.org.",
+        "userDescription": "Get examples and usage from ClojureDocs.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(globe)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "clojureSymbol": {
+              "type": "string",
+              "description": "The symbol to look up on clojuredocs.org"
+            }
+          },
+          "required": ["clojureSymbol"]
+        }
+      },
+      {
+        "name": "get_repl_output_log",
+        "tags": ["clojure", "repl"],
+        "toolReferenceName": "clojure-output",
+        "displayName": "Calva REPL Output Log",
+        "modelDescription": "Get REPL output messages from the Calva output window.",
+        "userDescription": "View recent Calva REPL output.",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(output)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "sinceLine": {
+              "type": "integer",
+              "description": "Output line-number after which you want output"
+            }
+          },
+          "required": ["sinceLine"]
+        }
+      }
+    ]
   },
   "scripts": {
     "clean": "rimraf .cpcache .shadow-cljs/ out/ dist/",

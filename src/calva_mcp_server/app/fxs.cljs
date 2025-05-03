@@ -2,6 +2,7 @@
   (:require
    ["vscode" :as vscode]
    [calva-mcp-server.ex.ax :as ax]
+   [calva-mcp-server.integrations.vscode.tools :as tools]
    [calva-mcp-server.mcp.logging :as logging]
    [clojure.core.match :refer [match]]))
 
@@ -30,6 +31,9 @@
                                               (js->clj args :keywordize-keys true)))))]
       (.push (.-subscriptions context) disposable)
       (dispatch! context [[:db/ax.update-in [:extension/disposables] conj disposable]]))
+
+    [:app/fx.register-language-model-tools]
+    (tools/register-language-model-tools (partial dispatch! context))
 
     [:app/fx.clear-disposables disposables]
     (doseq [^js disposable disposables]

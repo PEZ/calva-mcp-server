@@ -1,6 +1,6 @@
 {
   "servers": {
-    "calva": {
+    "xcalva": {
       "type": "stdio",
       "command": "node",
       "args": [
