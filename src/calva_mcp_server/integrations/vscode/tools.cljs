@@ -38,7 +38,7 @@
                  (p/let [symbol (-> options .-input .-clojureSymbol)
                          ns (-> options .-input .-namespace)
                          session-key (-> options .-input .-sessionKey)
-                         result (calva/get-symbol-info+ {:ex/dispatch! dispatch! ; Assuming dispatch might be needed later
+                         result (calva/get-symbol-info+ {:ex/dispatch! dispatch!
                                                          :calva/clojure-symbol symbol
                                                          :calva/ns ns
                                                          :calva/repl-session-key session-key})]
@@ -56,7 +56,7 @@
 
        :invoke (fn invoke [^js options _token]
                  (p/let [symbol (-> options .-input .-clojureSymbol)
-                         result (calva/get-clojuredocs+ {:ex/dispatch! dispatch! ; Assuming dispatch might be needed later
+                         result (calva/get-clojuredocs+ {:ex/dispatch! dispatch!
                                                          :calva/clojure-symbol symbol})]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
@@ -71,9 +71,9 @@
                                                               :message message}}))
 
        :invoke (fn invoke [^js options _token]
-                 (p/let [since-line (-> options .-input .-sinceLine)
-                         result (calva/get-output {:ex/dispatch! dispatch! ; Assuming dispatch might be needed later
-                                                   :calva/since-line since-line})]
+                 (let [since-line (-> options .-input .-sinceLine)
+                       result (calva/get-output {:ex/dispatch! dispatch!
+                                                 :calva/since-line since-line})]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})
@@ -83,19 +83,19 @@
     :always
     (conj (vscode/lm.registerTool
            "evaluate_clojure_code"
-           (EvaluateClojureCodeTool dispatch!)))
+           (#'EvaluateClojureCodeTool dispatch!)))
 
     (calva/exists-get-symbol-info?)
     (conj (vscode/lm.registerTool
            "get_symbol_info"
-           (GetSymbolInfoTool dispatch!)))
+           (#'GetSymbolInfoTool dispatch!)))
 
     (calva/exists-get-clojuredocs?)
     (conj (vscode/lm.registerTool
            "get_clojuredocs_info"
-           (GetClojureDocsTool dispatch!)))
+           (#'GetClojureDocsTool dispatch!)))
 
     (calva/exists-on-output?)
     (conj (vscode/lm.registerTool
            "get_repl_output_log"
-           (GetOutputLogTool dispatch!)))))
+           (#'GetOutputLogTool dispatch!)))))

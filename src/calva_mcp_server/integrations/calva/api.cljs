@@ -82,7 +82,7 @@
 
 (defn get-symbol-info+ [{:ex/keys [dispatch!]
                          :calva/keys [clojure-symbol ns repl-session-key]}]
-  (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
+  (dispatch! [[:app/ax.log :debug "[Server] Getting symbol info for:" clojure-symbol]])
   ((get-in calva-api [:info :getSymbolInfo]) clojure-symbol repl-session-key ns))
 
 (defn exists-get-symbol-info? [] (boolean (get-in calva-api [:info :getSymbolInfo])))
@@ -99,9 +99,8 @@
 (defn get-output [{:ex/keys [dispatch!]
                    :calva/keys [since-line]}]
   ;; TODO: Figure out why we get a `dispatch!` function here that needs the context argument..
-  (clj->js
-   (dispatch! nil [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
-                   [:calva/ax.get-output since-line]])))
+  (dispatch! [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
+              [:calva/ax.get-output since-line]]))
 
 (defn exists-on-output? [] (boolean (get-in calva-api [:repl :onOutputLogged])))
 
