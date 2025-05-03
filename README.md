@@ -2,7 +2,7 @@
 
 Clojure Tools for CoPilot
 
-> It is also a Calva Backseat Driver
+> It is also an MCP Server for Calva
 
 (Parts of this README is written by Claude Sonnet. Pardon any marketing language. I will clean up.)
 

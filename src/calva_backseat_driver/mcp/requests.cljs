@@ -68,14 +68,14 @@
 
 (def output-log-tool-info
   (let [tool-name "get_repl_output_log"]
-   {:name tool-name
-    :description (tool-description tool-name)
-    :inputSchema {:type "object"
-                  :properties {"sinceLine" {:type "integer"
+    {:name tool-name
+     :description (tool-description tool-name)
+     :inputSchema {:type "object"
+                   :properties {"sinceLine" {:type "integer"
                                              :description (param-description tool-name "sinceLine")}}
-                  :required ["sinceLine"]
-                  :audience ["user" "assistant"]
-                  :priority 10}}))
+                   :required ["sinceLine"]
+                   :audience ["user" "assistant"]
+                   :priority 10}}))
 
 (def clojuredocs-tool-listing
   (let [tool-name "get_clojuredocs_info"]
