@@ -32,7 +32,7 @@
     (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} notification)
 
     [:mcp/fx.handle-request options request]
-    (requests/handle-request-fn (assoc options :ex/dispatch! dispatch!) request)
+    (requests/handle-request-fn (assoc options :ex/dispatch! (partial dispatch! context)) request)
 
     :else
     (js/console.warn "Unknown MCP effect:" (pr-str effect))))

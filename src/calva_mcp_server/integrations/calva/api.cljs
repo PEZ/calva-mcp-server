@@ -88,9 +88,9 @@
 
 (defn get-output [{:ex/keys [dispatch!]
                    :calva/keys [since-line]}]
-  ;; TODO: Figure out why we get a `dispatch!` function here that needs the context argument..
-  (dispatch! [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
-              [:calva/ax.get-output since-line]]))
+  (clj->js
+   (dispatch! [[:app/ax.log :debug "[Server] Getting getting output since line:" since-line]
+               [:calva/ax.get-output since-line]])))
 
 (defn exists-on-output? [] (boolean (get-in calva-api [:repl :onOutputLogged])))
 

@@ -115,11 +115,11 @@
             },
             "namespace": {
               "type": "string",
-              "description": "Namespace in which to resolve the symbol"
+              "description": "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided."
             },
-            "sessionKey": {
+            "replSessionKey": {
               "type": "string",
-              "description": "One of 'clj', 'cljs', or 'cljc'",
+              "description": "The Calva REPL session to evaluate the code in. For Clojure, ClojureScript, and Common, respectively. Often the same as the extension of the file you are working with. One of `clj`, `cljs`, or `cljc`.",
               "enum": ["clj", "cljs", "cljc"]
             }
           },
@@ -159,7 +159,7 @@
           "properties": {
             "sinceLine": {
               "type": "integer",
-              "description": "Output line-number after which you want output"
+              "description": "Output line-number after which you want output. Use `0` for your first request of output."
             }
           },
           "required": ["sinceLine"]
