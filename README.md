@@ -1,7 +1,10 @@
 # Make CoPilot an Interactive Programmer
 
 Clojure Tools for CoPilot
-> It's also a Calva Backseat Driver
+
+> It is also a Calva Backseat Driver
+
+(Parts of this README is written by Claude Sonnet. Pardon any marketing language. I will clean up.)
 
 [![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/betterthantomorrow.calva-backseat-driver)](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
 [![Issues](https://img.shields.io/github/issues/BetterThanTomorrow/calva-backseat-driver)](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues)
@@ -55,10 +58,13 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
 - [Calva Backseat Driver](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
-- An AI coding assistant (e.g., GitHub Copilot)
-- Any Clojure environment dependencies your project has (e.g. Clojure, Babashka, etc)
+- GitHub CoPilot
 
-### Installation
+For MCP you need
+- An MCP compliant AI coding assistant (e.g., RooCode)
+
+### Installation (MCP Server only)
+
 
 VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the MCP client to start a `stdio` server inside a VS Code extension. (I don't think it is possible, really.) Thus, the Calva Backseat Driver is internally a socket server, which at startup writes the port it binds to to a port file. A node script (a.k.a the **wrapper**) is bundled with the extension that will start a `stdio` server wrapping the socket MCP server. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 
@@ -93,17 +99,20 @@ Please add configuration for other AI clients! 🙏
 
 ### Using
 
+1. Connect Calva to your Clojure/ClojureScript project
+1. If you want the AI to have full REPL powers, enable this in settings.
+
+More usage info TBD
+
+#### MCP
+
 For CoPilot (or any MCP client) to use the Calva Backseat Driver, the socket server needs to be started before the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
 
-1. Connect Calva to your Clojure/ClojureScript project
 1. Issue the command: **Calva Backseat Driver: Start the socket server**
 1. In `.vscode/mcp.json`, use the **Start** button on the `"calva"` server.
-1. If you want the AI to have full REPL powers, enable this in settings
 1. Start using your AI Agent with REPL superpowers!
 
-## How It Works
-
-Calva Backseat Driver implements the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), creating a bridge between AI assistants and your REPL:
+## How It Works (evaluating code)
 
 1. When your AI assistant needs to understand your code better, it can execute it in your REPL
 2. The results flow back to the AI, giving it insight into actual data shapes and function behavior
@@ -162,6 +171,10 @@ flowchart TD
     class REPL repl;
     class InteractiveProgrammers programmers;
 ```
+
+### MCP
+
+Calva Backseat Driver implements the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), creating a bridge between AI assistants and your REPL:
 
 ## WIP
 
