@@ -76,6 +76,8 @@ VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the
 
 #### CoPilot configuration
 
+Not that you will need this for CoPilot. But it would work, and for now it's the only example we have.
+
 In you project's `.vscode/mcp.json` add a `"calva"` entry like so:
 ```json
 {
