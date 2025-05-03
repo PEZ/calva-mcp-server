@@ -58,8 +58,7 @@
 
                          (= "" (.-result evaluation+))
                          (merge {:note empty-result-note})))
-                     (p/catch (fn [err] ; For unknown reasons we end up here if en evaluation throws
-                                        ; in the REPL. For now we send the error as the result like this...
+                     (p/catch (fn [err]
                                 (dispatch! [[:app/ax.log :debug "[Server] Evaluation failed:"
                                              err]])
                                 {:result "nil"
@@ -67,18 +66,12 @@
                                  :note error-result-note})))]
     (clj->js result)))
 
-(def description-clojure-docs
-  "Returns clojuredocs.org info on `symbol`.")
-
 (defn get-clojuredocs+ [{:ex/keys [dispatch!]
                          :calva/keys [clojure-symbol]}]
   (dispatch! [[:app/ax.log :debug "[Server] Getting clojuredocs for:" clojure-symbol]])
   ((get-in calva-api [:info :getClojureDocsDotOrg]) clojure-symbol "user"))
 
 (defn exists-get-clojuredocs? [] (boolean (get-in calva-api [:info :getClojureDocsDotOrg])))
-
-(def description-symbol-info
-  "Returns info on the `symbol` as resolved in `namespace`.")
 
 (defn get-symbol-info+ [{:ex/keys [dispatch!]
                          :calva/keys [clojure-symbol ns repl-session-key]}]
@@ -92,9 +85,6 @@
   ((get-in calva-api [:repl :onOutputLogged])
    (fn [message]
      (dispatch! (conj on-output (js->clj message :keywordize-keys true))))))
-
-(def description-get-output
-  "CRITICAL: Returns REPL output since `since-line`. Start with since-line=0 and use the last line number from previous output for subsequent calls. This is your window into the running application.")
 
 (defn get-output [{:ex/keys [dispatch!]
                    :calva/keys [since-line]}]

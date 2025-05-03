@@ -10,6 +10,23 @@
           .-packageJSON
           .-version))
 
+(defn ^js get-tool-manifest [tool-name]
+  (let [^js contributes (some->> (vscode/extensions.getExtension "betterthantomorrow.calva-mcp-server")
+                                 .-packageJSON
+                                 .-contributes)]
+    (some->> contributes
+             .-languageModelTools
+             (filter (fn [^js tool]
+                       (= tool-name (.-name tool))))
+             first)))
+
+(defn get-tool-description [tool-name]
+  (.-modelDescription (get-tool-manifest tool-name)))
+
+(comment
+  (get-tool-description  "evaluate_clojure_code")
+  :rcf)
+
 (defn handle-request-fn [{:ex/keys [dispatch!] :as options
                           :mcp/keys [repl-enabled?]}
                          {:keys [id method params] :as request}]
@@ -23,7 +40,7 @@
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}
                                             :resources {:listChanged true}}
-                             :instructions "Use the `get-output-log` tool to tap into output that gives insight in how the program under development is doing, use the `evaluate-clojure-code` tool (if available) to evaluate Clojure/ClojureScript code. There are also tools for getting symbol info and for getting clojuredocs.org info."
+                             :instructions "Use the `get-output-log` tool to tap into output that gives insight in how the program under development is doing, use the `evaluate_clojure_code` tool (if available) to evaluate Clojure/ClojureScript code. There are also tools for getting symbol info and for getting clojuredocs.org info."
                              :description "Gives access to the Calva API, including Calva REPL output, the Clojure REPL connection (if this is enabled in settings), Clojure symbol info, and clojuredocs.org lookup. Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
       response)
 
@@ -32,8 +49,8 @@
                     :id id
                     :result {:tools (cond-> []
                                       (= true repl-enabled?)
-                                      (conj {:name "evaluate-clojure-code"
-                                             :description "Evaluate Clojure code, enabling AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language."
+                                      (conj {:name "evaluate_clojure_code"
+                                             :description (get-tool-description "evaluate_clojure_code")
                                              :inputSchema {:type "object"
                                                            :properties {"code" {:type "string"
                                                                                 :description "Clojure/ClojureScript code to evaluate"}
@@ -46,8 +63,8 @@
                                                            :priority 9}})
 
                                       (calva/exists-get-symbol-info?)
-                                      (conj {:name "get-symbol-info"
-                                             :description calva/description-symbol-info
+                                      (conj {:name "get_symbol_info"
+                                             :description (get-tool-description "get_symbol_info")
                                              :inputSchema {:type "object"
                                                            :properties {"clojure-symbol" {:type "string"
                                                                                           :description "The symbol to look up clojuredocs.org info from."}
@@ -60,8 +77,8 @@
                                                            :priority 8}})
 
                                       (calva/exists-get-clojuredocs?)
-                                      (conj {:name "get-clojuredocs"
-                                             :description calva/description-clojure-docs
+                                      (conj {:name "get_clojuredocs_info"
+                                             :description (get-tool-description "get_clojuredocs_info")
                                              :inputSchema {:type "object"
                                                            :properties {"clojure-symbol" {:type "string"
                                                                                           :description "The symbol to look up clojuredocs.org info from."}
@@ -72,8 +89,8 @@
                                                            :priority 8}})
 
                                       (calva/exists-on-output?)
-                                      (conj {:name "get-output-log"
-                                             :description calva/description-get-output
+                                      (conj {:name "get_repl_output_log"
+                                             :description (get-tool-description "get_repl_output_log")
                                              :inputSchema {:type "object"
                                                            :properties {"since-line" {:type "integer"
                                                                                       :description "output line-number after which you want output. Use `0` for your first request of output."}}
@@ -89,13 +106,13 @@
                                                   (calva/exists-get-symbol-info?)
                                                   (conj {:uriTemplate "/symbol-info/{symbol}@{session-key}@{namespace}"
                                                          :name "symbol-info"
-                                                         :description calva/description-symbol-info
+                                                         :description (get-tool-description "get_symbol_info")
                                                          :mimeType "application/json"})
 
                                                   (calva/exists-get-clojuredocs?)
                                                   (conj {:uriTemplate "/clojuredocs/{symbol}"
                                                          :name "clojuredocs"
-                                                         :description calva/description-clojure-docs
+                                                         :description (get-tool-description "get_clojuredocs_info")
                                                          :mimeType "application/json"}))}}]
       response)
 
@@ -103,7 +120,7 @@
     (let [{:keys [arguments]
            tool :name} params]
       (cond
-        (and (= tool "evaluate-clojure-code")
+        (and (= tool "evaluate_clojure_code")
              (= true repl-enabled?))
         (p/let [{:keys [code repl-session-key]
                  ns :namespace} arguments
@@ -117,7 +134,7 @@
            :result {:content [{:type "text"
                                :text (js/JSON.stringify result)}]}})
 
-        (= tool "get-output-log")
+        (= tool "get_repl_output_log")
         (p/let [{:keys [since-line]} arguments
                 output (calva/get-output (merge options
                                                 {:calva/since-line since-line}))]
@@ -126,7 +143,7 @@
            :result {:content [{:type "text"
                                :text (js/JSON.stringify output)}]}})
 
-        (= tool "get-symbol-info")
+        (= tool "get_symbol_info")
         (p/let [{:keys [clojure-symbol repl-session-key]
                  ns :namespace} arguments
                 clojure-docs (calva/get-clojuredocs+ (merge options
@@ -138,7 +155,7 @@
            :result {:content [{:type "text"
                                :text (js/JSON.stringify clojure-docs)}]}})
 
-        (= tool "get-clojuredocs")
+        (= tool "get_clojuredocs_info")
         (p/let [{:keys [clojure-symbol]} arguments
                 clojure-docs (calva/get-clojuredocs+ (merge options
                                                             {:calva/clojure-symbol clojure-symbol}))]
