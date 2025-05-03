@@ -4,8 +4,6 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
-## [v0.0.1] - 2025-05-03
-
 - **Initial Release**, WIP af
 - **Tool**: Clojure Code Evaluation
 - **Tool**: Symbol info lookup
