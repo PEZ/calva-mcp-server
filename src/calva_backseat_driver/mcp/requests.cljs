@@ -11,17 +11,28 @@
           .-version))
 
 (defn- ^js tool-manifest [tool-name]
-  (let [^js contributes (some->> (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")
-                                 .-packageJSON
-                                 .-contributes)]
-    (some->> contributes
-             .-languageModelTools
-             (filter (fn [^js tool]
-                       (= tool-name (.-name tool))))
-             first)))
+  (try
+    (let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
+      (if extension
+        (let [^js contributes (some-> extension
+                                      .-packageJSON
+                                      .-contributes)]
+          (some->> contributes
+                   .-languageModelTools
+                   (filter (fn [^js tool]
+                             (= tool-name (.-name tool))))
+                   first))
+        (do
+          (js/console.warn "[Server] Extension not found when looking for tool manifest for:" tool-name)
+          nil)))
+    (catch :default err
+      (js/console.error "[Server] Error getting tool manifest for:" tool-name "error:" (.-message err))
+      nil)))
 
 (defn- tool-description [tool-name]
-  (.-modelDescription (tool-manifest tool-name)))
+  (some-> tool-name
+          tool-manifest
+          .-modelDescription))
 
 (defn- param-description [tool-name param]
   (let [tool (tool-manifest tool-name)

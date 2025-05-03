@@ -69,7 +69,10 @@
     "languageModelTools": [
       {
         "name": "evaluate_clojure_code",
-        "tags": ["clojure", "repl"],
+        "tags": [
+          "clojure",
+          "repl"
+        ],
         "toolReferenceName": "eval-clojure",
         "displayName": "Evaluate Clojure Code",
         "modelDescription": "Evaluate Clojure/ClojureScript code via Calva. Enables AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language.",
@@ -91,15 +94,26 @@
             "replSessionKey": {
               "type": "string",
               "description": "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files.",
-              "enum": ["clj", "cljs", "cljc"]
+              "enum": [
+                "clj",
+                "cljs",
+                "cljc"
+              ]
             }
           },
-          "required": ["code", "namespace", "replSessionKey"]
+          "required": [
+            "code",
+            "namespace",
+            "replSessionKey"
+          ]
         }
       },
       {
         "name": "get_symbol_info",
-        "tags": ["clojure", "documentation"],
+        "tags": [
+          "clojure",
+          "documentation"
+        ],
         "toolReferenceName": "clojure-symbol",
         "displayName": "Clojure Symbol Info",
         "modelDescription": "Get detailed information about a Clojure symbol from the connected REPL.",
@@ -120,15 +134,26 @@
             "replSessionKey": {
               "type": "string",
               "description": "The Calva REPL session to evaluate the code in. For Clojure, ClojureScript, and Common, respectively. Often the same as the extension of the file you are working with. One of `clj`, `cljs`, or `cljc`.",
-              "enum": ["clj", "cljs", "cljc"]
+              "enum": [
+                "clj",
+                "cljs",
+                "cljc"
+              ]
             }
           },
-          "required": ["clojureSymbol", "namespace", "sessionKey"]
+          "required": [
+            "clojureSymbol",
+            "namespace",
+            "sessionKey"
+          ]
         }
       },
       {
         "name": "get_clojuredocs_info",
-        "tags": ["clojure", "documentation"],
+        "tags": [
+          "clojure",
+          "documentation"
+        ],
         "toolReferenceName": "clojure-docs",
         "displayName": "ClojureDocs Lookup",
         "modelDescription": "Look up information, examples, see also:s, and more about a Clojure Core symbol from clojuredocs.org.",
@@ -143,12 +168,17 @@
               "description": "The symbol to look up on clojuredocs.org"
             }
           },
-          "required": ["clojureSymbol"]
+          "required": [
+            "clojureSymbol"
+          ]
         }
       },
       {
         "name": "get_repl_output_log",
-        "tags": ["clojure", "repl"],
+        "tags": [
+          "clojure",
+          "repl"
+        ],
         "toolReferenceName": "calva-output",
         "displayName": "Calva REPL Output Log",
         "modelDescription": "Get REPL output messages from  Calva output window. Returns REPL output since `since-line`. Start with since-line=0 and use the last line number from previous output for subsequent calls. This is your window into the running application. Invoke it often as files are edited and/or you evaluate code.",
@@ -162,7 +192,9 @@
               "description": "Output line-number after which you want output. Use `0` for your first request of output."
             }
           },
-          "required": ["sinceLine"]
+          "required": [
+            "sinceLine"
+          ]
         }
       }
     ]
