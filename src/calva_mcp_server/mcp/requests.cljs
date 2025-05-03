@@ -10,7 +10,7 @@
           .-packageJSON
           .-version))
 
-(defn ^js get-tool-manifest [tool-name]
+(defn- ^js tool-manifest [tool-name]
   (let [^js contributes (some->> (vscode/extensions.getExtension "betterthantomorrow.calva-mcp-server")
                                  .-packageJSON
                                  .-contributes)]
@@ -20,11 +20,20 @@
                        (= tool-name (.-name tool))))
              first)))
 
-(defn get-tool-description [tool-name]
-  (.-modelDescription (get-tool-manifest tool-name)))
+(defn- tool-description [tool-name]
+  (.-modelDescription (tool-manifest tool-name)))
+
+(defn- tool-param-description [tool-name param]
+  (let [tool (tool-manifest tool-name)
+        properties (some-> tool
+                           .-inputSchema
+                           .-properties
+                           (unchecked-get param))]
+    (some-> properties .-description)))
 
 (comment
-  (get-tool-description  "evaluate_clojure_code")
+  (tool-description  "evaluate_clojure_code")
+  (tool-param-description "evaluate_clojure_code" "code")
   :rcf)
 
 (defn handle-request-fn [{:ex/keys [dispatch!] :as options
@@ -50,21 +59,21 @@
                     :result {:tools (cond-> []
                                       (= true repl-enabled?)
                                       (conj {:name "evaluate_clojure_code"
-                                             :description (get-tool-description "evaluate_clojure_code")
+                                             :description (tool-description "evaluate_clojure_code")
                                              :inputSchema {:type "object"
                                                            :properties {"code" {:type "string"
-                                                                                :description "Clojure/ClojureScript code to evaluate"}
+                                                                                :description (tool-param-description "evaluate_clojure_code" "code")}
                                                                         "namespace" {:type "string"
-                                                                                     :description "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided. If it is the first time you use a namespace, start with evaluating its ns-form in the `user` namespace."}
-                                                                        "repl-session-key" {:type "string"
-                                                                                            :description "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files."}}
-                                                           :required ["code" "namespace" "repl-session-key"]
+                                                                                     :description (tool-param-description "evaluate_clojure_code" "namespace")}
+                                                                        "replSessionKey" {:type "string"
+                                                                                            :description (tool-param-description "evaluate_clojure_code" "replSessionKey")}}
+                                                           :required ["code" "namespace" "replSessionKey"]
                                                            :audience ["user" "assistant"]
                                                            :priority 9}})
 
                                       (calva/exists-get-symbol-info?)
                                       (conj {:name "get_symbol_info"
-                                             :description (get-tool-description "get_symbol_info")
+                                             :description (tool-description "get_symbol_info")
                                              :inputSchema {:type "object"
                                                            :properties {"clojure-symbol" {:type "string"
                                                                                           :description "The symbol to look up clojuredocs.org info from."}
@@ -78,7 +87,7 @@
 
                                       (calva/exists-get-clojuredocs?)
                                       (conj {:name "get_clojuredocs_info"
-                                             :description (get-tool-description "get_clojuredocs_info")
+                                             :description (tool-description "get_clojuredocs_info")
                                              :inputSchema {:type "object"
                                                            :properties {"clojure-symbol" {:type "string"
                                                                                           :description "The symbol to look up clojuredocs.org info from."}
@@ -90,7 +99,7 @@
 
                                       (calva/exists-on-output?)
                                       (conj {:name "get_repl_output_log"
-                                             :description (get-tool-description "get_repl_output_log")
+                                             :description (tool-description "get_repl_output_log")
                                              :inputSchema {:type "object"
                                                            :properties {"since-line" {:type "integer"
                                                                                       :description "output line-number after which you want output. Use `0` for your first request of output."}}
@@ -106,13 +115,13 @@
                                                   (calva/exists-get-symbol-info?)
                                                   (conj {:uriTemplate "/symbol-info/{symbol}@{session-key}@{namespace}"
                                                          :name "symbol-info"
-                                                         :description (get-tool-description "get_symbol_info")
+                                                         :description (tool-description "get_symbol_info")
                                                          :mimeType "application/json"})
 
                                                   (calva/exists-get-clojuredocs?)
                                                   (conj {:uriTemplate "/clojuredocs/{symbol}"
                                                          :name "clojuredocs"
-                                                         :description (get-tool-description "get_clojuredocs_info")
+                                                         :description (tool-description "get_clojuredocs_info")
                                                          :mimeType "application/json"}))}}]
       response)
 
@@ -122,11 +131,11 @@
       (cond
         (and (= tool "evaluate_clojure_code")
              (= true repl-enabled?))
-        (p/let [{:keys [code repl-session-key]
+        (p/let [{:keys [code replSessionKey]
                  ns :namespace} arguments
                 result (calva/evaluate-code+ (merge options
                                                     {:calva/code code
-                                                     :calva/repl-session-key repl-session-key}
+                                                     :calva/repl-session-key replSessionKey}
                                                     (when ns
                                                       {:calva/ns ns})))]
           {:jsonrpc "2.0"

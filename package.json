@@ -86,11 +86,11 @@
             },
             "namespace": {
               "type": "string",
-              "description": "Namespace in which to evaluate the code"
+              "description": "Fully qualified namespace in which to evaluate the code. E.g. if calling functions in a file you are reading, it is probably the namespace of that file that should be provided. If it is the first time you use a namespace, start with evaluating its ns-form in the `user` or `cljs.user` namespace (as appropriate)."
             },
             "replSessionKey": {
               "type": "string",
-              "description": "The REPL session to use: 'clj' for Clojure, 'cljs' for ClojureScript, 'cljc' for current session for `.cljc` files",
+              "description": "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files.",
               "enum": ["clj", "cljs", "cljc"]
             }
           },
