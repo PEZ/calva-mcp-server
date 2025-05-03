@@ -37,7 +37,7 @@
        :invoke (fn invoke [^js options _token]
                  (p/let [symbol (-> options .-input .-clojureSymbol)
                          ns (-> options .-input .-namespace)
-                         session-key (-> options .-input .-sessionKey)
+                         session-key (-> options .-input .-replSessionKey)
                          result (calva/get-symbol-info+ {:ex/dispatch! dispatch!
                                                          :calva/clojure-symbol symbol
                                                          :calva/ns ns
