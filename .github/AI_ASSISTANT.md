@@ -29,7 +29,7 @@ This document provides instructions for AI assistants working on the Calva MCP S
 - **One-Shot Changes**: Each PR or change should be focused on a single, well-defined problem. Aim for changes that require minimal review feedback beyond "Thanks for helping!"
 
 - **Clojure File Naming Convention**: (AI only) Follow the Clojure file naming convention where:
-  - Namespaces use kebab-case with hyphens (e.g., `calva-mcp-server.ex.ax-test`)
+  - Namespaces use kebab-case with hyphens (e.g., `calva-backseat-driver.ex.ax-test`)
   - File paths use snake_case with underscores (e.g., `calva_mcp_server/ex/ax_test.cljs`)
 
 - **File Creation**: (AI only) When creating new files, be aware that clojure-lsp automatically adds namespace declarations after a short delay. Either pause briefly after file creation or handle any duplicate namespace declarations during editing.

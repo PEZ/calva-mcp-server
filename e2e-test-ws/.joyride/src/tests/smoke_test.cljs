@@ -14,7 +14,7 @@
         "There can only be one (workspaceFolder)")))
 
 (deftest-async extension-activation
-  (p/let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-mcp-server")
+  (p/let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")
           api (.activate extension)]
     (is (not= nil
               (.-v1 api))

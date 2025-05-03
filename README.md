@@ -1,12 +1,15 @@
 # Make CoPilot an Interactive Programmer
 
-> Calva MCP Server
+Clojure Tools for CoPilot
+> It's also a Calva MCP Server
 
-[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/betterthantomorrow.calva-mcp-server)](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
-[![Issues](https://img.shields.io/github/issues/BetterThanTomorrow/calva-mcp-server)](https://github.com/BetterThanTomorrow/calva-mcp-server/issues)
-[![License](https://img.shields.io/github/license/BetterThanTomorrow/calva-mcp-server)](https://github.com/BetterThanTomorrow/calva-mcp-server/blob/master/LICENSE.txt)
+[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/betterthantomorrow.calva-backseat-driver)](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
+[![Issues](https://img.shields.io/github/issues/BetterThanTomorrow/calva-backseat-driver)](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues)
+[![License](https://img.shields.io/github/license/BetterThanTomorrow/calva-backseat-driver)](https://github.com/BetterThanTomorrow/calva-backseat-driver/blob/master/LICENSE.txt)
 
-A Model Context Protocol server extension for [Calva](https://calva.io), the Clojure/ClojureScript extension for VS Code, enabling AI assistants to harness the power of the REPL.
+An VS Code Language model extension for [Calva](https://calva.io), the Clojure/ClojureScript extension for VS Code, enabling AI assistants to harness the power of the REPL.
+
+This extension exposes the AI tools both to CoPilot directly, using the VS Code Language Model API, and via an optional MCP server for any AI assistants/agents.
 
 ## Features
 
@@ -51,7 +54,7 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
-- [Calva MCP Server](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-mcp-server)
+- [Calva MCP Server](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
 - An AI coding assistant (e.g., GitHub Copilot)
 - Any Clojure environment dependencies your project has (e.g. Clojure, Babashka, etc)
 
@@ -76,7 +79,7 @@ In you project's `.vscode/mcp.json` add a `"calva"` entry like so:
       "type": "stdio",
       "command": "node",
       "args": [
-        "${extensionInstallFolder:betterthantomorrow.calva-mcp-server}/dist/calva-mcp-server.js",
+        "${extensionInstallFolder:betterthantomorrow.calva-backseat-driver}/dist/calva-backseat-driver.js",
         "${workspaceFolder}/.calva/mcp-server/port"
       ]
     }

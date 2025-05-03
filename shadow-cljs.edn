@@ -7,10 +7,10 @@
               :compiler-options {:infer-externs :auto}
               :output-dir "out/js"
               :output-to "out/extension.js"
-              :exports {:activate calva-mcp-server.extension/activate
-                        :deactivate calva-mcp-server.extension/deactivate}}
+              :exports {:activate calva-backseat-driver.extension/activate
+                        :deactivate calva-backseat-driver.extension/deactivate}}
   :stdio-wrapper {:target :node-script
-                  :main calva-mcp-server.stdio.wrapper/main
+                  :main calva-backseat-driver.stdio.wrapper/main
                   :output-to "dist/calva-mcp-server.js"}
   :test-watch
   {:target    :node-test

@@ -31,7 +31,7 @@
             "name": "Re-activate extension",
             "key": ".",
             "repl": "cljs",
-            "snippet": "(calva-mcp-server.ex.ex/dispatch! (calva-mcp-server.extension/extension-context) [[:app/ax.cleanup]]) (calva-mcp-server.extension/activate (calva-mcp-server.extension/extension-context))",
+            "snippet": "(calva-backseat-driver.ex.ex/dispatch! (calva-backseat-driver.extension/extension-context) [[:app/ax.cleanup]]) (calva-backseat-driver.extension/activate (calva-backseat-driver.extension/extension-context))",
             "evaluationSendCodeToOutputWindow": true
         }
     ]
