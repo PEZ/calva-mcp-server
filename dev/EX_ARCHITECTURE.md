@@ -1,4 +1,4 @@
-# Calva MCP Server - Ex Architecture
+# Calva Backseat Driver - Ex Architecture
 
 **Ex** is a pico-framework (some 50 LOC or so) that implements a functional core/imperative shell design, emphasizing immutability, pure functions, and unidirectional data flow. Heavily inspired by [re-frame](https://github.com/day8/re-frame) (used in its most data-oriented way). It's also a lot how I found myself holding [Replicant](https://replicant.fun) to keep my re-frame habits.
 
@@ -23,7 +23,7 @@ The Ex framework is embedded directly in the project source (in the `calva_mcp_s
 - Modified dispatch behaviors
 - Anything
 
-This evolutionary approach ensures the architecture remains flexible and tailored to the specific needs of the Calva MCP Server project.
+This evolutionary approach ensures the architecture remains flexible and tailored to the specific needs of the Calva Backseat Driver project.
 
 ## System Flow
 
@@ -290,4 +290,4 @@ This creates a clean way to handle asynchronous flows while maintaining pure dat
 1. **Explicit Side Effects**: All side effects are represented as data and executed in controlled handlers
 1. **Developer Experience**: Debugging is simplified by logging actions and effects as data
 
-I believe that the benefits outweigh the drawbacks, and that this architecture provides a solid foundation for building the Calva MCP Server, leveraging ClojureScript's strengths in functional programming and data-oriented design.
+I believe that the benefits outweigh the drawbacks, and that this architecture provides a solid foundation for building the Calva Backseat Driver, leveraging ClojureScript's strengths in functional programming and data-oriented design.

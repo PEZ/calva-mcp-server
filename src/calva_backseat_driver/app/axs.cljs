@@ -12,11 +12,11 @@
        :ex/fxs [[:app/fx.init-logging (assoc new-state :ex/uri-action [:db/ax.assoc-in [:app/log-dir-initialized+]])]]})
 
     [:app/ax.init]
-    {:ex/dxs [[:app/ax.register-command "calva-backseat-driver.startServer"
+    {:ex/dxs [[:app/ax.register-command "calva-backseat-driver.startMcpServer"
                [[:mcp/ax.start-server]]]
-              [:app/ax.register-command "calva-backseat-driver.stopServer"
+              [:app/ax.register-command "calva-backseat-driver.stopMcpServer"
                [[:mcp/ax.stop-server]]]
-              [:app/ax.register-command "calva-backseat-driver.openServerLog"
+              [:app/ax.register-command "calva-backseat-driver.openLogFile"
                [[:mcp/ax.open-server-log]]]
               [:app/ax.register-language-model-tools]
               [:calva/ax.when-activated [[:app/ax.init-output-listener]]]

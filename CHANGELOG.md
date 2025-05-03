@@ -1,6 +1,6 @@
 # Change Log
 
-Changes to Calva MCP Server
+Changes to Calva Backseat Driver
 
 ## [Unreleased]
 

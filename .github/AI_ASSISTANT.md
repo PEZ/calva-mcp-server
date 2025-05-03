@@ -1,6 +1,6 @@
-# AI Assistant Instructions for Calva MCP Server
+# AI Assistant Instructions for Calva Backseat Driver
 
-This document provides instructions for AI assistants working on the Calva MCP Server project. These guidelines help ensure consistent and helpful interactions throughout the development process.
+This document provides instructions for AI assistants working on the Calva Backseat Driver project. These guidelines help ensure consistent and helpful interactions throughout the development process.
 
 ## General Interaction Style
 

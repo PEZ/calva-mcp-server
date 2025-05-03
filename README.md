@@ -1,7 +1,7 @@
 # Make CoPilot an Interactive Programmer
 
 Clojure Tools for CoPilot
-> It's also a Calva MCP Server
+> It's also a Calva Backseat Driver
 
 [![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/betterthantomorrow.calva-backseat-driver)](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
 [![Issues](https://img.shields.io/github/issues/BetterThanTomorrow/calva-backseat-driver)](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues)
@@ -26,15 +26,15 @@ Since evaluating Clojure code could be a bit risky, the server defaults to this 
 
 Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
 
-## Why Calva MCP Server?
+## Why Calva Backseat Driver?
 
 "I wish Copilot could actually run my Clojure code instead of just guessing what it might do."
 
-The Calva MCP Server transforms AI coding assistants from static code generators into interactive programming partners by giving them access to your REPL. (Please be mindful about the implications of that before you start using it.)
+The Calva Backseat Driver transforms AI coding assistants from static code generators into interactive programming partners by giving them access to your REPL. (Please be mindful about the implications of that before you start using it.)
 
 ### Turn your AI Agent into an Interactive Programming partner
 
-Tired of AI tools that write plausible-looking Clojure that falls apart at runtime? Calva MCP Server lets your AI assistant:
+Tired of AI tools that write plausible-looking Clojure that falls apart at runtime? Calva Backseat Driver lets your AI assistant:
 
 - **Evaluate code in your actual environment** - No more "this might work" guesses
 - **See real data structures**, not just predict their shape
@@ -54,15 +54,15 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
-- [Calva MCP Server](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
+- [Calva Backseat Driver](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
 - An AI coding assistant (e.g., GitHub Copilot)
 - Any Clojure environment dependencies your project has (e.g. Clojure, Babashka, etc)
 
 ### Installation
 
-VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the MCP client to start a `stdio` server inside a VS Code extension. (I don't think it is possible, really.) Thus, the Calva MCP Server is internally a socket server, which at startup writes the port it binds to to a port file. A node script (a.k.a the **wrapper**) is bundled with the extension that will start a `stdio` server wrapping the socket MCP server. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva MCP server per workspace, and the port file will be written to the `.calva` directory in the workspace root.
+VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the MCP client to start a `stdio` server inside a VS Code extension. (I don't think it is possible, really.) Thus, the Calva Backseat Driver is internally a socket server, which at startup writes the port it binds to to a port file. A node script (a.k.a the **wrapper**) is bundled with the extension that will start a `stdio` server wrapping the socket MCP server. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 
-1. Install Calva MCP Server from the Extensions pane in VS Code
+1. Install Calva Backseat Driver from the Extensions pane in VS Code
 1. Start the Calva MCP socket server
 1. Add the MCP server config (may vary depending on MCP Client)
 1. Stop the Calva MCP socket server (it's a habit to consider, at least)
@@ -93,17 +93,17 @@ Please add configuration for other AI clients! 🙏
 
 ### Using
 
-For CoPilot (or any MCP client) to use the Calva MCP Server, the socket server needs to be started before the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
+For CoPilot (or any MCP client) to use the Calva Backseat Driver, the socket server needs to be started before the `stdio` wrapper. For CoPilot, the latter is started from the VS Code MCP servers UI. For now the socket server needs to always be started manually.
 
 1. Connect Calva to your Clojure/ClojureScript project
-1. Issue the command: **Calva MCP Server: Start the socket server**
+1. Issue the command: **Calva Backseat Driver: Start the socket server**
 1. In `.vscode/mcp.json`, use the **Start** button on the `"calva"` server.
 1. If you want the AI to have full REPL powers, enable this in settings
 1. Start using your AI Agent with REPL superpowers!
 
 ## How It Works
 
-Calva MCP Server implements the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), creating a bridge between AI assistants and your REPL:
+Calva Backseat Driver implements the [Model Context Protocol](https://modelcontextprotocol.io) (MCP), creating a bridge between AI assistants and your REPL:
 
 1. When your AI assistant needs to understand your code better, it can execute it in your REPL
 2. The results flow back to the AI, giving it insight into actual data shapes and function behavior
@@ -120,7 +120,7 @@ flowchart TD
 
     subgraph VSCode["VS Code"]
 
-        MCP["Calva MCP Server"]
+        MCP["Calva Backseat Driver"]
 
         subgraph Calva["Calva"]
             REPLClient["REPL Client"]

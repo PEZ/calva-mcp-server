@@ -1,6 +1,6 @@
-# Calva MCP Server - Developer Guide
+# Calva Backseat Driver - Developer Guide
 
-Welcome, Clojure cult member! This guide provides practical instructions for developing, testing, and contributing to the Calva MCP Server project. Pair programming, data-orientation, and functional thinking are encouraged throughout.
+Welcome, Clojure cult member! This guide provides practical instructions for developing, testing, and contributing to the Calva Backseat Driver project. Pair programming, data-orientation, and functional thinking are encouraged throughout.
 
 ## Core Development Principles
 
@@ -66,7 +66,7 @@ The project leverages ClojureScript's interactive development capabilities:
    - This only starts the server. The following steps must be performed by the human:
 2. Connect to the REPL using Calva (<kbd>Ctrl+Alt+C Ctrl+Alt+C</kbd>)
 3. Start the Extension Development Host (<kbd>F5</kbd> in VS Code)
-4. Activate the extension in the development host (run the command "Calva MCP Server: Say hello!" from Command Palette)
+4. Activate the extension in the development host (run the command "Calva Backseat Driver: Say hello!" from Command Palette)
 5. Enjoy hot reloading and interactive development!
 
 ### Human/AI Collaboration Model

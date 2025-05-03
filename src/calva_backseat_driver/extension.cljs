@@ -15,7 +15,7 @@
 
 (defn ^:export activate [^js context]
   (js/console.time "activation")
-  (js/console.timeLog "activation" "Calva MCP Server activate START")
+  (js/console.timeLog "activation" "Calva Backseat Driver activate START")
 
   (when-not (extension-context)
     (swap! db/!app-db assoc
@@ -23,7 +23,7 @@
            :app/getConfiguration vscode/workspace.getConfiguration))
   (ex/dispatch! context [[:app/ax.activate (initial-state context)]])
 
-  (js/console.timeLog "activation" "Calva MCP Server activate END")
+  (js/console.timeLog "activation" "Calva Backseat Driver activate END")
   (js/console.timeEnd "activation")
   #js {:v1 {}})
 

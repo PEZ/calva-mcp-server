@@ -12,11 +12,11 @@ MCP is a protocol that enables AI language models (like Claude, GPT, etc.) to in
 Instead of reiterating (badly) what MCP is here, let's take it from the horse's mouth:
 
 * https://modelcontextprotocol.io/
-* Calva MCP Server follows version `2024-11-05` of the protocol. There's a schema here: https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/refs/heads/main/schema/2024-11-05/schema.ts
+* Calva Backseat Driver follows version `2024-11-05` of the protocol. There's a schema here: https://raw.githubusercontent.com/modelcontextprotocol/modelcontextprotocol/refs/heads/main/schema/2024-11-05/schema.ts
 
-## Calva MCP Server Implementation
+## Calva Backseat Driver Implementation
 
-For our Calva MCP Server project, we're building an MCP server that will expose Calva's capabilities (particularly REPL evaluation) to AI assistants. This means an AI will be able to:
+For our Calva Backseat Driver project, we're building an MCP server that will expose Calva's capabilities (particularly REPL evaluation) to AI assistants. This means an AI will be able to:
 
 1. Evaluate Clojure/ClojureScript code in a REPL
 2. Get results back in a structured format
@@ -39,7 +39,7 @@ Considerations:
 * VS Code CoPilot only supports the **stdio** [Transport](https://modelcontextprotocol.io/docs/concepts/transports).
 * There is no way to start the server inside the extension via a shell command (afaik).
 * The user needs full control of wether the REPL is exposed via the MCP protocol or not.
-* The Calva MCP Server needs API access to the Calva extension
+* The Calva Backseat Driver needs API access to the Calva extension
 
 We solve this by implementing the server running inside the Calva MCP Extension, using TCP sockets (a backend server). Then in front of that a node script witch which the AI Agent system can start an MCP **stdio** Transport “relay”/wrapper that the AI Agent uses.
 

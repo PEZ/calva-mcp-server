@@ -2,7 +2,7 @@
   "name": "calva-backseat-driver",
   "displayName": "Calva Backseat Driver",
   "description": "Make CoPilot an Interactive Programmer, tools for VS Code CoPilot. Can also be run as an MCP server",
-  "version": "0.0.11",
+  "version": "0.0.1",
   "publisher": "betterthantomorrow",
   "author": {
     "name": "Better Than Tomorrow",
@@ -48,21 +48,21 @@
     },
     "commands": [
       {
-        "command": "calva-backseat-driver.startServer",
-        "category": "Calva MCP Server",
+        "command": "calva-backseat-driver.startMcpServer",
+        "category": "Calva Backseat Driver",
         "enablement": "!:calva-backseat-driver/started?",
-        "title": "Start the socket server"
+        "title": "Start the MCP socket server"
       },
       {
-        "command": "calva-backseat-driver.stopServer",
-        "category": "Calva MCP Server",
+        "command": "calva-backseat-driver.stopMcpServer",
+        "category": "Calva Backseat Driver",
         "enablement": ":calva-backseat-driver/started?",
-        "title": "Stop the socket server"
+        "title": "Stop the MCP socket server"
       },
       {
-        "command": "calva-backseat-driver.openServerLog",
-        "category": "Calva MCP Server",
-        "title": "Open the socket server log file"
+        "command": "calva-backseat-driver.openLogFile",
+        "category": "Calva Backseat Driver",
+        "title": "Open log file"
       }
     ],
     "keybindings": [],
