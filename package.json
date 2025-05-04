@@ -32,7 +32,9 @@
     "model-context-protocol",
     "ai"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:clojure"
+  ],
   "main": "out/extension.js",
   "contributes": {
     "configuration": {
