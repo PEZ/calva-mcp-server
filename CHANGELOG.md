@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.3] - 2025-05-04
+
 - Fix misconfiguration of get_symbol_info replSessionKey (for realz)
 - Auto-activate in Clojure projects
 
