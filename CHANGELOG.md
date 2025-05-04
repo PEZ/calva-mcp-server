@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+- Fix misconfiguration of get_symbol_info replSessionKey (for realz)
+
 ## [v0.0.2] - 2025-05-03
 
 - Fix misconfiguration of get_symbol_info replSessionKey
