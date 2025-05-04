@@ -47,7 +47,7 @@
                                 :ns (.-ns evaluation+)
                                 :stdout (.-output evaluation+)
                                 :stderr (.-errorOutput evaluation+)
-                                :session-key (.-sessionKey evaluation+)
+                                :session-key (.-replSessionKey evaluation+)
                                 :note "Remember to check the output tool now and then to see what's happening in the application."}
                          (.-error evaluation+)
                          (merge {:error (.-error evaluation+)
