@@ -33,7 +33,9 @@
       (dispatch! context [[:db/ax.update-in [:extension/disposables] conj disposable]]))
 
     [:app/fx.register-language-model-tools]
-    (tools/register-language-model-tools (partial dispatch! context))
+    (let [disposables (tools/register-language-model-tools (partial dispatch! context))]
+      (dispatch! context [[:db/ax.update-in [:extension/disposables] into disposables]]))
+
 
     [:app/fx.clear-disposables disposables]
     (doseq [^js disposable disposables]
