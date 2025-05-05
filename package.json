@@ -184,6 +184,7 @@
         "toolReferenceName": "calva-output",
         "displayName": "Calva REPL Output Log",
         "modelDescription": "Get REPL output messages from  Calva output window. Returns REPL output since `since-line`. Start with since-line=0 and use the last line number from previous output for subsequent calls. This is your window into the running application. Invoke it often as files are edited and/or you evaluate code.",
+        "userDescription": "Read Calva's REPL output log",
         "canBeReferencedInPrompt": true,
         "icon": "$(output)",
         "inputSchema": {

@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+- Fix: Missing user title for Output log tool
+
 ## [v0.0.3] - 2025-05-04
 
 - Fix misconfiguration of get_symbol_info replSessionKey (for realz)
