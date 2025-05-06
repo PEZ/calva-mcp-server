@@ -77,7 +77,7 @@
         ],
         "toolReferenceName": "eval-clojure",
         "displayName": "Evaluate Clojure Code",
-        "modelDescription": "Evaluate Clojure/ClojureScript code via Calva. Enables AI Interactive Programming. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language.",
+        "modelDescription": "Evaluate Clojure/ClojureScript code using Calva's REPL connection. Enables AI Interactive Programming. The REPL holds the truth. Use this to make sure your seggested edits work as you advertise. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language.",
         "userDescription": "Evaluate Clojure or ClojureScript code in a connected REPL.",
         "canBeReferencedInPrompt": true,
         "icon": "$(terminal-bash)",
