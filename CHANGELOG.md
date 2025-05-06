@@ -4,7 +4,10 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.4] - 2025-05-06
+
 - Fix: Missing user title for Output log tool
+- Downbump VS Code version dependency to `1.98.0`, because Windsurf uses that
 
 ## [v0.0.3] - 2025-05-04
 
