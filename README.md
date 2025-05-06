@@ -65,7 +65,7 @@ For MCP you need
 
 ### Installation (if using MCP Server)
 
-VS Code/CoPilot needs a `stdio` server to talk to. I couldn't find a way for the MCP client to start a `stdio` server inside a VS Code extension. (I don't think it is possible, really.) Thus, the Calva Backseat Driver is internally a socket server, which at startup writes the port it binds to to a port file. A node script (a.k.a the **wrapper**) is bundled with the extension that will start a `stdio` server wrapping the socket MCP server. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
+The MCP server is running as a plain socket server in the VS Code Extension Host, writing out a port file when it starts. Then the MCP client needs to start a `stdio` relay/proxy/wrapper thar it will talk to. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 
 1. Install Calva Backseat Driver from the Extensions pane in VS Code
 1. Start the Calva MCP socket server
@@ -116,10 +116,11 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
 0. Start and connect your REPL
 1. Issue the command: **Calva Backseat Driver: Start the MCP socket server**
    * This will create a port file: `${workspaceFolder}/.calva/mcp-server/port`
-1. Start the `stdio` wrapper from the extension's install folder in `dist/calva-mcp-server.js` and give it the port file as the only argument:
+1. Have your AI assistant tool start the `stdio` wrapper from the extension's install folder in `dist/calva-mcp-server.js` giveing it the port file as the only argument:
    ```
    ${extensionInstallFolder:betterthantomorrow.calva-backseat-driver}/dist/calva-mcp-server.js ${workspaceFolder}/.calva/mcp-server/port
    ```
+   (Those variables work in VS Code, if your assistant don't speak this language, then you'll need to replace them with something that works, hard coded paths or whatever.)
 1. Start using your AI Agent with REPL superpowers!
 
 ## How It Works (evaluating code)
