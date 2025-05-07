@@ -109,7 +109,7 @@ All tools can be referenced in the chat:
 * `#clojuredocs`
 * `#calva-output`
 
-#### MCP
+### Using with MCP
 
 For an MCP client to use Calva Backseat Driver, the socket server needs to be started before the `stdio` wrapper. For now the socket server needs to always be started manually.
 
@@ -129,6 +129,15 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
    (Those variables work in VS Code, if your assistant don't speak this language, then you'll need to replace them with something that works, hard coded paths or whatever.)
 1. Start using your AI Agent with REPL superpowers!
 
+
+#### Windsurf
+
+[Windsurf](https://windsurf.com/) can use the Backseat Driver via its MCP server. However, it is a bit clunky. Windsurf doesn't support workspace configurations for MCP servers, so they are only global. This means:
+
+* You can in practice only have one Backseat Driver backed project
+* You must use absolute paths for the stdio command port file argument
+
+Also the Windsurf AI assistant doesn't know about its MCP configurations and will keep trying to create MCP configs for CoPilot. Which is silly, because it won't work for Windsurf, and CoPilot doesn't need it.
 
 ## How It Works (evaluating code)
 
