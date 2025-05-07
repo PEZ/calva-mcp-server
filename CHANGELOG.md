@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.5] - 2025-05-07
+
 - Fix: [The MCP server doesn't work with the released VSIX](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/2)
 - [Help the MCP user figure out the stdio server start command](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/3)
 - [Add configuration for auto-starting the MCP server](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/4)
