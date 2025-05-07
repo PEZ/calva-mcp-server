@@ -138,6 +138,8 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
 * You can in practice only have one Backseat Driver backed project
 * You must use absolute paths for the stdio command port file argument
 
+**IMPORTANT**: Windsurf uses MCP tools without checking with the user by default. This is fine for 3 out of 4 of the Backseat Driver tools, but for the REPL tool it is less ideal. I think some Windsurf user should report this non-compliance with MCP as an issue.
+
 Also the Windsurf AI assistant doesn't know about its MCP configurations and will keep trying to create MCP configs for CoPilot. Which is silly, because it won't work for Windsurf, and CoPilot doesn't need it.
 
 ## How It Works (evaluating code)
