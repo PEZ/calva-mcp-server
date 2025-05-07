@@ -34,8 +34,8 @@
       (p/let [button (vscode/window.showInformationMessage (str "MCP socket server started on port: " port ". You also need to start the `calva` stdio server. (Check the docs of your AI Agent for how to do this.)") "Copy stdio-command")]
         (when (= "Copy stdio-command" button)
           (let [extension-uri (-> (vscode/extensions.getExtension
-                                    "betterthantomorrow.calva-backseat-driver")
-                                   .-extensionUri)
+                                   "betterthantomorrow.calva-backseat-driver")
+                                  .-extensionUri)
                 script-uri (vscode/Uri.joinPath extension-uri "dist" "calva-mcp-server.js")
                 script-path (.-fsPath script-uri)
                 port-file-path (.-fsPath port-file-uri)]
