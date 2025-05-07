@@ -18,7 +18,7 @@
                    :app/server-starting? false)
      :ex/dxs [[:app/ax.set-when-context :calva-backseat-driver/starting? false]
               [:app/ax.set-when-context :calva-backseat-driver/started? true]]
-     :ex/fxs [[:vscode/fx.show-information-message (str "MCP socket server started on port: " (:server/port server-info) ". You also need to start the `calva` stdio server. (Check the docs of your AI Agent for how to do this.)") "OK"]
+     :ex/fxs [[:mcp/fx.show-server-started-message server-info]
               [:app/fx.return (clj->js server-info)]]}
 
     [:mcp/ax.stop-server]

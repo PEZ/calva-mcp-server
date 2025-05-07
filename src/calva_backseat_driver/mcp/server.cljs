@@ -180,7 +180,7 @@
        (ensure-port-file-dir-exists!+)
        (.writeFile vscode/workspace.fs port-file-uri (js/Buffer.from (str port)))
        (dispatch! [[:app/ax.log :info "Wrote port file:" (.-fsPath port-file-uri)]])
-       server-info+)
+       (assoc server-info+ :server/port-file-uri port-file-uri))
       (do
         (dispatch! [[:app/ax.log :error "[Server] Could not determine workspace root to write port file."]])
         (p/rejected (js/Error. "Could not determine workspace root"))))))
