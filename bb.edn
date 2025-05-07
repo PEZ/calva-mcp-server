@@ -16,6 +16,12 @@
           (cli/parse-opts *command-line-args* {:restrict [:slug :dry]
                                                :args->opts [:slug]}))}
 
+  package-and-test-prerelease
+  {:doc "Package a pre-release VSIX and run e2e tests on it"
+   :task (t/package-and-test-prerelease!
+          (cli/parse-opts *command-line-args* {:restrict [:slug :dry]
+                                               :args->opts [:slug]}))}
+
   ci:release-notes
   {:doc "Get release notes for <version>"
    :task (t/print-release-notes!
