@@ -41,4 +41,14 @@
   run-e2e-tests-vsix
   {:doc "Run end-to-end tests using <vsix>"
    :task (t/run-e2e-tests-with-vsix! (cli/parse-opts *command-line-args* {:require [:vsix]
-                                                                          :args->opts [:vsix]}))}}}
+                                                                          :args->opts [:vsix]}))}
+
+  launch-with-vsix
+  {:doc "Install VSIX and launch VS Code Insiders with test workspace"
+   :task (t/launch-with-vsix! (cli/parse-opts *command-line-args* {:require [:vsix]
+                                                                   :args->opts [:vsix]}))}
+
+  run-mcp-inspector
+  {:doc "Run the MCP Inspector against the installed extension"
+   :task (t/run-mcp-inspector! (cli/parse-opts *command-line-args* {:require [:vsix]
+                                                                    :args->opts [:vsix]}))}}}

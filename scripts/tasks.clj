@@ -1,8 +1,11 @@
 (ns tasks
   (:require [babashka.process :as p]
             [clojure.string :as string]
+            [babashka.fs :as fs]
             publish
             util))
+
+(def vsix-test-workspace "./e2e-test-vsix")
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn publish! [args]
@@ -57,3 +60,26 @@
 (defn run-e2e-tests-from-working-dir! []
   (println "Running end-to-end tests using working directory")
   (util/shell false "node" "./e2e-test-ws/launch.js"))
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn launch-with-vsix! [{:keys [vsix]}]
+  (println "Installing VSIX:" vsix)
+  (util/shell false "code-insiders" "--install-extension" vsix)
+
+  (println "Launching VS Code Insiders with test workspace...")
+  (util/shell false "code-insiders" vsix-test-workspace))
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn run-mcp-inspector! [{:keys [vsix]}]
+  (let [vsix-basename (fs/strip-ext (fs/file-name vsix))
+        extension-path (str (fs/home)
+                            "/.vscode-insiders/extensions/betterthantomorrow."
+                            vsix-basename)
+        server-script (fs/path extension-path "dist" "calva-mcp-server.js")
+        port-file (fs/path vsix-test-workspace ".calva" "mcp-server" "port")]
+
+    (println "Using installed extension at:" extension-path)
+    (println "Server script:" server-script)
+    (println "Port file:" port-file)
+
+    (util/shell false "npx" "@modelcontextprotocol/inspector" "node" (str server-script) (str port-file))))
