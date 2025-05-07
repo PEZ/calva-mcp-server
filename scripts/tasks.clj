@@ -65,10 +65,10 @@
 (defn launch-with-vsix! [{:keys [vsix]}]
   (println "Uninstalling any existing Calva Backseat Driver extension...")
   (util/shell false "code-insiders" "--uninstall-extension" "betterthantomorrow.calva-backseat-driver")
-  
+
   (println "Installing VSIX:" vsix)
   (util/shell false "code-insiders" "--install-extension" vsix)
-  
+
   (println "Launching VS Code Insiders with test workspace...")
   (util/shell false "code-insiders" vsix-test-workspace))
 

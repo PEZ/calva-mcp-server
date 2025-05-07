@@ -14,14 +14,35 @@
   (try
     (let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
       (if extension
-        (let [^js contributes (some-> extension
-                                      .-packageJSON
-                                      .-contributes)]
-          (some->> contributes
-                   .-languageModelTools
-                   (filter (fn [^js tool]
-                             (= tool-name (.-name tool))))
-                   first))
+        (let [^js package-json (.-packageJSON extension)
+              ^js contributes (.-contributes package-json)]
+
+          ;; Debug log the structure to understand what we're dealing with
+          (js/console.log "[Server] Debug: Extension found, packageJSON keys:"
+                          (js/Object.keys package-json))
+          (js/console.log "[Server] Debug: Contributes keys:"
+                          (when contributes (js/Object.keys contributes)))
+
+          ;; Check if languageModelTools exists and is an array
+          (if (and contributes
+                   (.-languageModelTools contributes)
+                   (js/Array.isArray (.-languageModelTools contributes)))
+            (let [tools (.-languageModelTools contributes)
+                  matching-tool (js/Array.prototype.find.call
+                                 tools
+                                 (fn [^js tool]
+                                   (= tool-name (.-name tool))))]
+
+              ;; Debug the found tool
+              (when matching-tool
+                (js/console.log "[Server] Debug: Found tool:" tool-name
+                                "with keys:" (js/Object.keys matching-tool)
+                                "modelDescription:" (.-modelDescription matching-tool)))
+
+              matching-tool)
+            (do
+              (js/console.warn "[Server] languageModelTools missing or not an array in extension contributes")
+              nil)))
         (do
           (js/console.warn "[Server] Extension not found when looking for tool manifest for:" tool-name)
           nil)))
@@ -230,8 +251,7 @@
         :else
         {:jsonrpc "2.0"
          :id id
-         :error {:code -32601
-                 :message "Unknown resource URI"}}))
+         :error {:code -32601 :message "Unknown resource URI"}}))
 
     (= method "ping")
     (let [response {:jsonrpc "2.0"
