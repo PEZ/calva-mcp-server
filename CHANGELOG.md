@@ -4,6 +4,9 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+- [Help the MCP user figure out the stdio server start command](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/3)
+- Fix: [The MCP server doesn't work with the released VSIX](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/2)
+
 ## [v0.0.4] - 2025-05-06
 
 - Fix: Missing user title for Output log tool
