@@ -129,6 +129,7 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
    (Those variables work in VS Code, if your assistant don't speak this language, then you'll need to replace them with something that works, hard coded paths or whatever.)
 1. Start using your AI Agent with REPL superpowers!
 
+**NB**: *You can configure the MCP server to start automatically when the VS Code window opens. Search settings for “Backseat Driver”*
 
 #### Windsurf
 

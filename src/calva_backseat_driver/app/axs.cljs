@@ -8,10 +8,10 @@
     [:app/ax.activate initial-state]
     (let [new-state (merge state initial-state)]
       {:ex/db new-state
-       :ex/dxs [[:app/ax.init]] ;; Give the init-logging a chance to save the promise
+       :ex/dxs [[:app/ax.init :vscode/config.autoStartMCPServer]] ;; Give the init-logging a chance to save the promise
        :ex/fxs [[:app/fx.init-logging (assoc new-state :ex/uri-action [:db/ax.assoc-in [:app/log-dir-initialized+]])]]})
 
-    [:app/ax.init]
+    [:app/ax.init autostart-mcp-server?]
     {:ex/dxs [[:app/ax.register-command "calva-backseat-driver.startMcpServer"
                [[:mcp/ax.start-server]]]
               [:app/ax.register-command "calva-backseat-driver.stopMcpServer"
@@ -21,7 +21,9 @@
               [:app/ax.register-language-model-tools]
               [:calva/ax.when-activated [[:app/ax.init-output-listener]]]
               [:app/ax.set-when-context :calva-mcp-extension/activated?
-               true]]}
+               true]
+              (when autostart-mcp-server?
+                [:mcp/ax.start-server])]}
 
     [:app/ax.init-output-listener]
     {:ex/dxs [[:calva/ax.subscribe-to-output]]}
