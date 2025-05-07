@@ -12,17 +12,16 @@
 
 (defn- ^js tool-manifest [tool-name]
   (try
-    (let [^js extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
+    (let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
       (if extension
-        (let [^js package-json (.-packageJSON extension)
-              ^js contributes (when package-json (.-contributes package-json))]
-          (when contributes
-            (let [^js tools (.-languageModelTools contributes)]
-              (when (and tools (js/Array.isArray tools))
-                (js/Array.prototype.find.call
-                 tools
-                 (fn [^js tool]
-                   (= tool-name (.-name tool))))))))
+        (let [^js contributes (some-> extension
+                                      .-packageJSON
+                                      .-contributes)]
+          (some->> contributes
+                   .-languageModelTools
+                   (filter (fn [^js tool]
+                             (= tool-name (.-name tool))))
+                   first))
         (do
           (js/console.warn "[Server] Extension not found when looking for tool manifest for:" tool-name)
           nil)))
@@ -31,17 +30,16 @@
       nil)))
 
 (defn- tool-description [tool-name]
-  (let [^js tool (tool-manifest tool-name)
-        desc (when tool (.-modelDescription tool))]
-    (or desc "")))
+  (some-> tool-name
+          tool-manifest
+          .-modelDescription))
 
 (defn- param-description [tool-name param]
-  (let [^js tool (tool-manifest tool-name)
-        ^js input-schema (when tool (.-inputSchema tool))
-        ^js properties (when input-schema (.-properties input-schema))
-        ^js param-props (when properties (unchecked-get properties param))
-        desc (when param-props (.-description param-props))]
-    (or desc "")))
+  (some-> (tool-manifest tool-name)
+          .-inputSchema
+          .-properties
+          (unchecked-get param)
+          .-description))
 
 (comment
   (tool-description  "evaluate_clojure_code")
