@@ -12,37 +12,17 @@
 
 (defn- ^js tool-manifest [tool-name]
   (try
-    (let [extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
+    (let [^js extension (vscode/extensions.getExtension "betterthantomorrow.calva-backseat-driver")]
       (if extension
         (let [^js package-json (.-packageJSON extension)
-              ^js contributes (.-contributes package-json)]
-
-          ;; Debug log the structure to understand what we're dealing with
-          (js/console.log "[Server] Debug: Extension found, packageJSON keys:"
-                          (js/Object.keys package-json))
-          (js/console.log "[Server] Debug: Contributes keys:"
-                          (when contributes (js/Object.keys contributes)))
-
-          ;; Check if languageModelTools exists and is an array
-          (if (and contributes
-                   (.-languageModelTools contributes)
-                   (js/Array.isArray (.-languageModelTools contributes)))
-            (let [tools (.-languageModelTools contributes)
-                  matching-tool (js/Array.prototype.find.call
-                                 tools
-                                 (fn [^js tool]
-                                   (= tool-name (.-name tool))))]
-
-              ;; Debug the found tool
-              (when matching-tool
-                (js/console.log "[Server] Debug: Found tool:" tool-name
-                                "with keys:" (js/Object.keys matching-tool)
-                                "modelDescription:" (.-modelDescription matching-tool)))
-
-              matching-tool)
-            (do
-              (js/console.warn "[Server] languageModelTools missing or not an array in extension contributes")
-              nil)))
+              ^js contributes (when package-json (.-contributes package-json))]
+          (when contributes
+            (let [^js tools (.-languageModelTools contributes)]
+              (when (and tools (js/Array.isArray tools))
+                (js/Array.prototype.find.call
+                 tools
+                 (fn [^js tool]
+                   (= tool-name (.-name tool))))))))
         (do
           (js/console.warn "[Server] Extension not found when looking for tool manifest for:" tool-name)
           nil)))
@@ -51,17 +31,17 @@
       nil)))
 
 (defn- tool-description [tool-name]
-  (some-> tool-name
-          tool-manifest
-          .-modelDescription))
+  (let [^js tool (tool-manifest tool-name)
+        desc (when tool (.-modelDescription tool))]
+    (or desc "")))
 
 (defn- param-description [tool-name param]
-  (let [tool (tool-manifest tool-name)
-        properties (some-> tool
-                           .-inputSchema
-                           .-properties
-                           (unchecked-get param))]
-    (some-> properties .-description)))
+  (let [^js tool (tool-manifest tool-name)
+        ^js input-schema (when tool (.-inputSchema tool))
+        ^js properties (when input-schema (.-properties input-schema))
+        ^js param-props (when properties (unchecked-get properties param))
+        desc (when param-props (.-description param-props))]
+    (or desc "")))
 
 (comment
   (tool-description  "evaluate_clojure_code")

@@ -82,34 +82,34 @@
                 server-info+ (vscode/commands.executeCommand "calva-backseat-driver.startMcpServer")
                 server-info (js->clj server-info+ :keywordize-keys true)
                 port (:port server-info)
-                
+
                 _ (js/console.log "[tools-validation] Connecting to MCP server...")
                 socket (connect-to-mcp-server port)
-                
+
                 _ (js/console.log "[tools-validation] Sending initialize request...")
                 _ (send-request socket {:jsonrpc "2.0"
                                        :id 1
                                        :method "initialize"})
-                
+
                 _ (js/console.log "[tools-validation] Sending tools/list request...")
                 tools-response (send-request socket {:jsonrpc "2.0"
                                                     :id 2
                                                     :method "tools/list"})
-                
+
                 tools (-> tools-response
                           (js->clj :keywordize-keys true)
                           (get-in [:result :tools]))
-                
+
                 _ (js/console.log "[tools-validation] Tools:" (pr-str tools))
                 _ (js/console.log "[tools-validation] Stopping MCP server...")
                 _ (vscode/commands.executeCommand "calva-backseat-driver.stopMcpServer")
                 _ (.end socket)]
-                
+
           (is (sequential? tools)
               "Response includes a tools array")
           (is (pos? (count tools))
               "At least one tool is returned")
-          
+
           (doseq [tool tools]
             (is (string? (:name tool))
                 (str "Tool has a valid name: " (:name tool)))
@@ -119,7 +119,7 @@
                 (str "Tool description is not null: " (:name tool)))
             (is (seq (:description tool))
                 (str "Tool description is not empty: " (:name tool)))))
-        
+
         (p/catch (fn [e]
                    (js/console.error "[tools-validation] Error:" (.-message e) e)
                    (vscode/commands.executeCommand "calva-backseat-driver.stopMcpServer")
