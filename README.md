@@ -116,12 +116,19 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
 0. Start and connect your REPL
 1. Issue the command: **Calva Backseat Driver: Start the MCP socket server**
    * This will create a port file: `${workspaceFolder}/.calva/mcp-server/port`
+   * When the server is started, a confirmation dialog will be shown. This dialog has a button which lets you copy the command to start the stdio wrapper to the clipboard.
+
+     ![MCP Server Started message with Copy Command button](assets/howto/mcp-copy-stdio-command.png)
+
+     Use this to config your MCP client.
 1. Have your AI assistant tool start the `stdio` wrapper from the extension's install folder in `dist/calva-mcp-server.js` giving it the port file as the only argument:
+
    ```
    ${extensionInstallFolder:betterthantomorrow.calva-backseat-driver}/dist/calva-mcp-server.js ${workspaceFolder}/.calva/mcp-server/port
    ```
    (Those variables work in VS Code, if your assistant don't speak this language, then you'll need to replace them with something that works, hard coded paths or whatever.)
 1. Start using your AI Agent with REPL superpowers!
+
 
 ## How It Works (evaluating code)
 
