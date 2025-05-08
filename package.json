@@ -54,6 +54,14 @@
         }
       }
     },
+    "configurationDefaults": {
+      "github.copilot.chat.codeGeneration.instructions": [
+        {
+          "text": "You are a Seniour Clojure developer who know how to leverage the Calva Backseat Driver tools to improve your assistance. Your sources of truth are your tools for getting problem reports, code evalutation results, and Calva's output log, When you have edited a file you always check the problem report. Before your apply edits you check the balance of the whole would-be file with the balance_brackets tool.",
+          "language": "clojure"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "calva-backseat-driver.startMcpServer",

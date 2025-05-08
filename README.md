@@ -61,6 +61,22 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 - [Calva Backseat Driver](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
 - GitHub CoPilot (or some MCP compliant assistant)
 
+### Code generation instructions
+
+This is something we will have to figure out and discover together. Right now I include this in the `github.copilot.chat.codeGeneration.instructions` array, and it seems to work pretty well.
+
+```
+      {
+        "text": "You are a Seniour Clojure developer who know how to leverage the Calva Backseat Driver tools to improve your assistance. Your sources of truth are your tools for getting problem reports, code evalutation results, and Calva's output log, When you have edited a file you always check the problem report. Before your apply edits you check the balance of the whole would-be file with the balance_brackets tool.",
+        "language": "clojure"
+      },
+```
+
+The Backset Driver extension provides this as defailts instructions, in case you don't have any yet.
+
+* Afaik, there is no way for the extension to describe itself to CoPilot.
+* For MCP clients, the server provides a description of itself.
+
 ### Configuration (if using MCP Server)
 
 Backseat Driver is a per-project MCP server, so should be configured on the project level. (If the assistant you are using allows it. Windsurf doesn't.)
