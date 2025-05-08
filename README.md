@@ -17,6 +17,7 @@ This extension exposes the AI tools both to CoPilot directly, using the VS Code 
 ## Features
 
 * Tool: **Evaluate Code** (disabled by default), access to the Clojure REPL to evaluate code at will
+* Tool: **Bracket Balancer** Helps the model get the bracket balance right (powered by [Parinfer](https://github.com/parinfer/parinfer.js))
 * Tool: **Symbol info lookup**, the AI can look up symbols it is interested in, and will get doc strings, argument info etcetera
 * Tool: **clojuredocs.org lookup**, docs, examples, and *see also* information on Clojure core-ish symbols
 * Resource: **Symbol info lookup**, (a bit experimental) same as the tool
@@ -90,10 +91,10 @@ In you project's `.cursor/mcp.json` add a `"backseat-driver"` entry like so:
       ]
     }
   }
-} 
+}
 ```
 
-Cursor will detect the server config and offer to start it. 
+Cursor will detect the server config and offer to start it.
 
 You may want to check the [Cursor MCP docs](https://docs.cursor.com/chat/tools#mcp-servers).
 

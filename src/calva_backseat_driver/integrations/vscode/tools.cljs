@@ -2,6 +2,7 @@
   (:require
    ["vscode" :as vscode]
    [calva-backseat-driver.integrations.calva.api :as calva]
+   [calva-backseat-driver.bracket-balance :as balance]
    [promesa.core :as p]))
 
 (defn EvaluateClojureCodeTool [dispatch!]
@@ -78,6 +79,22 @@
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})
 
+(defn InferBracketsTool [dispatch!]
+  #js {:prepareInvocation (fn prepareInvocation [^js options _token]
+                            (let [text (-> options .-input .-text)
+                                  message (str "Infer from indents for: " text)]
+                              #js {:invocationMessage "Inferred brackets"
+                                   :confirmationMessages #js {:title "Infer brackets"
+                                                              :message message}}))
+
+       :invoke (fn invoke [^js options _token]
+                 (let [text (-> options .-input .-text)
+                       result (balance/infer-parens {:ex/dispatch! dispatch!
+                                                     :calva/text text})]
+                   (vscode/LanguageModelToolResult.
+                    #js [(vscode/LanguageModelTextPart.
+                          (js/JSON.stringify result))])))})
+
 (defn register-language-model-tools [dispatch!]
   (cond-> []
     :always
@@ -98,4 +115,9 @@
     (calva/exists-on-output?)
     (conj (vscode/lm.registerTool
            "get_repl_output_log"
-           (#'GetOutputLogTool dispatch!)))))
+           (#'GetOutputLogTool dispatch!)))
+
+    :always
+    (conj (vscode/lm.registerTool
+           "infer_brackets"
+           (#'InferBracketsTool dispatch!)))))

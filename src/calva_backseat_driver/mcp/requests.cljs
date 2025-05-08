@@ -2,6 +2,7 @@
   (:require
    ["vscode" :as vscode]
    [calva-backseat-driver.integrations.calva.api :as calva]
+   [calva-backseat-driver.bracket-balance :as bracket-balance]
    [clojure.string :as string]
    [promesa.core :as p]))
 
@@ -98,6 +99,17 @@
                    :audience ["user" "assistant"]
                    :priority 8}}))
 
+(def bracket-balance-tool-listing
+  (let [tool-name "infer_brackets"]
+    {:name tool-name
+     :description (tool-description tool-name)
+     :inputSchema {:type "object"
+                   :properties {"text" {:type "string"
+                                        :description (param-description tool-name "text")}}
+                   :required ["text"]
+                   :audience ["user" "assistant"]
+                   :priority 10}}))
+
 (defn handle-request-fn [{:ex/keys [dispatch!] :as options
                           :mcp/keys [repl-enabled?]}
                          {:keys [id method params] :as request}]
@@ -119,6 +131,9 @@
     (let [response {:jsonrpc "2.0"
                     :id id
                     :result {:tools (cond-> []
+                                      :always
+                                      (conj bracket-balance-tool-listing)
+
                                       (= true repl-enabled?)
                                       (conj evaluate-code-tool-listing)
 
@@ -196,6 +211,15 @@
            :id id
            :result {:content [{:type "text"
                                :text (js/JSON.stringify output)}]}})
+
+        (= tool "infer_brackets")
+        (let [{:keys [text]} arguments
+              result (bracket-balance/infer-parens (merge options
+                                                          {:calva/text text}))]
+          {:jsonrpc "2.0"
+           :id id
+           :result {:content [{:type "text"
+                               :text (js/JSON.stringify result)}]}})
 
         :else
         {:jsonrpc "2.0"

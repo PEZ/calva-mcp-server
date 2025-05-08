@@ -205,6 +205,34 @@
             "sinceLine"
           ]
         }
+      },
+      {
+        "name": "infer_brackets",
+        "tags": [
+          "clojure",
+          "parinfer",
+          "brackets",
+          "balance",
+          "structural-editing"
+        ],
+        "toolReferenceName": "infer-brackets",
+        "displayName": "Bracket balancer",
+        "modelDescription": "Heal the balance of your Clojure code, balancing its brackets. Use this tool to make sure the edits you suggest produce a text file that has its structure intact. Also use it when the problem report/linter complaints about unmatched brackets of any kind.",
+        "userDescription": "Infer brackets from indentation",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(symbol-bracket)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "Clojure code that may need balancing of its brackets."
+            }
+          },
+          "required": [
+            "text"
+          ]
+        }
       }
     ]
   },
@@ -223,7 +251,8 @@
     "vscode:prepublish": "npm run clean && npm run release"
   },
   "dependencies": {
-    "@vscode/codicons": "^0.0.36"
+    "@vscode/codicons": "^0.0.36",
+    "parinfer": "^3.13.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
