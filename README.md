@@ -58,42 +58,61 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 - [VS Code](https://code.visualstudio.com/)
 - [Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva)
 - [Calva Backseat Driver](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva-backseat-driver)
-- GitHub CoPilot
+- GitHub CoPilot (or some MCP compliant assistant)
 
-For MCP you need
-- An MCP compliant AI coding assistant (e.g., RooCode)
+### Configuration (if using MCP Server)
 
-### Installation (if using MCP Server)
+Backseat Driver is a per-project MCP server, so should be configured on the project level. (If the assistant you are using allows it. Windsurf doesn't.)
 
 The MCP server is running as a plain socket server in the VS Code Extension Host, writing out a port file when it starts. Then the MCP client needs to start a `stdio` relay/proxy/wrapper thar it will talk to. The wrapper script takes the port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 
-1. Install Calva Backseat Driver from the Extensions pane in VS Code
+1. Open your project
 1. Start the Calva MCP socket server
-1. Add the MCP server config (may vary depending on MCP Client)
-1. Stop the Calva MCP socket server (it's a habit to consider, at least)
+   * This will create a port file: `${workspaceFolder}/.calva/mcp-server/port`
+   * When the server is started, a confirmation dialog will be shown. This dialog has a button which lets you copy the command to start the stdio wrapper to the clipboard.
 
-#### CoPilot configuration
+     ![MCP Server Started message with Copy Command button](assets/howto/mcp-copy-stdio-command.png)
+1. Add the MCP server config (will vary depending on MCP Client)
 
-Not that you will need this for CoPilot. But it would work, and for now it's the only example we have.
+#### Cursor configuration
 
-In you project's `.vscode/mcp.json` add a `"calva"` entry like so:
+[Cursor](https://www.cursor.com/) supports project level config.
+
+In you project's `.cursor/mcp.json` add a `"backseat-driver"` entry like so:
 ```json
 {
-  "servers": {
-    // other servers (if any) ...
-    "calva": {
-      "type": "stdio",
+  "mcpServers": {
+    "backseat-driver": {
       "command": "node",
       "args": [
-        "${extensionInstallFolder:betterthantomorrow.calva-backseat-driver}/dist/dist/calva-mcp-server.js",
-        "${workspaceFolder}/.calva/mcp-server/port"
+        "<absolute path to wrapper script>",
+        "<absolute path to port file (which points to your project's .calva/mcp-server/port)"
       ]
     }
   }
-}
+} 
 ```
 
-The VS Code editor for the `mcp.json` file also has UI for starting and stopping the `stdio` server.
+Cursor will detect the server config and offer to start it. 
+
+You may want to check the [Cursor MCP docs](https://docs.cursor.com/chat/tools#mcp-servers).
+
+#### Windsurf configuration
+
+[Windsurf](https://windsurf.com/) can use the Backseat Driver via its MCP server. However, it is a bit clunky, to say the least. Windsurf doesn't support workspace configurations for MCP servers, so they are only global. This means:
+
+* You can in practice only have one Backseat Driver backed project
+* You must use absolute paths for the stdio command port file argument
+
+Cursor's configuration file has the same shape as Cursor's, located at: `~/.codeium/windsurf/mcp_config.json` (at least on my machine).
+
+The Windsurf AI assistant doesn't know about its MCP configurations and will keep trying to create MCP configs for CoPilot. Which is silly, because it won't work for Windsurf, and CoPilot doesn't need it.
+
+**Clunk**: At startup, even with the MCP server set to auto-start, Windsurf often refreshes its MCP servers quicker than the MCP server starts. You may need to refresh the tools in Windsurf. However, Windsurf doesn't seem to handle refreshing more than once well. It just keeps spinning the refresh button.
+
+**IMPORTANT**: Windsurf uses MCP tools without checking with the user by default. This is fine for 3 out of 4 of the Backseat Driver tools, but for the REPL tool it is less ideal. I think some Windsurf user should report this non-compliance with MCP as an issue.
+
+#### Other MCP client?
 
 Please add configuration for other AI clients! 🙏
 
@@ -108,41 +127,6 @@ All tools can be referenced in the chat:
 * `#clojure-symbol`
 * `#clojuredocs`
 * `#calva-output`
-
-### Using with MCP
-
-For an MCP client to use Calva Backseat Driver, the socket server needs to be started before the `stdio` wrapper. For now the socket server needs to always be started manually.
-
-0. Start and connect your REPL
-1. Issue the command: **Calva Backseat Driver: Start the MCP socket server**
-   * This will create a port file: `${workspaceFolder}/.calva/mcp-server/port`
-   * When the server is started, a confirmation dialog will be shown. This dialog has a button which lets you copy the command to start the stdio wrapper to the clipboard.
-
-     ![MCP Server Started message with Copy Command button](assets/howto/mcp-copy-stdio-command.png)
-
-     Use this to config your MCP client.
-1. Have your AI assistant tool start the `stdio` wrapper from the extension's install folder in `dist/calva-mcp-server.js` giving it the port file as the only argument:
-
-   ```
-   ${extensionInstallFolder:betterthantomorrow.calva-backseat-driver}/dist/calva-mcp-server.js ${workspaceFolder}/.calva/mcp-server/port
-   ```
-   (Those variables work in VS Code, if your assistant don't speak this language, then you'll need to replace them with something that works, hard coded paths or whatever.)
-1. Start using your AI Agent with REPL superpowers!
-
-**NB**: *You can configure the MCP server to start automatically when the VS Code window opens. Search settings for “Backseat Driver”*
-
-#### Windsurf
-
-[Windsurf](https://windsurf.com/) can use the Backseat Driver via its MCP server. However, it is a bit clunky, to say the least. Windsurf doesn't support workspace configurations for MCP servers, so they are only global. This means:
-
-* You can in practice only have one Backseat Driver backed project
-* You must use absolute paths for the stdio command port file argument
-
-**IMPORTANT**: Windsurf uses MCP tools without checking with the user by default. This is fine for 3 out of 4 of the Backseat Driver tools, but for the REPL tool it is less ideal. I think some Windsurf user should report this non-compliance with MCP as an issue.
-
-Also the Windsurf AI assistant doesn't know about its MCP configurations and will keep trying to create MCP configs for CoPilot. Which is silly, because it won't work for Windsurf, and CoPilot doesn't need it.
-
-At startup, even with the MCP server set to auto-start, Windsurf often refreshes its MCP servers quicker than the MCP server starts. You may need to refresh the tools in Windsurf. However, Windsurf doesn't seem to handle refreshing more than once well. It just keeps spinning the refresh button.
 
 ## How It Works (evaluating code)
 

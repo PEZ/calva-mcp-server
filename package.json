@@ -14,7 +14,7 @@
     "url": "https://github.com/BetterThanTomorrow/calva-backseat-driver.git"
   },
   "engines": {
-    "vscode": ">=1.99.0",
+    "vscode": ">=1.96.2",
     "node": ">=20.18.0"
   },
   "enabledApiProposals": [
@@ -227,7 +227,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
-    "@types/vscode": "^1.98.0",
+    "@types/vscode": "^1.96.2",
     "@vscode/test-electron": "~2.5.2",
     "@vscode/vsce": "^3.3.2",
     "ovsx": "~0.10.1",
