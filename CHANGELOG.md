@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.7] - 2025-05-08
+
 - [Add tool for balancing brackets](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/6)
 
 ## [v0.0.6] - 2025-05-08
