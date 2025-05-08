@@ -119,5 +119,5 @@
 
     :always
     (conj (vscode/lm.registerTool
-           "infer_brackets"
+           "balance_brackets"
            (#'InferBracketsTool dispatch!)))))

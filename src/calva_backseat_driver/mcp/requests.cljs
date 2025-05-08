@@ -100,7 +100,7 @@
                    :priority 8}}))
 
 (def bracket-balance-tool-listing
-  (let [tool-name "infer_brackets"]
+  (let [tool-name "balance_brackets"]
     {:name tool-name
      :description (tool-description tool-name)
      :inputSchema {:type "object"
@@ -212,7 +212,7 @@
            :result {:content [{:type "text"
                                :text (js/JSON.stringify output)}]}})
 
-        (= tool "infer_brackets")
+        (= tool "balance_brackets")
         (let [{:keys [text]} arguments
               result (bracket-balance/infer-parens (merge options
                                                           {:calva/text text}))]

@@ -81,9 +81,9 @@
           "clojure",
           "repl"
         ],
-        "toolReferenceName": "eval-clojure",
+        "toolReferenceName": "evaluate",
         "displayName": "Evaluate Clojure Code",
-        "modelDescription": "Evaluate Clojure/ClojureScript code using Calva's REPL connection. Enables AI Interactive Programming. The REPL holds the truth. Use this to make sure your seggested edits work as you advertise. Also works with ClojureScript, Babashka, nbb, Joyride, Basilisp, and any nREPL enabled Clojure-ish enough language.",
+        "modelDescription": "Evaluate code using Calva's REPL connection. Enables AI Interactive Programming. Use this to make sure your seggested edits work as you advertise, before suggesting them. The REPL holds the truth!",
         "userDescription": "Evaluate Clojure or ClojureScript code in a connected REPL.",
         "canBeReferencedInPrompt": true,
         "icon": "$(terminal-bash)",
@@ -127,7 +127,7 @@
         "modelDescription": "Get detailed information about a Clojure symbol from the connected REPL.",
         "userDescription": "Look up documentation for a Clojure symbol.",
         "canBeReferencedInPrompt": true,
-        "icon": "$(symbol-namespace)",
+        "icon": "$(tag)",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -192,7 +192,7 @@
         "modelDescription": "Get REPL output messages from  Calva output window. Returns REPL output since `since-line`. Start with since-line=0 and use the last line number from previous output for subsequent calls. This is your window into the running application. Invoke it often as files are edited and/or you evaluate code.",
         "userDescription": "Read Calva's REPL output log",
         "canBeReferencedInPrompt": true,
-        "icon": "$(output)",
+        "icon": "$(list-ordered)",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -207,7 +207,7 @@
         }
       },
       {
-        "name": "infer_brackets",
+        "name": "balance_brackets",
         "tags": [
           "clojure",
           "parinfer",
@@ -215,18 +215,18 @@
           "balance",
           "structural-editing"
         ],
-        "toolReferenceName": "infer-brackets",
-        "displayName": "Bracket balancer",
-        "modelDescription": "Heal the balance of your Clojure code, balancing its brackets. Use this tool to make sure the edits you suggest produce a text file that has its structure intact. Also use it when the problem report/linter complaints about unmatched brackets of any kind.",
+        "toolReferenceName": "balance-brackets",
+        "displayName": "Bracket Balancer",
+        "modelDescription": "Heal the structure of your Clojure code before suggesting it to the user. If you are editing a file, use this tool on the whole file as it would look after edits are applied, and you will seldom see the problem/error report complain about inbalanced brackets.",
         "userDescription": "Infer brackets from indentation",
         "canBeReferencedInPrompt": true,
-        "icon": "$(symbol-bracket)",
+        "icon": "$(bracket-error)",
         "inputSchema": {
           "type": "object",
           "properties": {
             "text": {
               "type": "string",
-              "description": "Clojure code that may need balancing of its brackets."
+              "description": "Clojure code that may need balancing of its brackets. (Often the whole would-be file.)"
             }
           },
           "required": [
