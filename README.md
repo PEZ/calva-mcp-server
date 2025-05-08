@@ -133,7 +133,7 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
 
 #### Windsurf
 
-[Windsurf](https://windsurf.com/) can use the Backseat Driver via its MCP server. However, it is a bit clunky. Windsurf doesn't support workspace configurations for MCP servers, so they are only global. This means:
+[Windsurf](https://windsurf.com/) can use the Backseat Driver via its MCP server. However, it is a bit clunky, to say the least. Windsurf doesn't support workspace configurations for MCP servers, so they are only global. This means:
 
 * You can in practice only have one Backseat Driver backed project
 * You must use absolute paths for the stdio command port file argument
@@ -141,6 +141,8 @@ For an MCP client to use Calva Backseat Driver, the socket server needs to be st
 **IMPORTANT**: Windsurf uses MCP tools without checking with the user by default. This is fine for 3 out of 4 of the Backseat Driver tools, but for the REPL tool it is less ideal. I think some Windsurf user should report this non-compliance with MCP as an issue.
 
 Also the Windsurf AI assistant doesn't know about its MCP configurations and will keep trying to create MCP configs for CoPilot. Which is silly, because it won't work for Windsurf, and CoPilot doesn't need it.
+
+At startup, even with the MCP server set to auto-start, Windsurf often refreshes its MCP servers quicker than the MCP server starts. You may need to refresh the tools in Windsurf. However, Windsurf doesn't seem to handle refreshing more than once well. It just keeps spinning the refresh button.
 
 ## How It Works (evaluating code)
 
