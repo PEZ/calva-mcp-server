@@ -79,12 +79,15 @@
         "name": "evaluate_clojure_code",
         "tags": [
           "clojure",
-          "repl"
+          "repl",
+          "needs-connected-repl",
+          "interactive-programming",
+          "repl-driven-development"
         ],
         "toolReferenceName": "evaluate",
         "displayName": "Evaluate Clojure Code",
         "modelDescription": "Evaluate code using Calva's REPL connection. Enables AI Interactive Programming. Use this to make sure your seggested edits work as you advertise, before suggesting them. The REPL holds the truth!",
-        "userDescription": "Evaluate Clojure or ClojureScript code in a connected REPL.",
+        "userDescription": "Evaluate Clojure or ClojureScript code in the connected REPL.",
         "canBeReferencedInPrompt": true,
         "icon": "$(terminal-bash)",
         "when": "config.calva-backseat-driver.enableReplEvaluation",
@@ -120,7 +123,11 @@
         "name": "get_symbol_info",
         "tags": [
           "clojure",
-          "documentation"
+          "documentation",
+          "needs-connected-repl",
+          "argument-list",
+          "return-values",
+          "side-effects"
         ],
         "toolReferenceName": "clojure-symbol",
         "displayName": "Clojure Symbol Info",
@@ -160,6 +167,10 @@
         "name": "get_clojuredocs_info",
         "tags": [
           "clojure",
+          "clojure-core",
+          "needs-connected-repl",
+          "examples",
+          "see-also",
           "documentation"
         ],
         "toolReferenceName": "clojuredocs",
@@ -185,7 +196,10 @@
         "name": "get_repl_output_log",
         "tags": [
           "clojure",
-          "repl"
+          "repl",
+          "evaluation-results",
+          "stdout",
+          "stderr"
         ],
         "toolReferenceName": "calva-output",
         "displayName": "Calva REPL Output Log",
@@ -213,7 +227,9 @@
           "parinfer",
           "brackets",
           "balance",
-          "structural-editing"
+          "structural-editing",
+          "problem-report",
+          "error-report"
         ],
         "toolReferenceName": "balance-brackets",
         "displayName": "Bracket Balancer",
