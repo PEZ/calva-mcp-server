@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.8] - 2025-05-08
+
 - Try improve tool usage descriptions for the AI.
 
 ## [v0.0.7] - 2025-05-08
