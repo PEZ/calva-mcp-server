@@ -3,8 +3,7 @@
    ["fs" :as fs]
    ["net" :as net]
    ["process" :as process]
-   [clojure.string :as string]
-   [promesa.core :as p]))
+   [clojure.string :as string]))
 
 (def log-levels {:error 0
                  :warn 1
@@ -31,18 +30,18 @@
 (def original-stdout (.-stdout process))
 
 (defn read-port-from-file [port-file-path]
-  (p/create
-   (fn [resolve-fn _reject]
+  (js/Promise.
+   (fn [resolve _reject]
      (.readFile fs port-file-path #js {:encoding "utf8"}
                 (fn [err data]
                   (if err
                     (do (log-stderr :error "Port file read error:" err)
-                        (resolve-fn nil))
+                        (resolve nil))
                     (let [port-num (js/parseInt data 10)]
                       (if (js/isNaN port-num)
                         (do (log-stderr :error "Invalid port number in file:" data)
-                            (resolve-fn nil))
-                        (resolve-fn port-num)))))))))
+                            (resolve nil))
+                        (resolve port-num)))))))))
 
 (defn handle-stdin [^js stdin ^js socket]
   (let [stdin-buffer (volatile! "")]
@@ -124,19 +123,20 @@
                                        :message "Configuration error: Port file path not provided."}})
                      "\n"))
         (.exit process 1))
-      (p/let [port (read-port-from-file port-file-path)]
-        (if port
-          (let [socket (net/connect #js {:port port})
-                stdin (.-stdin process)]
-            (handle-stdin stdin socket)
-            (handle-socket socket)
-            (log-stderr :info "Connected to MCP server on port" port))
-          (do
-            (log-stderr :error "Error: Port file not found:" port-file-path)
-            (.write original-stdout
-                    (str (js/JSON.stringify
-                          #js {:jsonrpc "2.0"
-                               :error #js {:code -32001
-                                           :message "MCP server not running or port file missing."}})
-                         "\n"))
-            (.exit process 1)))))))
+      (-> (read-port-from-file port-file-path)
+          (.then (fn [port]
+                   (if port
+                     (let [socket (net/connect #js {:port port})
+                           stdin (.-stdin process)]
+                       (handle-stdin stdin socket)
+                       (handle-socket socket)
+                       (log-stderr :info "Connected to MCP server on port" port))
+                     (do
+                       (log-stderr :error "Error: Port file not found:" port-file-path)
+                       (.write original-stdout
+                               (str (js/JSON.stringify
+                                     #js {:jsonrpc "2.0"
+                                          :error #js {:code -32001
+                                                      :message "MCP server not running or port file missing."}})
+                                    "\n"))
+                       (.exit process 1)))))))))
