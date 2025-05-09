@@ -5,6 +5,7 @@ Changes to Calva Backseat Driver
 ## [Unreleased]
 
 - [The MCP stdio script crashes when Claude Desktop uses it](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/7)
+- Remove `parenTrails` from Bracket Balancer result
 
 ## [v0.0.8] - 2025-05-08
 

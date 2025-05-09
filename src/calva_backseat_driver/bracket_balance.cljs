@@ -7,7 +7,11 @@
     :calva/keys [text]}]
   (dispatch! [[:app/ax.log :debug "[Server] Infering brackets for:" text]])
   (try
-    (parinfer/indentMode  text #js {:partialResult true})
+    (let [result (parinfer/indentMode  text #js {:partialResult true})]
+      (-> result
+          js->clj
+          (dissoc "parenTrails")
+          clj->js))
     (catch :default e
       #js {:error (.-message e)})))
 
