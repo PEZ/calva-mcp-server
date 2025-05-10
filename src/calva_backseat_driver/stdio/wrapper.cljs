@@ -111,20 +111,27 @@
                              "Socket connection closed cleanly."))
          (.exit process (if had-error? 1 0)))))
 
-(defn ^:export main [port-file-path & _]
-  (log-stderr :info "Connecting to Backseat Driver using port file." port-file-path)
+(defn ^:export main [port-or-port-file & _]
+
   (log-stderr :info "Running in node version: " (.-version process))
-  (if-not port-file-path
+
+  (if-not port-or-port-file
     (do
-      (log-stderr :error "Error: Port file path argument missing.")
+      (log-stderr :error "Usage: calva-mcp-server.js <port or port-file>")
       (.write original-stdout
               (str (js/JSON.stringify
                     #js {:jsonrpc "2.0"
                          :error #js {:code -32002
-                                     :message "Configuration error: Port file path not provided."}})
+                                     :message "Configuration error: Port or port file path not provided."}})
                    "\n"))
       (.exit process 1))
-    (-> (read-port-from-file port-file-path)
+    (-> (if-let [parsed-port (parse-long port-or-port-file)]
+          (js/Promise. (fn [resolve _]
+                         (log-stderr :info "Connecting to Backseat Driver on port." parsed-port)
+                         (resolve parsed-port)))
+          (do
+            (log-stderr :info "Connecting to Backseat Driver using port file." port-or-port-file)
+            (read-port-from-file port-or-port-file)))
         (.then (fn [port]
                  (if port
                    (let [socket (net/connect #js {:port port})
@@ -133,7 +140,7 @@
                      (handle-socket socket)
                      (log-stderr :info "Connected to MCP server on port" port))
                    (do
-                     (log-stderr :error "Error: Port file not found:" port-file-path)
+                     (log-stderr :error "Error: Port file not found:" port-or-port-file)
                      (.write original-stdout
                              (str (js/JSON.stringify
                                    #js {:jsonrpc "2.0"
