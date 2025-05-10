@@ -111,32 +111,33 @@
                              "Socket connection closed cleanly."))
          (.exit process (if had-error? 1 0)))))
 
-(defn ^:export main [& args]
-  (let [port-file-path (first args)]
-    (if-not port-file-path
-      (do
-        (log-stderr :error "Error: Port file path argument missing.")
-        (.write original-stdout
-                (str (js/JSON.stringify
-                      #js {:jsonrpc "2.0"
-                           :error #js {:code -32002
-                                       :message "Configuration error: Port file path not provided."}})
-                     "\n"))
-        (.exit process 1))
-      (-> (read-port-from-file port-file-path)
-          (.then (fn [port]
-                   (if port
-                     (let [socket (net/connect #js {:port port})
-                           stdin (.-stdin process)]
-                       (handle-stdin stdin socket)
-                       (handle-socket socket)
-                       (log-stderr :info "Connected to MCP server on port" port))
-                     (do
-                       (log-stderr :error "Error: Port file not found:" port-file-path)
-                       (.write original-stdout
-                               (str (js/JSON.stringify
-                                     #js {:jsonrpc "2.0"
-                                          :error #js {:code -32001
-                                                      :message "MCP server not running or port file missing."}})
-                                    "\n"))
-                       (.exit process 1)))))))))
+(defn ^:export main [port-file-path & _]
+  (log-stderr :info "Connecting to Backseat Driver using port file." port-file-path)
+  (log-stderr :info "Running in node version: " (.-version process))
+  (if-not port-file-path
+    (do
+      (log-stderr :error "Error: Port file path argument missing.")
+      (.write original-stdout
+              (str (js/JSON.stringify
+                    #js {:jsonrpc "2.0"
+                         :error #js {:code -32002
+                                     :message "Configuration error: Port file path not provided."}})
+                   "\n"))
+      (.exit process 1))
+    (-> (read-port-from-file port-file-path)
+        (.then (fn [port]
+                 (if port
+                   (let [socket (net/connect #js {:port port})
+                         stdin (.-stdin process)]
+                     (handle-stdin stdin socket)
+                     (handle-socket socket)
+                     (log-stderr :info "Connected to MCP server on port" port))
+                   (do
+                     (log-stderr :error "Error: Port file not found:" port-file-path)
+                     (.write original-stdout
+                             (str (js/JSON.stringify
+                                   #js {:jsonrpc "2.0"
+                                        :error #js {:code -32001
+                                                    :message "MCP server not running or port file missing."}})
+                                  "\n"))
+                     (.exit process 1))))))))
