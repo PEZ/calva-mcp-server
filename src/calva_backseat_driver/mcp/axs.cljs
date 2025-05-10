@@ -9,6 +9,7 @@
      :ex/dxs [[:app/ax.set-when-context :calva-backseat-driver/starting? true]]
      :ex/fxs [[:mcp/fx.start-server {:app/log-dir-initialized+ (:app/log-dir-initialized+ state)
                                      :mcp/repl-enabled? :vscode/config.enableReplEvaluation
+                                     :server/port :vscode/config.mcpSocketServerPort
                                      :ex/on-success [[:mcp/ax.server-started :ex/action-args]]
                                      :ex/on-error [[:mcp/ax.server-error :ex/action-args]]}]]}
 

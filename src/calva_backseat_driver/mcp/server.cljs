@@ -137,24 +137,37 @@
               (fn [err]
                 (dispatch! [[:app/ax.log :error "[Server] Socket error:" err]]))))))
 
-(defn- start-socket-server!+ [{:ex/keys [dispatch!] :as options}]
+(defn- start-socket-server!+ [{:ex/keys [dispatch!]
+                               :server/keys [port] :as options}]
   (p/create
    (fn [resolve-fn reject]
      (try
        (let [server (.createServer
                      net
                      (fn [^js socket]
-                       (setup-socket-handlers! options socket)))]
-         (.on server "error"
-              (fn [err]
-                (dispatch! [[:app/ax.log :error "[Server] Server creation error:" err]])
-                (reject err)))
-         (.listen server 0
+                       (setup-socket-handlers! options socket)))
+             listen-port (or port 0)]
+         (.listen server listen-port
                   (fn []
                     (let [address (.address server)
-                          port (.-port address)]
-                      (dispatch! [[:app/ax.log :info "[Server] Socket server listening on port" port]])
-                      (resolve-fn {:server/instance server :server/port port})))))
+                          assigned-port (.-port address)
+                          falling-back? (and (not= 0 listen-port)
+                                             (not= listen-port assigned-port))]
+                      (dispatch! [[:app/ax.log :info "[Server] Socket server listening on port" assigned-port]])
+                      (resolve-fn (merge {:server/instance server :server/port assigned-port}
+                                         (when falling-back?
+                                           {:server/port-note (str "NOTE: Port " port " was already in use.")}))))))
+         (.on server "error"
+              (fn [err]
+                (if (and (= (.-code err) "EADDRINUSE")
+                         (not= listen-port 0))
+                  (do
+                    (dispatch! [[:app/ax.log :warn (str "[Server] Port " listen-port " already in use, falling back to an available port")]])
+                    ;; Try again with port 0 (available port)
+                    (.listen server 0))
+                  (do
+                    (dispatch! [[:app/ax.log :error "[Server] Server creation error:" err]])
+                    (reject err))))))
        (catch js/Error e
          (dispatch! [[:app/ax.log :error "[Server] Error creating server:" (.-message e)]])
          (reject e))))))

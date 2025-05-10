@@ -51,6 +51,12 @@
           "default": false,
           "markdownDescription": "Automatically start the MCP server when the extension is activated.",
           "scope": "resource"
+        },
+        "calva-backseat-driver.mcpSocketServerPort": {
+          "type": "number",
+          "default": 1664,
+          "markdownDescription": "Port to start the socket server on. Use `0` to let the server choose a high available port.",
+          "scope": "resource"
         }
       }
     },

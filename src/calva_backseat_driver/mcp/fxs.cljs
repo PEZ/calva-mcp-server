@@ -30,9 +30,14 @@
                     (dispatch! context (ax/enrich-with-args on-success success?))))))
 
     [:mcp/fx.show-server-started-message server-info]
-    (let [{:server/keys [port ^js port-file-uri]} server-info]
-      (p/let [button (vscode/window.showInformationMessage (str "MCP socket server started on port: " port ". You also need to start the `calva` stdio server. (Check the docs of your AI Agent for how to do this.)") "Copy stdio-command")]
-        (when (= "Copy stdio-command" button)
+    (let [{:server/keys [port ^js port-file-uri port-note]} server-info]
+      (p/let [button (vscode/window.showInformationMessage (str port-note " MCP socket server started on port: " port ". Now your MCP client can run the `calva` stdio server command. (See Backseat Driver README and the docs of your AI Agent for how to do this.)") "Copy port" "Copy command")]
+        (case button
+          "Copy port"
+          (vscode/env.clipboard.writeText
+           (str port))
+
+          "Copy command"
           (let [extension-uri (-> (vscode/extensions.getExtension
                                    "betterthantomorrow.calva-backseat-driver")
                                   .-extensionUri)
@@ -40,7 +45,9 @@
                 script-path (.-fsPath script-uri)
                 port-file-path (.-fsPath port-file-uri)]
             (vscode/env.clipboard.writeText
-             (str "node " script-path " " port-file-path))))))
+             (str "node " script-path " " port-file-path)))
+
+          nil)))
 
     [:mcp/fx.send-notification notification]
     (server/send-notification-params {:ex/dispatch! (partial dispatch! context)} notification)
