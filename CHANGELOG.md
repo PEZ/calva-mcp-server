@@ -4,6 +4,11 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.10] - 2025-05-10
+
+- Use preconfigured port for the MCP server
+- Make the stdio wrapper script accept either a port or a port file
+
 ## [v0.0.9] - 2025-05-09
 
 - [The MCP stdio script crashes when Claude Desktop uses it](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/7)
