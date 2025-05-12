@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.11] - 2025-05-12
+
 - Clarify instructions to AI of how to use the Bracket Balancer tool
 
 ## [v0.0.10] - 2025-05-10
