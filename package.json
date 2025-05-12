@@ -241,14 +241,12 @@
           "parinfer",
           "brackets",
           "balance",
-          "structural-editing",
-          "problem-report",
-          "error-report"
+          "structural-editing"
         ],
         "toolReferenceName": "balance-brackets",
         "displayName": "Bracket Balancer",
-        "modelDescription": "Heal the structure of your Clojure code before suggesting it to the user. If you are editing a file, use this tool on the whole file as it would look after edits are applied, and you will seldom see the problem/error report complain about inbalanced brackets.",
-        "userDescription": "Infer brackets from indentation",
+        "modelDescription": "This tool AUTHORITATIVELY balances brackets in Clojure code. Always follow these steps when using it:\n\n1. Pass the COMPLETE content of the file or would-be file without any modifications\n2. Use the EXACT output from this tool to replace the ENTIRE file content\n3. NEVER modify the tool's output or analyze its changes",
+        "userDescription": "Balance brackets in Clojure code",
         "canBeReferencedInPrompt": true,
         "icon": "$(bracket-error)",
         "inputSchema": {
@@ -256,7 +254,7 @@
           "properties": {
             "text": {
               "type": "string",
-              "description": "Clojure code that may need balancing of its brackets. (Often the whole would-be file.)"
+              "description": "The COMPLETE text of the file needing bracket balancing. Do not modify this text in any way before passing it to the tool."
             }
           },
           "required": [

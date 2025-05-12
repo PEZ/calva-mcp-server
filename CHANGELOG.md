@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+- Clarify instructions to AI of how to use the Bracket Balancer tool
+
 ## [v0.0.10] - 2025-05-10
 
 - Use preconfigured port for the MCP server
