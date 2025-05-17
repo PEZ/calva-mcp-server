@@ -23,7 +23,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp
-          pattern: '*.vsix'
+          pattern: 'Linux-*.vsix'
           merge-multiple: true
 
       - name: Install clojure tools
@@ -80,7 +80,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp
-          pattern: '*.vsix'
+          pattern: 'Linux-*.vsix'
           merge-multiple: true
 
       - name: Publish to VS Code Marketplace
@@ -115,7 +115,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp
-          pattern: '*.vsix'
+          pattern: 'Linux-*.vsix'
           merge-multiple: true
 
       - name: Publish to Open VSX
