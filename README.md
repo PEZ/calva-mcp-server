@@ -118,7 +118,7 @@ In you project's `.cursor/mcp.json` add a `"backseat-driver"` entry like so:
   }
 }
 ```
-Both absolute paths needed above can be conveniently determined by clicking on the **Copy command** button (shown when starting the MCP server) and then pasting into `mcp.json` file, als described in section [Configuration](#configuration-if-using-mcp-server) above.
+Both absolute paths needed above can be conveniently determined by clicking on the **Copy command** button (shown when starting the MCP server) and then pasting into `mcp.json` file, as described above: [Configuration](#configuration-if-using-mcp-server).
 
 
 Cursor will detect the server config and offer to start it.
