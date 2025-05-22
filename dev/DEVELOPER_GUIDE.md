@@ -86,7 +86,7 @@ The Model Context Protocol (MCP) inspector is a valuable tool for testing and de
 To start the MCP inspector:
 
 ```sh
-npx @modelcontextprotocol/inspector node ./dist/calva-backseat-driver.js ./test-projects/mini-deps
+npx @modelcontextprotocol/inspector node ./dist/calva-backseat-driver.js test-projects/example/.calva/mcp-server/port
 ```
 
 This will:
