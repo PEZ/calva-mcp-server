@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.12] - 2025-05-22
+
 - [Add `requests/list` MCP op](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/9)
 
 ## [v0.0.11] - 2025-05-12
