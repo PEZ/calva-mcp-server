@@ -261,6 +261,13 @@
                     :result {}}]
       response)
 
+    (= method "resources/list")
+    (let [response {:jsonrpc "2.0"
+                    :id id
+                    :result {:resources []}}]
+      response)
+
+
     id
     {:jsonrpc "2.0" :id id :error {:code -32601 :message "Method not found"}}
 
