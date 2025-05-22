@@ -111,13 +111,15 @@ In you project's `.cursor/mcp.json` add a `"backseat-driver"` entry like so:
     "backseat-driver": {
       "command": "node",
       "args": [
-        "<absolute path to wrapper script>",
+        "<absolute path to calva-mcp-server.js in the extension folder>",
         "<absolute path to port file (which points to your project's .calva/mcp-server/port)"
       ]
     }
   }
 }
 ```
+Both absolute paths needed above can be conveniently determined by clicking on the **Copy command** button (shown when starting the MCP server) and then pasting into `mcp.json` file, as described above: [Configuration](#configuration-if-using-mcp-server).
+
 
 Cursor will detect the server config and offer to start it.
 
@@ -150,7 +152,7 @@ Claude Desktop doesn't run in VS Code, and doesn't have any other project/worksp
     "backseat-driver": {
       "command": "node",
       "args": [
-        "<absolute path to wrapper script>",
+        "<absolute path to calva-mcp-server.js in the extension folder>",
         "1664"
       ]
     }
