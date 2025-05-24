@@ -246,7 +246,7 @@ Calva Backseat Driver implements the [Model Context Protocol](https://modelconte
 
 Some projects/tools to look to complement Backseat Driver, or use instead of it:
 
-* [nREPL MCP Server](https://github.com/JohanCodinha/nrepl-mcp-server/blob/main/readme.md), gives the AI tools to connect to a running nREPL server and evaluate code (and more)
+* [nREPL MCP Server](https://github.com/JohanCodinha/nrepl-mcp-server), gives the AI tools to connect to a running nREPL server and evaluate code (and more)
 * [Babashka AI Coding Tools](https://github.com/nextdoc/ai-tools), Clojure test runner for AI agents.
 
 ## WIP
