@@ -159,25 +159,40 @@
                  {:success false
                   :error (.-message e)}))))
 
+(defn- filter-clj-kondo-diagnostics
+  "Filter diagnostics to only include those from clj-kondo source"
+  [diagnostics]
+  (->> diagnostics
+       (filter #(= "clj-kondo" (.-source %)))))
+
+(defn- get-diagnostics-for-file
+  "Get clj-kondo diagnostics for a file"
+  [file-path]
+  (p/let [uri (vscode/Uri.file file-path)
+          diagnostics-raw (vscode/languages.getDiagnostics uri)
+          diagnostics diagnostics-raw]
+    (filter-clj-kondo-diagnostics diagnostics)))
+
 (defn apply-form-edit-by-line
   "Apply a form edit by line number instead of character position.
    This is the preferred approach for AI agents as they can see and reason about line numbers."
   [file-path line-number new-form]
-  ;; Trigger hot reload
   (-> (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
                                      (js->clj :keywordize-keys true))
-              form-data (get-ranges-form-data-by-line file-path line-number :currentTopLevelForm)]
+              form-data (get-ranges-form-data-by-line file-path line-number :currentTopLevelForm)
+              diagnostics-before-edit (get-diagnostics-for-file file-path)]
         (if (:success balance-result)
           (p/let [edit-result (edit-replace-range file-path
                                                   (first (:ranges-object form-data))
                                                   (:text balance-result))
-                  uri (vscode/Uri.file file-path)
-                  diagnostics-raw (vscode/languages.getDiagnostics uri)
-                  diagnostics (js->clj diagnostics-raw :keywordize-keys true)]
+                  _ (p/delay 300)
+                  diagnostics-after-edit (get-diagnostics-for-file file-path)]
             (if edit-result
               {:success true
-               :diagnostics diagnostics}
-              {:success false}))
+               :diagnostics-before-edit diagnostics-before-edit
+               :diagnostics-after-edit diagnostics-after-edit}
+              {:success false
+               :diagnostics-before-edit diagnostics-before-edit}))
           balance-result))
       (p/catch (fn [e]
                  {:success false
