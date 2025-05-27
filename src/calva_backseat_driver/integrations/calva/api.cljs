@@ -210,7 +210,7 @@
               (p/let [edit-result (edit-replace-range file-path
                                                       (first (:ranges-object form-data))
                                                       (:text balance-result))
-                      _ (p/delay 1000)
+                      _ (p/delay 1000) ;; TODO: Consider subscribing on diagnistics changes instead
                       diagnostics-after-edit (get-diagnostics-for-file file-path)]
                 (if edit-result
                   {:success true
