@@ -1,0 +1,1 @@
+(ns mini.foo)

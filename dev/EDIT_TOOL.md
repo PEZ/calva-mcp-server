@@ -118,8 +118,13 @@ While the public API only exposes top-level form operations, the implementation 
 
 **Note**: The implementation uses Parinfer's `indentMode` for bracket balancing and integrates with Calva's editor API (`edit-replace-range`) for undo/redo support through VS Code's standard edit operations.
 
-#### Post-Edit Diagnostics Integration ✅
-**Note**: Post-edit diagnostics are implemented but not yet fully tested.
+#### Post-Edit Diagnostics Integration ⚠️
+**Status**: Implemented but has timing issues that need fixing.
+
+**Current Issues**:
+- Diagnostics are checked too quickly after edit, missing language server updates
+- Only returns post-edit diagnostics, should include before/after comparison
+- Returns all diagnostics instead of filtering to relevant ones (clj-kondo)
 
 **Benefits for AI Development**:
 - AI gets immediate feedback on edit quality
@@ -201,8 +206,12 @@ The `replace_top_level_form` tool can be used for insertion by targeting an empt
 
 ### Phase 2: Enhanced Features
 1. Rich comment form support (working via existing implementation)
-2. Enhance error reporting and diagnostics
-3. **Post-edit diagnostics feedback** - Include linting errors and problems in tool response
+2. **Fix diagnostic timing and filtering issues**:
+   - **URGENT**: Add proper delay/polling for language server diagnostic updates
+   - **Return both `:diagnostics-before-edit` and `:diagnostics-after-edit`**
+   - **Filter diagnostics to only clj-kondo sources** (exclude other language servers)
+   - Consider using VS Code's `onDidChangeDiagnostics` event for more reliable timing
+3. Enhance error reporting and diagnostics
 
 ### Phase 3: Advanced Capabilities
 1. Batch operations support
