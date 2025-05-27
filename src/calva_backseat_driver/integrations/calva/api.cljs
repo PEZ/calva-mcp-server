@@ -192,31 +192,6 @@
             (recur (inc line-idx))))
         nil))))
 
-(defn apply-form-edit-by-line
-  "Apply a form edit by line number instead of character position.
-   This is the preferred approach for AI agents as they can see and reason about line numbers."
-  [file-path line-number new-form]
-  (-> (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
-                                     (js->clj :keywordize-keys true))
-              form-data (get-ranges-form-data-by-line file-path line-number :currentTopLevelForm)
-              diagnostics-before-edit (get-diagnostics-for-file file-path)]
-        (if (:success balance-result)
-          (p/let [edit-result (edit-replace-range file-path
-                                                  (first (:ranges-object form-data))
-                                                  (:text balance-result))
-                  _ (p/delay 1000)
-                  diagnostics-after-edit (get-diagnostics-for-file file-path)]
-            (if edit-result
-              {:success true
-               :diagnostics-before-edit diagnostics-before-edit
-               :diagnostics-after-edit diagnostics-after-edit}
-              {:success false
-               :diagnostics-before-edit diagnostics-before-edit}))
-          balance-result))
-      (p/catch (fn [e]
-                 {:success false
-                  :error (.-message e)}))))
-
 (defn apply-form-edit-by-line-with-text-targeting
   "Apply a form edit by line number with text-based targeting for better accuracy.
    Searches for target-line text within a 2-line window around the specified line number."

@@ -112,9 +112,7 @@
                          line (some-> options .-input .-line)
                          target-line (-> options .-input .-targetLine)
                          new-form (-> options .-input .-newForm)
-                         result (if target-line
-                                  (calva/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)
-                                  (calva/apply-form-edit-by-line file-path line new-form))]
+                         result (calva/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})
