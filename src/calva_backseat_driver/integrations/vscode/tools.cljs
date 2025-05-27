@@ -95,6 +95,25 @@
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify result))])))})
 
+(defn ReplaceTopLevelFormTool [_dispatch!]
+  #js {:prepareInvocation (fn prepareInvocation [^js options _token]
+                            (let [file-path (-> options .-input .-filePath)
+                                  line (-> options .-input .-line)
+                                  message (str "Replace form at line " line " in " file-path)]
+                              #js {:invocationMessage "Replacing top-level form"
+                                   :confirmationMessages #js {:title "Replace Top-Level Form"
+                                                              :message message}}))
+
+       :invoke (fn invoke [^js options _token]
+                 (p/let [file-path (-> options .-input .-filePath)
+                         line (-> options .-input .-line)
+                         new-form (-> options .-input .-newForm)
+                         ;; Use the new line-based API that converts directly to vscode.Range
+                         result (calva/apply-form-edit-by-line file-path line new-form)]
+                   (vscode/LanguageModelToolResult.
+                    #js [(vscode/LanguageModelTextPart.
+                          (js/JSON.stringify (clj->js result)))])))})
+
 (defn register-language-model-tools [dispatch!]
   (cond-> []
     :always
@@ -120,4 +139,9 @@
     :always
     (conj (vscode/lm.registerTool
            "balance_brackets"
-           (#'InferBracketsTool dispatch!)))))
+           (#'InferBracketsTool dispatch!)))
+
+    :always
+    (conj (vscode/lm.registerTool
+           "replace_top_level_form"
+           (#'ReplaceTopLevelFormTool dispatch!)))))

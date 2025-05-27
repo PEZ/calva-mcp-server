@@ -271,8 +271,8 @@
           "parinfer"
         ],
         "toolReferenceName": "replace-top-level-form",
-        "displayName": "Bracket Balancer",
-        "modelDescription": "Edit Clojure files by replacing an entire top level form. Use this to edit Clojure code in a structural way. The new form code should be properly indented. If the Clojure Evaluation tool is available, you should first use that to develop working code to edit into the file. To insert new code, replace an existing form with itself plus your new code.",
+        "displayName": "Edit: Replace Top Level Form",
+        "modelDescription": "Edit Clojure files by replacing an entire top level form. Use this to edit Clojure code in a structural way. The new form code should be properly indented. If the Clojure Evaluation tool is available, you should first use that to develop working code to edit into the file. To insert new code, replace an existing form with itself plus your new code. Works inside rich comment forms - Calva will find the correct top-level form within the comment.",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",
@@ -283,9 +283,9 @@
               "type": "string",
               "description": "The absolute path to the file containing the form"
             },
-            "position": {
+            "line": {
               "type": "integer",
-              "description": "Character offset within the file to inside the target form"
+              "description": "Line number (1-based) where the target form is located. Use any line within the target top-level form."
             },
             "newForm": {
               "type": "string",
@@ -294,7 +294,7 @@
           },
           "required": [
             "filePath",
-            "position",
+            "line",
             "newForm"
           ]
         }

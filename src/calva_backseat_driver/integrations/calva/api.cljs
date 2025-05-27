@@ -117,6 +117,17 @@
     {:vscode-document vscode-document
      :ranges-object ((get-in calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
 
+(defn- get-ranges-form-data-by-line
+  "Returns the raw Calva API `ranges` object for the top level form at `line-number` (1-indexed),
+   in the document at the absolute `file-path`. This is the preferred approach for AI agents."
+  [file-path line-number ranges-fn-key]
+  (p/let [^js vscode-document (get-document-from-path file-path)
+          vscode-editor (get-editor-from-document vscode-document)
+          ;; Convert 1-indexed line number to 0-indexed position at start of line
+          vscode-position (vscode/Position. (dec line-number) 0)]
+    {:vscode-document vscode-document
+     :ranges-object ((get-in calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
+
 (defn- get-range-and-form
   "Returns the range and the form from the Calva API `ranges` object as a tuple
    `[[start end] form-string]` where `start` and `end` are indexes into the document text."
@@ -143,6 +154,36 @@
             (if edit-result
               {:success true
                :note "Please use the lint/problems/error tool to check if the edits generated or fixed problems."}
+              {:success false}))
+          balance-result))
+      (p/catch (fn [e]
+                 {:success false
+                  :error (.-message e)}))))
+
+(defn apply-form-edit-by-line
+  "Apply a form edit by line number instead of character position.
+   This is the preferred approach for AI agents as they can see and reason about line numbers."
+  [file-path line-number new-form]
+  ;; Trigger hot reload
+  (-> (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
+                                     (js->clj :keywordize-keys true))
+              form-data (get-ranges-form-data-by-line file-path line-number :currentTopLevelForm)]
+        (if (:success balance-result)
+          (p/let [edit-result (edit-replace-range file-path
+                                                  (first (:ranges-object form-data))
+                                                  (:text balance-result))
+                  ;; Get diagnostics after the edit to provide immediate feedback
+                  uri (vscode/Uri.file file-path)
+                  diagnostics-raw (vscode/languages.getDiagnostics uri)
+                  diagnostics (js->clj diagnostics-raw :keywordize-keys true)
+                  diagnostics-count (count diagnostics)
+                  has-errors (some #(= (:severity %) 0) diagnostics)]  ; 0 = Error severity
+            (if edit-result
+              {:success true
+               :note "Please use the lint/problems/error tool to check if the edits generated or fixed problems."
+               :diagnostics diagnostics
+               :diagnostics-count diagnostics-count
+               :has-errors has-errors}
               {:success false}))
           balance-result))
       (p/catch (fn [e]
