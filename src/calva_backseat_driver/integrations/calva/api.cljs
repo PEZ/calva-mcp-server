@@ -185,7 +185,7 @@
           (p/let [edit-result (edit-replace-range file-path
                                                   (first (:ranges-object form-data))
                                                   (:text balance-result))
-                  _ (p/delay 300)
+                  _ (p/delay 1000)
                   diagnostics-after-edit (get-diagnostics-for-file file-path)]
             (if edit-result
               {:success true
