@@ -101,14 +101,13 @@
                                   line (-> options .-input .-line)
                                   message (str "Replace form at line " line " in " file-path)]
                               #js {:invocationMessage "Replacing top-level form"
-                                   :confirmationMessages #js {:title "Replace Top-Level Form"
+                                   :confirmationMessages #js {:title "Replaced Top-Level Form"
                                                               :message message}}))
 
        :invoke (fn invoke [^js options _token]
                  (p/let [file-path (-> options .-input .-filePath)
                          line (-> options .-input .-line)
                          new-form (-> options .-input .-newForm)
-                         ;; Use the new line-based API that converts directly to vscode.Range
                          result (calva/apply-form-edit-by-line file-path line new-form)]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.

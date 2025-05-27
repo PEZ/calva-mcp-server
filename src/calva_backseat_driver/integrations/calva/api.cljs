@@ -172,18 +172,12 @@
           (p/let [edit-result (edit-replace-range file-path
                                                   (first (:ranges-object form-data))
                                                   (:text balance-result))
-                  ;; Get diagnostics after the edit to provide immediate feedback
                   uri (vscode/Uri.file file-path)
                   diagnostics-raw (vscode/languages.getDiagnostics uri)
-                  diagnostics (js->clj diagnostics-raw :keywordize-keys true)
-                  diagnostics-count (count diagnostics)
-                  has-errors (some #(= (:severity %) 0) diagnostics)]  ; 0 = Error severity
+                  diagnostics (js->clj diagnostics-raw :keywordize-keys true)]
             (if edit-result
               {:success true
-               :note "Please use the lint/problems/error tool to check if the edits generated or fixed problems."
-               :diagnostics diagnostics
-               :diagnostics-count diagnostics-count
-               :has-errors has-errors}
+               :diagnostics diagnostics}
               {:success false}))
           balance-result))
       (p/catch (fn [e]

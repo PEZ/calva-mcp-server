@@ -39,7 +39,7 @@ This document outlines the design for a form-aware editing tool that leverages C
 - `new-form` (string): The replacement form code
 
 **Returns:**
-- Success: `{:success true :form-range [start end] :replaced-form "..." :diagnostics [...] :diagnostics-count 0 :has-errors false}`
+- Success: `{:success true :replaced-form "..." :diagnostics [...]}`
 - Error: `{:success false :error "..." :details {...}}`
 
 ### Insertion API: `insert_text`
@@ -148,9 +148,7 @@ While the public API only exposes top-level form operations, the implementation 
           _ (js/setTimeout (fn []) 100)
           diagnostics (get-file-diagnostics file-path)]
     (merge edit-result
-           {:diagnostics diagnostics
-            :diagnostics-count (count diagnostics)
-            :has-errors (some #(= 0 (:severity %)) diagnostics)})))
+           {:diagnostics diagnostics)})))
 ```
 
 **Benefits for AI Development**:
@@ -214,8 +212,6 @@ replace_top_level_form({
   form_range: [445, 478],
   replaced_form: "(defn old-function [a] a)",
   diagnostics: [],
-  diagnostics_count: 0,
-  has_errors: false
 }
 ```
 
