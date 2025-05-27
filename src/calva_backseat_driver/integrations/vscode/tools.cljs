@@ -106,7 +106,7 @@
 
        :invoke (fn invoke [^js options _token]
                  (p/let [file-path (-> options .-input .-filePath)
-                         line (-> options .-input .-line)
+                         line (some-> options .-input .-line)
                          new-form (-> options .-input .-newForm)
                          result (calva/apply-form-edit-by-line file-path line new-form)]
                    (vscode/LanguageModelToolResult.

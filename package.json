@@ -272,7 +272,7 @@
         ],
         "toolReferenceName": "replace-top-level-form",
         "displayName": "Edit: Replace Top Level Form",
-        "modelDescription": "Structurally edit Clojure files by replacing an entire top level form. The new form code should be properly indented. You should always first use the Clojure Evaluation (REPL) tool to iteratively develop working code to edit into the file. To insert new code, replace an existing form with itself plus your new code. Not that inside rich comment forms - Calva will treat the content of the comment form as top level (all forms immediatelly enclosed by a `(comment ...)` form can be targeted with their starting line number. The entire comment form can be targeted with _its_ starting line number.",
+        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form.\n\n* Target forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* You should always first use the Clojure Evaluation (REPL) tool to iteratively develop working code to edit into the file.\n* To insert new code, replace an existing form with itself plus your new code.",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",
@@ -285,7 +285,7 @@
             },
             "line": {
               "type": "integer",
-              "description": "Line number, 1-based, where the target form starts."
+              "description": "Line number, 1-based, where the target form starts. IMPORTANT NOTE: If the first line of the file starts with `; filepath:` then this is a virtual/fake line that is not part of the actual file. You should then decrement whatever line number you are targeting by one."
             },
             "newForm": {
               "type": "string",
