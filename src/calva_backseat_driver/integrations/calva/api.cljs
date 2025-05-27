@@ -94,7 +94,54 @@
 
 (defn exists-on-output? [] (boolean (get-in calva-api [:repl :onOutputLogged])))
 
+(defn get-editor-from-document [vscode-document]
+  (let [visible-editor (->> vscode/window.visibleTextEditors
+                            (filter (fn [doc] (= (.-document doc) vscode-document)))
+                            first)]
+    (if visible-editor
+      visible-editor
+      (.showTextDocument vscode/window vscode-document))))
+
+(defn get-editor-from-file-path [file-path]
+  (p/let [vscode-document (get-document-from-path file-path)]
+    (get-editor-from-document vscode-document)))
+
+(defn- get-ranges-form-data
+  "Returns the raw Calva API `ranges` object for the top level form at `position`,
+   an index into the document at the absolute `file-path`"
+  [file-path position ranges-fn-key]
+  (p/let [^js vscode-document (get-document-from-path file-path)
+          vscode-editor (get-editor-from-document vscode-document)
+          vscode-position (.positionAt vscode-document position)]
+    {:vscode-document vscode-document
+     :ranges-object ((get-in calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
+
+(defn- get-range-and-form
+  "Returns the range and the form from the Calva API `ranges` object as a tuple
+   `[[start end] form-string]` where `start` and `end` are indexes into the document text."
+  [{:keys [^js ranges-object ^js vscode-document]}]
+  (let [[^js vscode-range form-string] ranges-object
+        start-offset (.offsetAt vscode-document (.-start vscode-range))
+        end-offset (.offsetAt vscode-document (.-end vscode-range))]
+    [[start-offset end-offset] form-string]))
+
+(defn edit-replace-range [file-path vscode-range new-text]
+  (p/let [editor (get-editor-from-file-path file-path)]
+    ((get-in calva-api [:editor :replace]) editor vscode-range new-text)))
+
 (comment
+  (p/let [ctf-data (get-ranges-form-data
+                    "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
+                    214
+                    :currentTopLevelForm)]
+    (def ctf-data ctf-data)
+    (edit-replace-range "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
+                        (first (:ranges-object ctf-data))
+                        "foo")
+    (get-range-and-form ctf-data))
+
+
+  (.-line (vscode/Position. 0))
   (p/let [info (get-symbol-info+ {:ex/dispatch! (comp pr-str println)
                                   :calva/clojure-symbol "clojure.core/reductions"
                                   :calva/repl-session-key "clj"
