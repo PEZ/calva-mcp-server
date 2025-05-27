@@ -30,6 +30,12 @@ This document describes the implemented form-aware editing tool that leverages C
 
 ```clojure
 ;; Actual implemented interface
+(defn apply-form-edit-by-line-with-text-targeting
+  "Apply a form edit by line number with text-based targeting for better accuracy.
+   Searches for target-line text within a 2-line window around the specified line number."
+  [file-path line-number target-line new-form])
+
+;; Legacy interface (still supported)
 (defn apply-form-edit-by-line
   "Apply a form edit by line number instead of character position.
    This is the preferred approach for AI agents as they can see and reason about line numbers."
@@ -39,11 +45,18 @@ This document describes the implemented form-aware editing tool that leverages C
 **Parameters:**
 - `file-path` (string): Absolute path to the Clojure file
 - `line` (integer): Line number (1-indexed) to identify the target form
+- `target-line` (string, optional but recommended): The exact text content of the line being targeted (used for validation and accuracy)
 - `new-form` (string): The replacement form code
 
 **Returns:**
-- Success: Form replacement result
+- Success: Form replacement result with `actual-line-used` when text targeting is used
 - Error: Error details with context
+
+**Enhanced Targeting Algorithm:**
+1. If `target-line` is provided, search for that exact text (trimmed) within 2 lines above and below the specified line
+2. Use the line number where the text is found for the actual form targeting
+3. If text is not found, return an error explaining the mismatch
+4. If `target-line` is not provided, fall back to the original line-based approach
 
 ### No Insertion Tool Needed
 
@@ -166,9 +179,27 @@ Provide the tool description for `replace_top_level_form` with information so th
 
 ## Usage Examples
 
-### Basic Form Replacement with Diagnostics
+### Enhanced Form Replacement with Text Targeting
 ```clojure
-;; Replace a function definition
+;; Replace a function definition with improved accuracy
+replace_top_level_form({
+  filePath: "/path/to/file.clj",
+  line: 23,  // Line number (1-indexed) where you think the target form is
+  targetLine: "(defn old-function [x]",  // Exact text at the line for validation
+  newForm: "(defn new-function [x y] (+ x y))"
+})
+
+// Response includes success status and actual line used
+{
+  success: true,
+  actual-line-used: 24,  // The tool found the text at line 24 instead of 23
+  // ... diagnostics and other details
+}
+```
+
+### Fallback to Legacy Line-Based Targeting
+```clojure
+;; Replace without text targeting (legacy mode)
 replace_top_level_form({
   filePath: "/path/to/file.clj",
   line: 23,  // Line number (1-indexed) where the target form is located
@@ -182,18 +213,33 @@ replace_top_level_form({
 }
 ```
 
+### Error Handling for Text Mismatch
+```clojure
+;; When target text is not found
+replace_top_level_form({
+  filePath: "/path/to/file.clj",
+  line: 23,
+  targetLine: "(defn wrong-function [x]",  // This text doesn't exist near line 23
+  newForm: "(defn new-function [x y] (+ x y))"
+})
+
+// Response includes error details
+{
+  success: false,
+  error: "Target line text not found. Expected: '(defn wrong-function [x]' near line 23"
+}
+```
+
 ### Rich Comment Experimentation
 ```clojure
-;; Add experiment to rich comment
+;; Add experiment to rich comment with text targeting
 replace_top_level_form({
   filePath: "/path/to/file.clj",
   line: 45,  // Line number within the comment form
+  targetLine: "(def old-test-data [1 2])",  // Exact text for validation
   newForm: "(def test-data [1 2 3])"
 })
 ```
-
-### Context-Aware Insertion
-The `replace_top_level_form` tool can be used for insertion by targeting an empty line or providing appropriate context in the tool description.
 
 ## Implementation Phases
 

@@ -285,7 +285,11 @@
             },
             "line": {
               "type": "integer",
-              "description": "Line number, 1-based, where the target form starts. IMPORTANT NOTE: If the first line of the file starts with `; filepath:` then this is a virtual/fake line that is not part of the actual file. You should then decrement whatever line number you are targeting by one."
+              "description": "Line number, 1-based, where the target form starts."
+            },
+            "targetLine": {
+              "type": "string",
+              "description": "The exact text content (trimmed) of the line you are targeting."
             },
             "newForm": {
               "type": "string",
@@ -295,7 +299,8 @@
           "required": [
             "filePath",
             "line",
-            "newForm"
+            "newForm",
+            "targetLine"
           ]
         }
       }

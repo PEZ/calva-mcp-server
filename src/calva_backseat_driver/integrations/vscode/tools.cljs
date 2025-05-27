@@ -99,7 +99,10 @@
   #js {:prepareInvocation (fn prepareInvocation [^js options _token]
                             (let [file-path (-> options .-input .-filePath)
                                   line (-> options .-input .-line)
-                                  message (str "Replace form at line " line " in " file-path)]
+                                  target-line (-> options .-input .-targetLine)
+                                  message (str "Replace form at line " line
+                                               (when target-line (str " (targeting: '" target-line "')"))
+                                               " in " file-path)]
                               #js {:invocationMessage "Replacing top-level form"
                                    :confirmationMessages #js {:title "Replaced Top-Level Form"
                                                               :message message}}))
@@ -107,8 +110,11 @@
        :invoke (fn invoke [^js options _token]
                  (p/let [file-path (-> options .-input .-filePath)
                          line (some-> options .-input .-line)
+                         target-line (-> options .-input .-targetLine)
                          new-form (-> options .-input .-newForm)
-                         result (calva/apply-form-edit-by-line file-path line new-form)]
+                         result (if target-line
+                                  (calva/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)
+                                  (calva/apply-form-edit-by-line file-path line new-form))]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})

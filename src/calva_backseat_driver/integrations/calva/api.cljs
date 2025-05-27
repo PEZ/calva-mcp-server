@@ -173,6 +173,25 @@
           diagnostics diagnostics-raw]
     (filter-clj-kondo-diagnostics diagnostics)))
 
+(defn- find-target-line-by-text
+  "Find the actual line number by searching for target text within a window around the initial line.
+   Returns the line number (1-indexed) where the target text is found, or nil if not found."
+  [^js vscode-document initial-line-number target-text]
+  (let [line-count (.-lineCount vscode-document)
+        search-window 2  ; search 2 lines above and below
+        start-line (max 0 (- initial-line-number search-window 1))  ; convert to 0-indexed and clamp
+        end-line (min (dec line-count) (+ initial-line-number search-window 1))]  ; convert to 0-indexed and clamp
+    (loop [line-idx start-line]
+      (if (<= line-idx end-line)
+        (let [line-text (-> vscode-document
+                            (.lineAt line-idx)
+                            .-text
+                            (.trim))]
+          (if (= line-text (.trim target-text))
+            (inc line-idx)  ; return 1-indexed line number
+            (recur (inc line-idx))))
+        nil))))
+
 (defn apply-form-edit-by-line
   "Apply a form edit by line number instead of character position.
    This is the preferred approach for AI agents as they can see and reason about line numbers."
@@ -194,6 +213,40 @@
               {:success false
                :diagnostics-before-edit diagnostics-before-edit}))
           balance-result))
+      (p/catch (fn [e]
+                 {:success false
+                  :error (.-message e)}))))
+
+(defn apply-form-edit-by-line-with-text-targeting
+  "Apply a form edit by line number with text-based targeting for better accuracy.
+   Searches for target-line text within a 2-line window around the specified line number."
+  [file-path line-number target-line new-form]
+  (-> (p/let [vscode-document (get-document-from-path file-path)
+              actual-line-number (if target-line
+                                   (find-target-line-by-text vscode-document line-number target-line)
+                                   line-number)]
+        (if (or (not target-line) actual-line-number)
+          (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
+                                         (js->clj :keywordize-keys true))
+                  final-line-number (or actual-line-number line-number)
+                  form-data (get-ranges-form-data-by-line file-path final-line-number :currentTopLevelForm)
+                  diagnostics-before-edit (get-diagnostics-for-file file-path)]
+            (if (:success balance-result)
+              (p/let [edit-result (edit-replace-range file-path
+                                                      (first (:ranges-object form-data))
+                                                      (:text balance-result))
+                      _ (p/delay 1000)
+                      diagnostics-after-edit (get-diagnostics-for-file file-path)]
+                (if edit-result
+                  {:success true
+                   :actual-line-used final-line-number
+                   :diagnostics-before-edit diagnostics-before-edit
+                   :diagnostics-after-edit diagnostics-after-edit}
+                  {:success false
+                   :diagnostics-before-edit diagnostics-before-edit}))
+              balance-result))
+          {:success false
+           :error (str "Target line text not found. Expected: '" target-line "' near line " line-number)}))
       (p/catch (fn [e]
                  {:success false
                   :error (.-message e)}))))
