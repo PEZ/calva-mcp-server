@@ -285,7 +285,7 @@
             },
             "line": {
               "type": "integer",
-              "description": "Line number, ZERO-based, where the target form starts."
+              "description": "Line number, 1-based, where the target form starts."
             },
             "newForm": {
               "type": "string",

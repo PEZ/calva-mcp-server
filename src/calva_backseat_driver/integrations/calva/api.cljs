@@ -123,7 +123,6 @@
   [file-path line-number ranges-fn-key]
   (p/let [^js vscode-document (get-document-from-path file-path)
           vscode-editor (get-editor-from-document vscode-document)
-          ;; Convert 1-indexed line number to 0-indexed position at start of line
           vscode-position (vscode/Position. (dec line-number) 0)]
     {:vscode-document vscode-document
      :ranges-object ((get-in calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
