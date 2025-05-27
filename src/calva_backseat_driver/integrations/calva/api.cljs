@@ -1,5 +1,6 @@
 (ns calva-backseat-driver.integrations.calva.api
   (:require
+   ["parinfer" :as parinfer]
    ["vscode" :as vscode]
    [promesa.core :as p]))
 
@@ -102,7 +103,7 @@
       visible-editor
       (.showTextDocument vscode/window vscode-document))))
 
-(defn get-editor-from-file-path [file-path]
+(defn- get-editor-from-file-path [file-path]
   (p/let [vscode-document (get-document-from-path file-path)]
     (get-editor-from-document vscode-document)))
 
@@ -125,9 +126,28 @@
         end-offset (.offsetAt vscode-document (.-end vscode-range))]
     [[start-offset end-offset] form-string]))
 
-(defn edit-replace-range [file-path vscode-range new-text]
-  (p/let [editor (get-editor-from-file-path file-path)]
+(defn- edit-replace-range [file-path vscode-range new-text]
+  (p/let [^js editor (get-editor-from-file-path file-path)]
+    (.revealRange editor vscode-range)
     ((get-in calva-api [:editor :replace]) editor vscode-range new-text)))
+
+;; TODO: Figure out how to handle writing new files
+(defn apply-form-edit [file-path position new-form]
+  (-> (p/let [balance-result (some-> (parinfer/indentMode  new-form #js {:partialResult true})
+                                     (js->clj :keywordize-keys true))
+              form-data (get-ranges-form-data file-path position :currentTopLevelForm)]
+        (if (:success balance-result)
+          (p/let [edit-result (edit-replace-range file-path
+                                                  (first (:ranges-object form-data))
+                                                  (:text balance-result))]
+            (if edit-result
+              {:success true
+               :note "Please use the lint/problems/error tool to check if the edits generated or fixed problems."}
+              {:success false}))
+          balance-result))
+      (p/catch (fn [e]
+                 {:success false
+                  :error (.-message e)}))))
 
 (comment
   (p/let [ctf-data (get-ranges-form-data
@@ -139,6 +159,11 @@
                         (first (:ranges-object ctf-data))
                         "foo")
     (get-range-and-form ctf-data))
+
+  (p/let [edit-result (apply-form-edit "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
+                                       214
+                                       "(foo")]
+    (def edit-result edit-result))
 
 
   (.-line (vscode/Position. 0))
