@@ -53,7 +53,7 @@
   (when diag
     {:source (.-source diag)
      :message (.-message diag)
-     :severity (get severity-map (.-severity diag) :unknown)
+     :severity (severity-map (.-severity diag) :unknown)
      :range (let [range (.-range diag)]
               {:start {:line (.. range -start -line)
                        :character (.. range -start -character)}
@@ -67,11 +67,19 @@
   (when diagnostics
     (mapv diagnostic->clj diagnostics)))
 
-(defn- filter-clj-kondo-diagnostics
-  "Filter diagnostics to only include those from clj-kondo source"
-  [diagnostics]
-  (->> diagnostics
-       (filter #(= "clj-kondo" (.-source %)))))
+(defn- get-diagnostics-for-file
+  "Get clj-kondo diagnostics for a file and convert to Clojure data structures"
+  [file-path]
+  (p/let [uri (vscode/Uri.file file-path)
+          diagnostics-raw (vscode/languages.getDiagnostics uri)
+          diagnostics (diagnostics->clj diagnostics-raw)]
+    (filter (fn [d]
+              (#{"clj-kondo" "clojure-lsp"} (:source d)))
+            diagnostics)))
+
+(comment
+  (get-diagnostics-for-file "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj")
+  :rcf)
 
 (defn- starts-with-comment?
   "Check if text starts with a comment character after trimming whitespace"
@@ -93,18 +101,6 @@
 
     :else
     {:valid? true}))
-
-(defn- get-diagnostics-for-file
-  "Get clj-kondo diagnostics for a file and convert to Clojure data structures"
-  [file-path]
-  (p/let [uri (vscode/Uri.file file-path)
-          diagnostics-raw (vscode/languages.getDiagnostics uri)
-          diagnostics-filtered (filter-clj-kondo-diagnostics diagnostics-raw)]
-    (diagnostics->clj diagnostics-filtered)))
-
-(comment
-  (get-diagnostics-for-file "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj")
-  :rcf)
 
 (defn- find-target-line-by-text
   "Find the actual line number by searching for target text within a window around the initial line.
