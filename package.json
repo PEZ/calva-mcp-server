@@ -100,7 +100,7 @@
         ],
         "toolReferenceName": "evaluate",
         "displayName": "Evaluate Clojure Code",
-        "modelDescription": "Evaluate code using Calva's REPL connection. Enables AI Interactive Programming. Use this to make sure your seggested edits work as you advertise, before suggesting them. The REPL holds the truth!",
+        "modelDescription": "Evaluate code using Calva's REPL connection. Enables AI Interactive Programming. Use this to make sure your edits work as you advertise, before applying them. The REPL holds the truth!\n\nEvaluating ClojureScript code?\n* remember to use the `\"cljs\"` `replSessionKey`\n* The user namespace is probably/often `cljs.user`\n* `js-keys` is a handy function to explore JS objects with",
         "userDescription": "Evaluate Clojure or ClojureScript code in the connected REPL.",
         "canBeReferencedInPrompt": true,
         "icon": "$(terminal-bash)",
@@ -118,7 +118,7 @@
             },
             "replSessionKey": {
               "type": "string",
-              "description": "The Calva REPL session to evaluate the code via. It should be `clj` for the Clojure REPL, `cljs` for the ClojureScript REPL and `cljc` for the current session for `.cljc` files.",
+              "description": "The Calva REPL session to evaluate the code via. It should be:\n* `clj` for the Clojure REPL\n* `cljs` for the ClojureScript REPL",
               "enum": [
                 "clj",
                 "cljs",
