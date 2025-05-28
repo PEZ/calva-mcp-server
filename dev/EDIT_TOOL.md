@@ -64,7 +64,7 @@ Both tools use line-based positioning with text targeting for accuracy:
 replace_top_level_form({
   filePath: "/path/to/file.clj",
   line: 23,
-  targetLine: "(defn old-function [x]",
+  targetLineText: "(defn old-function [x]",
   newForm: "(defn new-function [x y] (+ x y))"
 })
 
@@ -73,7 +73,7 @@ insert_top_level_comment({
   filePath: "/path/to/file.clj",
   lineNumber: 45,
   commentText: ";; Helper functions for data processing",
-  targetLine: "(defn process-data"
+  targetLineText: "(defn process-data"
 })
 ```
 

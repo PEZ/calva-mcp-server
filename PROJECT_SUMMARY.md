@@ -128,7 +128,7 @@ The tools are exposed as VS Code Language ModelAPI (for CoPilot) and MCP (for ex
 
 6. **replace_top_level_form** (VS Code only)
    - Form-aware editing of Clojure code with semantic awareness
-   - Parameters: `filePath`, `line`, `targetLine` (optional), `newForm`
+   - Parameters: `filePath`, `line`, `targetLineText` (optional), `newForm`
    - Features: Text targeting, automatic bracket balancing, rich comment support
 
 ## Implementation Patterns

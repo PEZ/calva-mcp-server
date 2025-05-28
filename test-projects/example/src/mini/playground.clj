@@ -140,7 +140,7 @@
     (doto frame
       (.add panel)
       (.pack)
-      (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+      (.setDefaultCloseOperation JFrame/DISPOSE_ON_CLOSE)
       (.setLocationRelativeTo nil)
       (.setVisible true))
     (.start timer)
@@ -157,5 +157,3 @@
   ;; Reset the game state
   (reset-game))
 
-
-;; Start by reading AI_INTERACTIVE_PROGRAMMING.md

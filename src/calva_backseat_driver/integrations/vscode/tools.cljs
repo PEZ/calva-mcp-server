@@ -100,7 +100,7 @@
   #js {:prepareInvocation (fn prepareInvocation [^js options _token]
                             (let [file-path (-> options .-input .-filePath)
                                   line (-> options .-input .-line)
-                                  target-line (-> options .-input .-targetLine)
+                                  target-line (-> options .-input .-targetLineText)
                                   message (str "Replace form at line " line
                                                (when target-line (str " (targeting: '" target-line "')"))
                                                " in " file-path)]
@@ -111,7 +111,7 @@
        :invoke (fn invoke [^js options _token]
                  (p/let [file-path (-> options .-input .-filePath)
                          line (some-> options .-input .-line)
-                         target-line (-> options .-input .-targetLine)
+                         target-line (-> options .-input .-targetLineText)
                          new-form (-> options .-input .-newForm)
                          result (editor/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)]
                    (vscode/LanguageModelToolResult.

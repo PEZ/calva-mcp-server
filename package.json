@@ -272,7 +272,7 @@
         ],
         "toolReferenceName": "replace-top-level-form",
         "displayName": "Edit: Replace Top Level Form",
-        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form.\n\n* Target forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* You should always first use the Clojure Evaluation (REPL) tool to iteratively develop working code to edit into the file.\n* To insert new code, replace an existing form with itself plus your new code.\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` can be targeted individually as if they were top-level forms.",
+        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form with a new form, or forms.\n\n* Target top level forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* This tool is only for inserting Clojure forms/sexpressions. For inserting top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n* To insert new code, replace an existing form with itself plus your new code.\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` can be targeted individually as if they were top-level forms.\n\nImportant: Only a form/sexpression is a valid targeted, and only forms/sexpressions should be provided as replacement",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",
@@ -285,9 +285,9 @@
             },
             "line": {
               "type": "integer",
-              "description": "Line number, 1-based, where the target form starts."
+              "description": "Line number, 1-based, where the target form/sexpression starts. The line should typically start with `(`."
             },
-            "targetLine": {
+            "targetLineText": {
               "type": "string",
               "description": "The exact text content (trimmed) of the line you are targeting."
             },
@@ -300,7 +300,7 @@
             "filePath",
             "line",
             "newForm",
-            "targetLine"
+            "targetLineText"
           ]
         }
       }
