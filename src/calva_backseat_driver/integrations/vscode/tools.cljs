@@ -1,8 +1,8 @@
 (ns calva-backseat-driver.integrations.vscode.tools
   (:require
    ["vscode" :as vscode]
-   [calva-backseat-driver.integrations.calva.api :as calva]
    [calva-backseat-driver.bracket-balance :as balance]
+   [calva-backseat-driver.integrations.calva.features :as calva]
    [promesa.core :as p]))
 
 (defn EvaluateClojureCodeTool [dispatch!]
@@ -95,6 +95,46 @@
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify result))])))})
 
+(defn- ReplaceOrInsertTopLevelFormTool [dispatch! ranges-fn-key confirm-prefix invoked-prefix]
+  #js {:prepareInvocation (fn prepareInvocation [^js options _token]
+                            (let [file-path (-> options .-input .-filePath)
+                                  line (-> options .-input .-line)
+                                  target-line (-> options .-input .-targetLineText)
+                                  new-form (-> options .-input .-newForm)
+                                  message (str confirm-prefix " form at line " line
+                                               (when target-line (str " (targeting: '" target-line "')"))
+                                               " in " file-path
+                                               " width:\n" new-form)]
+                              #js {:invocationMessage (str invoked-prefix " top-level form")
+                                   :confirmationMessages #js {:title (str confirm-prefix " Top-Level Form")
+                                                              :message message}}))
+
+       :invoke (fn invoke [^js options _token]
+                 (p/let [file-path (-> options .-input .-filePath)
+                         line (some-> options .-input .-line)
+                         target-line (-> options .-input .-targetLineText)
+                         new-form (-> options .-input .-newForm)
+                         result (if (= ranges-fn-key :currentTopLevelForm)
+                                  (calva/replace-top-level-form+ {:ex/dispatch! dispatch!
+                                                                  :calva/file-path file-path
+                                                                  :calva/line line
+                                                                  :calva/target-line-text target-line
+                                                                  :calva/new-form new-form})
+                                  (calva/insert-top-level-form+ {:ex/dispatch! dispatch!
+                                                                 :calva/file-path file-path
+                                                                 :calva/line line
+                                                                 :calva/target-line-text target-line
+                                                                 :calva/new-form new-form}))]
+                   (vscode/LanguageModelToolResult.
+                    #js [(vscode/LanguageModelTextPart.
+                          (js/JSON.stringify (clj->js result)))])))})
+
+(defn ReplaceTopLevelFormTool [dispatch!]
+  (ReplaceOrInsertTopLevelFormTool dispatch! :currentTopLevelForm "Replace" "Replaced"))
+
+(defn InsertTopLevelFormTool [dispatch!]
+  (ReplaceOrInsertTopLevelFormTool dispatch! :insertionPoint "Insert" "Inserted"))
+
 (defn register-language-model-tools [dispatch!]
   (cond-> []
     :always
@@ -120,4 +160,14 @@
     :always
     (conj (vscode/lm.registerTool
            "balance_brackets"
-           (#'InferBracketsTool dispatch!)))))
+           (#'InferBracketsTool dispatch!)))
+
+    :always
+    (conj (vscode/lm.registerTool
+           "replace_top_level_form"
+           (#'ReplaceTopLevelFormTool dispatch!)))
+
+    :always
+    (conj (vscode/lm.registerTool
+           "insert_top_level_form"
+           (#'InsertTopLevelFormTool dispatch!)))))

@@ -1,5 +1,9 @@
 # Short term (days) todos
 
+- [ ] **Fix form edit tool diagnostic timing issues**:
+  - [ ] Add proper delay/polling for language server diagnostic updates after edits
+  - [ ] Return both `:diagnostics-before-edit` and `:diagnostics-after-edit`
+  - [ ] Filter diagnostics to only show clj-kondo sources (exclude other language servers)
 - [ ] Figure if the protocol supports asking for permission with each tool invocation
   - [ ] Can we make the Agent show what it is going to evaluate before it does it?
 - [ ] Refactor server.cljs and wrapper.cljs and clean up debugging

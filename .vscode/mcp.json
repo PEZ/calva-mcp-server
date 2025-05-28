@@ -1,0 +1,14 @@
+{
+  "servers": {
+    "lsp": {
+      "type": "stdio",
+      "command": "/Users/pez/go/bin/mcp-language-server",
+      "args": [
+        "--workspace",
+        "${workspaceFolder}",
+        "--lsp",
+        "${extensionInstallFolder:betterthantomorrow.calva}/clojure-lsp"
+      ]
+    }
+  }
+}
