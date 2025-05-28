@@ -1,9 +1,9 @@
 (ns calva-backseat-driver.integrations.calva.editor
   (:require
-   ["parinfer" :as parinfer]
    ["vscode" :as vscode]
    [calva-backseat-driver.integrations.calva.api :as calva]
-   [clojure.string :as str]
+   [calva-backseat-driver.integrations.parinfer :as parinfer]
+   [clojure.string :as string]
    [promesa.core :as p]))
 
 (defn- get-document-from-path [path]
@@ -22,57 +22,23 @@
   (p/let [vscode-document (get-document-from-path file-path)]
     (get-editor-from-document vscode-document)))
 
-(defn- get-ranges-form-data
-  "Returns the raw Calva API `ranges` object for the top level form at `position`,
-   an index into the document at the absolute `file-path`"
-  [file-path position ranges-fn-key]
-  (p/let [^js vscode-document (get-document-from-path file-path)
-          vscode-editor (get-editor-from-document vscode-document)
-          vscode-position (.positionAt vscode-document position)]
-    {:vscode-document vscode-document
-     :ranges-object ((get-in calva/calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
 
 (defn- get-ranges-form-data-by-line
-  "Returns the raw Calva API `ranges` object for the top level form at `line-number` (1-indexed),
-   in the document at the absolute `file-path`. This is the preferred approach for AI agents."
+  "Returns the raw Calva API `ranges` object for `ranged-fn-key` at `line-number` (1-indexed),
+   in the document at the absolute `file-path`."
   [file-path line-number ranges-fn-key]
   (p/let [^js vscode-document (get-document-from-path file-path)
           vscode-editor (get-editor-from-document vscode-document)
           vscode-position (vscode/Position. (dec line-number) 0)]
     {:vscode-document vscode-document
-     :ranges-object ((get-in calva/calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position)}))
-
-(defn- get-range-and-form
-  "Returns the range and the form from the Calva API `ranges` object as a tuple
-   `[[start end] form-string]` where `start` and `end` are indexes into the document text."
-  [{:keys [^js ranges-object ^js vscode-document]}]
-  (let [[^js vscode-range form-string] ranges-object
-        start-offset (.offsetAt vscode-document (.-start vscode-range))
-        end-offset (.offsetAt vscode-document (.-end vscode-range))]
-    [[start-offset end-offset] form-string]))
+     :ranges-object (if (= :insertionPoint ranges-fn-key)
+                      [(vscode/Range. vscode-position vscode-position), ""]
+                      ((get-in calva/calva-api [:ranges ranges-fn-key]) vscode-editor vscode-position))}))
 
 (defn- edit-replace-range [file-path vscode-range new-text]
   (p/let [^js editor (get-editor-from-file-path file-path)]
     (.revealRange editor vscode-range)
     ((get-in calva/calva-api [:editor :replace]) editor vscode-range new-text)))
-
-;; TODO: Figure out how to handle writing new files
-(defn apply-form-edit [file-path position new-form]
-  (-> (p/let [balance-result (some-> (parinfer/indentMode  new-form #js {:partialResult true})
-                                     (js->clj :keywordize-keys true))
-              form-data (get-ranges-form-data file-path position :currentTopLevelForm)]
-        (if (:success balance-result)
-          (p/let [edit-result (edit-replace-range file-path
-                                                  (first (:ranges-object form-data))
-                                                  (:text balance-result))]
-            (if edit-result
-              {:success true
-               :note "Please use the lint/problems/error tool to check if the edits generated or fixed problems."}
-              {:success false}))
-          balance-result))
-      (p/catch (fn [e]
-                 {:success false
-                  :error (.-message e)}))))
 
 (defn- filter-clj-kondo-diagnostics
   "Filter diagnostics to only include those from clj-kondo source"
@@ -84,7 +50,7 @@
   "Check if text starts with a comment character after trimming whitespace"
   [text]
   (when text
-    (-> text str str/trim (str/starts-with? ";"))))
+    (-> text str string/trim (string/starts-with? ";"))))
 
 (defn- validate-edit-inputs
   "Validate that neither target-line nor new-form start with comments"
@@ -131,7 +97,7 @@
 (defn apply-form-edit-by-line-with-text-targeting
   "Apply a form edit by line number with text-based targeting for better accuracy.
    Searches for target-line text within a 2-line window around the specified line number."
-  [file-path line-number target-line new-form]
+  [file-path line-number target-line new-form ranges-fn-key]
   (let [validation (validate-edit-inputs target-line new-form)]
     (if (:valid? validation)
       (-> (p/let [vscode-document (get-document-from-path file-path)
@@ -139,22 +105,28 @@
                                        (find-target-line-by-text vscode-document line-number target-line)
                                        line-number)]
             (if (or (not target-line) actual-line-number)
-              (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
+              (p/let [balance-result (some-> (parinfer/infer-brackets new-form)
                                              (js->clj :keywordize-keys true))
                       final-line-number (or actual-line-number line-number)
-                      form-data (get-ranges-form-data-by-line file-path final-line-number :currentTopLevelForm)
+                      form-data (get-ranges-form-data-by-line file-path final-line-number ranges-fn-key)
                       diagnostics-before-edit (get-diagnostics-for-file file-path)]
                 (if (:success balance-result)
-                  (p/let [edit-result (edit-replace-range file-path
+                  (p/let [text (if (= :insertionPoint ranges-fn-key)
+                                 (str (string/trim (:text balance-result)) "\n\n")
+                                 (:text balance-result))
+                          edit-result (edit-replace-range file-path
                                                           (first (:ranges-object form-data))
-                                                          (:text balance-result))
+                                                          text)
                           _ (p/delay 1000) ;; TODO: Consider subscribing on diagnistics changes instead
                           diagnostics-after-edit (get-diagnostics-for-file file-path)]
                     (if edit-result
-                      {:success true
-                       :actual-line-used final-line-number
-                       :diagnostics-before-edit diagnostics-before-edit
-                       :diagnostics-after-edit diagnostics-after-edit}
+                      (do
+                        ; save the document
+                        (.save vscode-document)
+                        {:success true
+                         :actual-line-used final-line-number
+                         :diagnostics-before-edit diagnostics-before-edit
+                         :diagnostics-after-edit diagnostics-after-edit})
                       {:success false
                        :diagnostics-before-edit diagnostics-before-edit}))
                   balance-result))
@@ -167,19 +139,12 @@
        :error (:error validation)})))
 
 (comment
-  (p/let [ctf-data (get-ranges-form-data
-                    "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
-                    214
-                    :currentTopLevelForm)]
-    (def ctf-data ctf-data)
-    (edit-replace-range "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
-                        (first (:ranges-object ctf-data))
-                        "foo")
-    (get-range-and-form ctf-data))
 
-  (p/let [edit-result (apply-form-edit "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
-                                       214
-                                       "(foo")]
+  (p/let [edit-result (apply-form-edit-by-line-with-text-targeting "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
+                                                                   214
+                                                                   ""
+                                                                   "(foo"
+                                                                   :currentTopLevelForm)]
     (def edit-result edit-result))
 
   ;; Test validation - these should fail with proper error messages
@@ -187,19 +152,22 @@
    "/some/file.clj"
    10
    "; This is a comment line"  ; ← This should fail
-   "(defn new-fn [])")
+   "(defn new-fn [])"
+   :currentTopLevelForm)
 
   (apply-form-edit-by-line-with-text-targeting
    "/some/file.clj"
    10
    "(defn old-fn [])"
-   "; This is a comment replacement")  ; ← This should fail
+   "; This is a comment replacement"
+   :currentTopLevelForm)  ; ← This should fail
 
   ;; This should succeed
   (apply-form-edit-by-line-with-text-targeting
    "/some/file.clj"
    10
    "(defn old-fn [])"
-   "(defn new-fn [])")
+   "(defn new-fn [])"
+   :currentTopLevelForm)
 
   :rcf)

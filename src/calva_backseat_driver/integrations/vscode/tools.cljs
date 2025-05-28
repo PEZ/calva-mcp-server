@@ -96,16 +96,18 @@
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify result))])))})
 
-(defn ReplaceTopLevelFormTool [_dispatch!]
+(defn- ReplaceOrInsertTopLevelFormTool [_dispatch! ranges-fn-key confirm-prefix invoked-prefix]
   #js {:prepareInvocation (fn prepareInvocation [^js options _token]
                             (let [file-path (-> options .-input .-filePath)
                                   line (-> options .-input .-line)
                                   target-line (-> options .-input .-targetLineText)
-                                  message (str "Replace form at line " line
+                                  new-form (-> options .-input .-newForm)
+                                  message (str confirm-prefix " form at line " line
                                                (when target-line (str " (targeting: '" target-line "')"))
-                                               " in " file-path)]
-                              #js {:invocationMessage "Replacing top-level form"
-                                   :confirmationMessages #js {:title "Replaced Top-Level Form"
+                                               " in " file-path
+                                               " width:\n" new-form)]
+                              #js {:invocationMessage (str invoked-prefix " top-level form")
+                                   :confirmationMessages #js {:title (str confirm-prefix " Top-Level Form")
                                                               :message message}}))
 
        :invoke (fn invoke [^js options _token]
@@ -113,10 +115,16 @@
                          line (some-> options .-input .-line)
                          target-line (-> options .-input .-targetLineText)
                          new-form (-> options .-input .-newForm)
-                         result (editor/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)]
+                         result (editor/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form ranges-fn-key)]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})
+
+(defn ReplaceTopLevelFormTool [dispatch!]
+  (ReplaceOrInsertTopLevelFormTool dispatch! :currentTopLevelForm "Replace" "Replaced"))
+
+(defn InsertTopLevelFormTool [dispatch!]
+  (ReplaceOrInsertTopLevelFormTool dispatch! :insertionPoint "Insert" "Inserted"))
 
 (defn register-language-model-tools [dispatch!]
   (cond-> []
@@ -148,4 +156,9 @@
     :always
     (conj (vscode/lm.registerTool
            "replace_top_level_form"
-           (#'ReplaceTopLevelFormTool dispatch!)))))
+           (#'ReplaceTopLevelFormTool dispatch!)))
+
+    :always
+    (conj (vscode/lm.registerTool
+           "insert_top_level_form"
+           (#'InsertTopLevelFormTool dispatch!)))))

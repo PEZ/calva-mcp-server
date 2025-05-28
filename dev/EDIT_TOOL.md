@@ -20,10 +20,10 @@ The current line-based approach with text targeting evolved through several iter
 | Tool | VS Code | MCP | Description |
 |------|---------|-----|-------------|
 | `replace_top_level_form` | ✅ | ❌ | Replace structural forms with text targeting |
-| `insert_top_level_comment` | ❌ | ❌ | Insert top-level comments (non-structural) |
+| `insert_top_level_form` | ✅ | ❌ | Insert structural forms with text targeting |
 
 **Key Limitations**:
-- Top-level comments exist outside the form paradigm and need dedicated tooling
+- Non-structural edits (top-level comments) handled via error messages directing AI to use built-in line-oriented tools
 - Text targeting scan window may miss large line offsets
 - Post-edit diagnostics often ignored by AI agents
 
@@ -37,23 +37,24 @@ Both tools use line-based positioning with text targeting for accuracy:
   [file-path line-number target-line-text new-form])
 ```
 
-### `insert_top_level_comment` (Needed)
+### `insert_top_level_form`
 ```clojure
-(defn insert-comment-at-line
-  [file-path line-number target-line-text comment-text ])
+(defn apply-form-edit-by-line-with-text-targeting
+  [file-path line-number target-line-text new-form])
 ```
 
 **Common Parameters:**
 - `file-path`: Absolute path to Clojure file
 - `line-number`: Line number (1-indexed) to identify target
 - `target-line-text`: Exact text content for validation (searches ±2 lines)
-- `new-form`/`comment-text`: Replacement/insertion content
+- `new-form`: Form content to replace or insert
 
 **Common Features:**
 - Text targeting with fuzzy line matching (±2 lines, may need expansion for large offsets)
 - Automatic Parinfer bracket balancing (forms only)
 - Rich comment form support (forms inside `(comment ...)` treated as top-level)
 - Post-edit diagnostics (often ignored by AI agents - considering lint diffs instead)
+- Error messages guide AI agents to use built-in tools for non-structural edits (comments)
 
 
 ## Usage Examples
@@ -68,12 +69,12 @@ replace_top_level_form({
   newForm: "(defn new-function [x y] (+ x y))"
 })
 
-;; Insert top-level comment
-insert_top_level_comment({
+;; Insert top-level form
+insert_top_level_form({
   filePath: "/path/to/file.clj",
-  lineNumber: 45,
-  commentText: ";; Helper functions for data processing",
-  targetLineText: "(defn process-data"
+  line: 45,
+  targetLineText: "(defn process-data",
+  newForm: ";; Helper functions for data processing\n\n(defn helper-fn [x] x)"
 })
 ```
 
@@ -83,6 +84,12 @@ insert_top_level_comment({
 {
   success: false,
   error: "Target line text not found. Expected: '(defn wrong-function [x]' near line 23"
+}
+
+// When attempting to use structural tools for comments
+{
+  success: false,
+  error: "Target line text cannot start with a comment (;). You can only target forms/sexpressions. (To edit line comments, use your line based editing tools.)"
 }
 
 // Line offset exceeds scan window
@@ -95,7 +102,7 @@ insert_top_level_comment({
 ## Known Issues & Workarounds
 
 - **Large line offsets**: May exceed scan window (±2 lines). Consider expanding window or using absolute positioning
-- **AI comment insertion**: Agents often add explanatory comments outside forms. Use dedicated `insert_top_level_comment` tool to prevent structural issues
+- **Non-structural edits**: AI agents are instructed via error messages to use built-in line-oriented tools for top-level comments and other non-structural content
 - **Ignored diagnostics**: AI agents frequently ignore post-edit lint feedback. Considering lint diff format for clearer communication
 
 
@@ -109,4 +116,4 @@ TODO!
 
 ---
 
-This toolset enables AI agents to edit Clojure code effectively by respecting the language's form-based nature while providing complementary tools for non-structural top-level comments.
+This toolset enables AI agents to edit Clojure code effectively by respecting the language's form-based nature while using error messages and validation to guide agents toward appropriate tools for different editing tasks.

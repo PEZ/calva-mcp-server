@@ -272,7 +272,7 @@
         ],
         "toolReferenceName": "replace-top-level-form",
         "displayName": "Edit: Replace Top Level Form",
-        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form with a new form, or forms.\n\n* Target top level forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* This tool is only for inserting Clojure forms/sexpressions. For inserting top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n* To insert new code, replace an existing form with itself plus your new code.\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` can be targeted individually as if they were top-level forms.\n\nImportant: Only a form/sexpression is a valid targeted, and only forms/sexpressions should be provided as replacement",
+        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form with a new form, or forms.\n\n* Target top level forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* This tool is only for replacing Clojure forms/sexpressions with forms/sexpressions. For editing top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n* To insert new code, use the `insert_top_level_form` tool.\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` can be targeted individually as if they were top-level forms.\n\nImportant: Only a form/sexpression is a valid targeted, and only forms/sexpressions should be provided as replacement",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",
@@ -285,7 +285,49 @@
             },
             "line": {
               "type": "integer",
-              "description": "Line number, 1-based, where the target form/sexpression starts. The line should typically start with `(`."
+              "description": "Line number, 1-based, where the target form/sexpression starts"
+            },
+            "targetLineText": {
+              "type": "string",
+              "description": "The exact text content (trimmed) of the line you are targeting"
+            },
+            "newForm": {
+              "type": "string",
+              "description": "The replacement form code"
+            }
+          },
+          "required": [
+            "filePath",
+            "line",
+            "newForm",
+            "targetLineText"
+          ]
+        }
+      },
+      {
+        "name": "insert_top_level_form",
+        "tags": [
+          "clojure",
+          "editing",
+          "structural-editing",
+          "parinfer"
+        ],
+        "toolReferenceName": "insert-top-level-form",
+        "displayName": "Edit: Insert Top Level Form",
+        "modelDescription": "Structural editing. Edit Clojure files by inserting top level form(s).\n\n* Use 1-based, line numbers.\n* The new form code should be properly indented.\n* This tool is only for inserting Clojure forms/sexpressions. For inserting top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` are considered as if they were top-level forms.\n\nImportant: Only structrual forms/sexpressions should be provided for insertion.",
+        "userDescription": "Edit Clojure files by replacing top level forms",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(edit)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "filePath": {
+              "type": "string",
+              "description": "The absolute path to the file containing the form"
+            },
+            "line": {
+              "type": "integer",
+              "description": "Line number, 1-based, where to insert the form. The code will be inserted at the start of the line."
             },
             "targetLineText": {
               "type": "string",
@@ -293,7 +335,7 @@
             },
             "newForm": {
               "type": "string",
-              "description": "The replacement form code"
+              "description": "The replacement form code. The code will be inserted at the start of the line."
             }
           },
           "required": [
