@@ -272,7 +272,7 @@
         ],
         "toolReferenceName": "replace-top-level-form",
         "displayName": "Edit: Replace Top Level Form",
-        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form.\n\n* Target forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* You should always first use the Clojure Evaluation (REPL) tool to iteratively develop working code to edit into the file.\n* To insert new code, replace an existing form with itself plus your new code.",
+        "modelDescription": "Structural editing. Edit Clojure files by replacing an entire top level form.\n\n* Target forms by their starting, 1-based, line number.\n* The new form code should be properly indented.\n* You should always first use the Clojure Evaluation (REPL) tool to iteratively develop working code to edit into the file.\n* To insert new code, replace an existing form with itself plus your new code.\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` can be targeted individually as if they were top-level forms.",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",
