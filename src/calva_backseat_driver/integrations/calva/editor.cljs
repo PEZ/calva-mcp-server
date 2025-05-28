@@ -40,6 +40,33 @@
     (.revealRange editor vscode-range)
     ((get-in calva/calva-api [:editor :replace]) editor vscode-range new-text)))
 
+(def ^:private severity-map
+  "Map VS Code diagnostic severity levels to keywords"
+  {0 :error
+   1 :warning
+   2 :info
+   3 :hint})
+
+(defn- diagnostic->clj
+  "Convert a VS Code diagnostic object to a pure Clojure data structure"
+  [^js diag]
+  (when diag
+    {:source (.-source diag)
+     :message (.-message diag)
+     :severity (get severity-map (.-severity diag) :unknown)
+     :range (let [range (.-range diag)]
+              {:start {:line (.. range -start -line)
+                       :character (.. range -start -character)}
+               :end {:line (.. range -end -line)
+                     :character (.. range -end -character)}})
+     :code (.-code diag)}))
+
+(defn- diagnostics->clj
+  "Convert a collection of VS Code diagnostic objects to a vector of Clojure data structures"
+  [diagnostics]
+  (when diagnostics
+    (mapv diagnostic->clj diagnostics)))
+
 (defn- filter-clj-kondo-diagnostics
   "Filter diagnostics to only include those from clj-kondo source"
   [diagnostics]
@@ -68,12 +95,16 @@
     {:valid? true}))
 
 (defn- get-diagnostics-for-file
-  "Get clj-kondo diagnostics for a file"
+  "Get clj-kondo diagnostics for a file and convert to Clojure data structures"
   [file-path]
   (p/let [uri (vscode/Uri.file file-path)
           diagnostics-raw (vscode/languages.getDiagnostics uri)
-          diagnostics diagnostics-raw]
-    (filter-clj-kondo-diagnostics diagnostics)))
+          diagnostics-filtered (filter-clj-kondo-diagnostics diagnostics-raw)]
+    (diagnostics->clj diagnostics-filtered)))
+
+(comment
+  (get-diagnostics-for-file "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj")
+  :rcf)
 
 (defn- find-target-line-by-text
   "Find the actual line number by searching for target text within a window around the initial line.
