@@ -10,6 +10,8 @@ This document describes the implemented form-aware editing tool that leverages C
 
 **✅ IMPLEMENTED**: The `replace_top_level_form` tool is fully implemented and available in both VS Code Language Model integration and MCP server.
 
+**⚠️ LIMITATION IDENTIFIED**: Line comments are not structural forms, causing issues when AI agents try to add or modify top-level comments using the form-aware tool. A dedicated `insert_top_level_comment` tool is needed.
+
 ## Problem Statement
 
 ### Previous State: Line-Based Editing
@@ -17,12 +19,14 @@ This document describes the implemented form-aware editing tool that leverages C
 - Risk of malformed code after edits
 - Clojure code is form-based, not line-based
 - No semantic understanding of code structure
+- **Line comments cannot be handled structurally** - they exist outside the form paradigm
 
 ### Current State: Form-Aware Editing ✅
 - Edit complete forms as semantic units
 - Automatic bracket balancing via Parinfer integration
 - Rich comment form support for AI experimentation
 - Leverages Calva's existing ranges and editor infrastructure
+- **Gap**: No tool for handling top-level line comments (non-structural text)
 
 ## Implementation Details
 
@@ -58,9 +62,42 @@ This document describes the implemented form-aware editing tool that leverages C
 3. If text is not found, return an error explaining the mismatch
 4. If `target-line` is not provided, fall back to the original line-based approach
 
+### Needed API: `insert_top_level_comment` ❌
+
+**Problem**: Line comments (`;; comment text`) are not structural forms and cannot be handled by the form-aware editing tool. AI agents struggle when trying to add documentation or section comments.
+
+**Proposed Solution**: A line-based tool for inserting top-level line comments, consistent with the proven line-based approach used in `replace_top_level_form`.
+
+```clojure
+;; Proposed interface - line-based like the form tool
+(defn insert-comment-at-line
+  "Insert a top-level line comment at the specified line number.
+   Uses the same line-based approach that works well for AI agents."
+  [file-path line-number comment-text insert-mode])
+```
+
+**Parameters:**
+- `file-path` (string): Absolute path to the Clojure file
+- `line-number` (integer): Line number (1-indexed) for positioning
+- `comment-text` (string): The comment text (without the `;; ` prefix, which will be added automatically)
+- `insert-mode` (string): "before" (insert before the line) or "after" (insert after the line)
+
+**Returns:**
+- Success: Comment insertion result with final line position
+- Error: Error details with context
+
+**Design Principles:**
+- **Line-based positioning** - AI agents can see and reason about line numbers
+- Automatically adds proper comment prefixes (`;;` for single line, `;; ` for text)
+- Handles spacing around comments (blank lines before/after when appropriate)
+- Works with existing indentation and formatting
+- **Consistent with `replace_top_level_form` approach** that's proven to work
+
 ### No Insertion Tool Needed
 
-The `replace_top_level_form` tool description instructs how to use it for insertion operations, making a separate `insert_text` tool unnecessary at this time.
+~~The `replace_top_level_form` tool description instructs how to use it for insertion operations, making a separate `insert_text` tool unnecessary at this time.~~
+
+**Update**: While form insertion can be handled by `replace_top_level_form`, **line comment insertion requires a dedicated tool** due to the non-structural nature of comments.
 
 ### Implementation Architecture
 
@@ -100,6 +137,17 @@ The `replace_top_level_form` tool description instructs how to use it for insert
                            :line {:type "integer"}
                            :newForm {:type "string"}}
                :required ["filePath" "line" "newForm"]}}
+
+;; Proposed MCP tool for line comments
+{:name "insert_comment_at_line"
+ :description "Insert a top-level line comment in a Clojure file at a specific line (for non-structural text)"
+ :inputSchema {:type "object"
+               :properties {:filePath {:type "string"}
+                           :lineNumber {:type "integer"}
+                           :commentText {:type "string"}
+                           :insertMode {:type "string"
+                                       :enum ["before" "after"]}}
+               :required ["filePath" "lineNumber" "commentText" "insertMode"]}}
 ```
 
 ### Technical Implementation Details
@@ -168,11 +216,13 @@ Provide the tool description for `replace_top_level_form` with information so th
 - Tool added to `src/calva_backseat_driver/integrations/vscode/tools.cljs`
 - Registered with Language Model API
 - Follows existing tool registration pattern
+- **Missing**: `insert_comment_at_line` tool registration
 
 ### MCP Server Integration ❌
 - Tool definition not yet added to `src/calva_backseat_driver/mcp/requests.cljs`
 - Request handler needs implementation following existing pattern
 - Needs addition to tool registry in server initialization
+- **Missing**: Both `replace_top_level_form` and `insert_comment_at_line` tools
 
 ### Action/Effect System Integration ❌
 **Note**: The implementation bypasses the action/effect system and calls API functions directly from tools.
@@ -195,6 +245,52 @@ replace_top_level_form({
   actual-line-used: 24,  // The tool found the text at line 24 instead of 23
   // ... diagnostics and other details
 }
+```
+
+### Top-Level Comment Insertion (Proposed)
+```clojure
+;; Add a comment before a specific function
+insert_comment_at_line({
+  filePath: "/path/to/file.clj",
+  lineNumber: 45,  // Line number where the function starts
+  insertMode: "before",  // Insert before this line
+  commentText: "Helper functions for data processing"
+})
+
+// Add a comment after the namespace declaration
+insert_comment_at_line({
+  filePath: "/path/to/file.clj",
+  lineNumber: 3,  // Line with ns declaration
+  insertMode: "after",  // Insert after this line
+  commentText: "This module handles user authentication\nand session management"
+})
+
+// Add a comment at the top of the file (before line 1)
+insert_comment_at_line({
+  filePath: "/path/to/file.clj",
+  lineNumber: 1,
+  insertMode: "before",
+  commentText: "Core business logic functions"
+})
+```
+
+### Combined Workflow Example
+```clojure
+;; 1. First, add documentation comment
+insert_comment_at_line({
+  filePath: "/path/to/file.clj",
+  lineNumber: 15,
+  insertMode: "before",
+  commentText: "Updated to handle edge cases better"
+})
+
+// 2. Then, replace the actual function (line number stays same since comment inserted before)
+replace_top_level_form({
+  filePath: "/path/to/file.clj",
+  line: 15,  // Same line number - comment was inserted before it
+  targetLine: "(defn process-data [input]",
+  newForm: "(defn process-data [input]\n  (when (valid-input? input)\n    (transform input)))"
+})
 ```
 
 ### Fallback to Legacy Line-Based Targeting
@@ -243,12 +339,14 @@ replace_top_level_form({
 
 ## Implementation Phases
 
-### Phase 1: Core Implementation ✅
+### Phase 1: Core Implementation ✅ + ❌
 1. ✅ Implement `replace-top-level-form` function
 2. ✅ Add VS Code Language Model tool registration
 3. ✅ Integrate bracket balancing
 4. ✅ Add error handling and validation
 5. ❌ Add MCP tool registration
+6. **❌ URGENT: Implement `insert-comment-at-line` function**
+7. **❌ URGENT: Add `insert_comment_at_line` tool registration for VS Code**
 
 ### Phase 2: Enhanced Features
 1. Rich comment form support (working via existing implementation)
@@ -258,12 +356,14 @@ replace_top_level_form({
    - **Filter diagnostics to only clj-kondo sources** (exclude other language servers)
    - Consider using VS Code's `onDidChangeDiagnostics` event for more reliable timing
 3. Enhance error reporting and diagnostics
+4. **Complete MCP server integration for both tools**
 
 ### Phase 3: Advanced Capabilities
 1. Batch operations support
 2. Form-aware refactoring operations
 3. Integration with existing ranges API extensions
 4. Performance optimizations for large files
+5. **Enhanced comment tools** (multi-line comments, comment blocks, etc.)
 
 ## Security Considerations
 
@@ -289,17 +389,22 @@ replace_top_level_form({
 - Bracket balancing integration
 - Error handling scenarios
 - Position resolution logic
+- **Comment insertion accuracy and formatting**
+- **Integration between form replacement and comment insertion**
 
 ### Integration Tests
 - End-to-end form replacement workflows
 - MCP protocol compliance
 - VS Code API integration
 - Rich comment form handling
+- **Combined comment + form editing workflows**
+- **Comment positioning and spacing validation**
 
 ### Interactive Testing
 - Use tool to improve its own implementation
 - Test with various Clojure code patterns
 - Validate with real-world codebases
+- **Test comment insertion in various file contexts**
 
 ## Future Enhancements
 
@@ -319,4 +424,4 @@ replace_top_level_form({
 
 ---
 
-This form-aware editing tool represents a significant step toward making AI agents truly effective at Clojure development by respecting the language's fundamental form-based nature while leveraging Calva's powerful structural editing capabilities.
+This form-aware editing toolset represents a significant step toward making AI agents truly effective at Clojure development by respecting the language's fundamental form-based nature while providing complementary tools for non-structural text (comments). The combination of `replace_top_level_form` for structural edits and `insert_comment_at_line` for documentation creates a complete editing solution that leverages Calva's powerful structural editing capabilities, both using the proven line-based approach that AI agents can handle effectively.
