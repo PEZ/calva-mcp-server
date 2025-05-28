@@ -25,6 +25,8 @@ This extension exposes the AI tools both to CoPilot directly, using the VS Code 
 * Resource: **Symbol info lookup**, (a bit experimental) same as the tool
 * Resource: **clojuredocs.org lookup**, (a bit experimental) same as the tool
 
+Please note that for the editing tools there is no UI for reviewing the edits. I suggest using the source control tools for reviewing AI editing activity.
+
 ## Why Calva Backseat Driver?
 
 "I wish Copilot could actually run my Clojure code instead of just guessing what it might do."
