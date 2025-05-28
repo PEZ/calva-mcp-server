@@ -1,7 +1,7 @@
 (ns calva-backseat-driver.mcp.requests
   (:require
    ["vscode" :as vscode]
-   [calva-backseat-driver.integrations.calva.api :as calva]
+   [calva-backseat-driver.integrations.calva.features :as calva]
    [calva-backseat-driver.bracket-balance :as bracket-balance]
    [clojure.string :as string]
    [promesa.core :as p]))

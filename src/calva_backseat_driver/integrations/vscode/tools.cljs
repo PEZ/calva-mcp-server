@@ -1,8 +1,9 @@
 (ns calva-backseat-driver.integrations.vscode.tools
   (:require
    ["vscode" :as vscode]
-   [calva-backseat-driver.integrations.calva.api :as calva]
    [calva-backseat-driver.bracket-balance :as balance]
+   [calva-backseat-driver.integrations.calva.editor :as editor]
+   [calva-backseat-driver.integrations.calva.features :as calva]
    [promesa.core :as p]))
 
 (defn EvaluateClojureCodeTool [dispatch!]
@@ -112,7 +113,7 @@
                          line (some-> options .-input .-line)
                          target-line (-> options .-input .-targetLine)
                          new-form (-> options .-input .-newForm)
-                         result (calva/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)]
+                         result (editor/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form)]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})
