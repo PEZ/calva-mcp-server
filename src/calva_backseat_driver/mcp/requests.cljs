@@ -99,6 +99,40 @@
                    :audience ["user" "assistant"]
                    :priority 8}}))
 
+(def replace-top-level-form-tool-listing
+  (let [tool-name "replace_top_level_form"]
+    {:name tool-name
+     :description (tool-description tool-name)
+     :inputSchema {:type "object"
+                   :properties {"filePath" {:type "string"
+                                            :description (param-description tool-name "filePath")}
+                                "line" {:type "integer"
+                                        :description (param-description tool-name "line")}
+                                "targetLineText" {:type "string"
+                                                  :description (param-description tool-name "targetLineText")}
+                                "newForm" {:type "string"
+                                           :description (param-description tool-name "newForm")}}
+                   :required ["filePath" "line" "targetLineText" "newForm"]
+                   :audience ["user" "assistant"]
+                   :priority 7}}))
+
+(def insert-top-level-form-tool-listing
+  (let [tool-name "insert_top_level_form"]
+    {:name tool-name
+     :description (tool-description tool-name)
+     :inputSchema {:type "object"
+                   :properties {"filePath" {:type "string"
+                                            :description (param-description tool-name "filePath")}
+                                "line" {:type "integer"
+                                        :description (param-description tool-name "line")}
+                                "targetLineText" {:type "string"
+                                                  :description (param-description tool-name "targetLineText")}
+                                "newForm" {:type "string"
+                                           :description (param-description tool-name "newForm")}}
+                   :required ["filePath" "line" "targetLineText" "newForm"]
+                   :audience ["user" "assistant"]
+                   :priority 7}}))
+
 (def bracket-balance-tool-listing
   (let [tool-name "balance_brackets"]
     {:name tool-name
@@ -123,8 +157,8 @@
                              :protocolVersion "2024-11-05"
                              :capabilities {:tools {:listChanged true}
                                             :resources {:listChanged true}}
-                             :instructions "Use the `get-output-log` tool to tap into output that gives insight in how the program under development is doing, use the `evaluate_clojure_code` tool (if available) to evaluate Clojure/ClojureScript code. There are also tools for getting symbol info and for getting clojuredocs.org info."
-                             :description "Gives access to the Calva API, including Calva REPL output, the Clojure REPL connection (if this is enabled in settings), Clojure symbol info, and clojuredocs.org lookup. Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
+                             :instructions "Use the `get-output-log` tool to tap into output that gives insight in how the program under development is doing, use the `evaluate_clojure_code` tool (if available) to evaluate Clojure/ClojureScript code. There are also tools for getting symbol info and for getting clojuredocs.org info. The `replace_top_level_form` and `insert_top_level_form` tools enable structural editing of Clojure code."
+                             :description "Gives access to the Calva API, including Calva REPL output, the Clojure REPL connection (if this is enabled in settings), Clojure symbol info, clojuredocs.org lookup, and structural editing tools for Clojure code. Effectively turning the AI Agent into a Clojure Interactive Programmer."}}]
       response)
 
     (= method "tools/list")
@@ -144,7 +178,13 @@
                                       (conj clojuredocs-tool-listing)
 
                                       (calva/exists-on-output?)
-                                      (conj output-log-tool-info))}}]
+                                      (conj output-log-tool-info)
+
+                                      true
+                                      (conj replace-top-level-form-tool-listing)
+
+                                      true
+                                      (conj insert-top-level-form-tool-listing))}}]
       response)
 
     (= method "resources/templates/list")
@@ -220,6 +260,30 @@
            :id id
            :result {:content [{:type "text"
                                :text (js/JSON.stringify result)}]}})
+
+        (= tool "replace_top_level_form")
+        (p/let [{:keys [filePath line targetLineText newForm]} arguments
+                result (calva/replace-top-level-form+ (merge options
+                                                             {:calva/file-path filePath
+                                                              :calva/line line
+                                                              :calva/target-line-text targetLineText
+                                                              :calva/new-form newForm}))]
+          {:jsonrpc "2.0"
+           :id id
+           :result {:content [{:type "text"
+                               :text (js/JSON.stringify (clj->js result))}]}})
+
+        (= tool "insert_top_level_form")
+        (p/let [{:keys [filePath line targetLineText newForm]} arguments
+                result (calva/insert-top-level-form+ (merge options
+                                                            {:calva/file-path filePath
+                                                             :calva/line line
+                                                             :calva/target-line-text targetLineText
+                                                             :calva/new-form newForm}))]
+          {:jsonrpc "2.0"
+           :id id
+           :result {:content [{:type "text"
+                               :text (js/JSON.stringify (clj->js result))}]}})
 
         :else
         {:jsonrpc "2.0"
