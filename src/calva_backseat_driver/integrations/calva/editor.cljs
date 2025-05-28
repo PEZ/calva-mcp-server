@@ -3,6 +3,7 @@
    ["parinfer" :as parinfer]
    ["vscode" :as vscode]
    [calva-backseat-driver.integrations.calva.api :as calva]
+   [clojure.string :as str]
    [promesa.core :as p]))
 
 (defn- get-document-from-path [path]
@@ -79,6 +80,27 @@
   (->> diagnostics
        (filter #(= "clj-kondo" (.-source %)))))
 
+(defn- starts-with-comment?
+  "Check if text starts with a comment character after trimming whitespace"
+  [text]
+  (when text
+    (-> text str str/trim (str/starts-with? ";"))))
+
+(defn- validate-edit-inputs
+  "Validate that neither target-line nor new-form start with comments"
+  [target-line new-form]
+  (cond
+    (starts-with-comment? target-line)
+    {:valid? false
+     :error "Target line text cannot start with a comment (;). You can only target forms/sexpressions. (To edit line comments, use your line based editing tools.)"}
+
+    (starts-with-comment? new-form)
+    {:valid? false
+     :error "Replacement form cannot start with a comment (;). You can only insert forms/sexpressions with this tool. (To edit line comments, use your line based editing tools.)"}
+
+    :else
+    {:valid? true}))
+
 (defn- get-diagnostics-for-file
   "Get clj-kondo diagnostics for a file"
   [file-path]
@@ -110,35 +132,39 @@
   "Apply a form edit by line number with text-based targeting for better accuracy.
    Searches for target-line text within a 2-line window around the specified line number."
   [file-path line-number target-line new-form]
-  (-> (p/let [vscode-document (get-document-from-path file-path)
-              actual-line-number (if target-line
-                                   (find-target-line-by-text vscode-document line-number target-line)
-                                   line-number)]
-        (if (or (not target-line) actual-line-number)
-          (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
-                                         (js->clj :keywordize-keys true))
-                  final-line-number (or actual-line-number line-number)
-                  form-data (get-ranges-form-data-by-line file-path final-line-number :currentTopLevelForm)
-                  diagnostics-before-edit (get-diagnostics-for-file file-path)]
-            (if (:success balance-result)
-              (p/let [edit-result (edit-replace-range file-path
-                                                      (first (:ranges-object form-data))
-                                                      (:text balance-result))
-                      _ (p/delay 1000) ;; TODO: Consider subscribing on diagnistics changes instead
-                      diagnostics-after-edit (get-diagnostics-for-file file-path)]
-                (if edit-result
-                  {:success true
-                   :actual-line-used final-line-number
-                   :diagnostics-before-edit diagnostics-before-edit
-                   :diagnostics-after-edit diagnostics-after-edit}
-                  {:success false
-                   :diagnostics-before-edit diagnostics-before-edit}))
-              balance-result))
-          {:success false
-           :error (str "Target line text not found. Expected: '" target-line "' near line " line-number)}))
-      (p/catch (fn [e]
-                 {:success false
-                  :error (.-message e)}))))
+  (let [validation (validate-edit-inputs target-line new-form)]
+    (if (:valid? validation)
+      (-> (p/let [vscode-document (get-document-from-path file-path)
+                  actual-line-number (if target-line
+                                       (find-target-line-by-text vscode-document line-number target-line)
+                                       line-number)]
+            (if (or (not target-line) actual-line-number)
+              (p/let [balance-result (some-> (parinfer/indentMode new-form #js {:partialResult true})
+                                             (js->clj :keywordize-keys true))
+                      final-line-number (or actual-line-number line-number)
+                      form-data (get-ranges-form-data-by-line file-path final-line-number :currentTopLevelForm)
+                      diagnostics-before-edit (get-diagnostics-for-file file-path)]
+                (if (:success balance-result)
+                  (p/let [edit-result (edit-replace-range file-path
+                                                          (first (:ranges-object form-data))
+                                                          (:text balance-result))
+                          _ (p/delay 1000) ;; TODO: Consider subscribing on diagnistics changes instead
+                          diagnostics-after-edit (get-diagnostics-for-file file-path)]
+                    (if edit-result
+                      {:success true
+                       :actual-line-used final-line-number
+                       :diagnostics-before-edit diagnostics-before-edit
+                       :diagnostics-after-edit diagnostics-after-edit}
+                      {:success false
+                       :diagnostics-before-edit diagnostics-before-edit}))
+                  balance-result))
+              {:success false
+               :error (str "Target line text not found. Expected: '" target-line "' near line " line-number)}))
+          (p/catch (fn [e]
+                     {:success false
+                      :error (.-message e)})))
+      {:success false
+       :error (:error validation)})))
 
 (comment
   (p/let [ctf-data (get-ranges-form-data
@@ -155,5 +181,25 @@
                                        214
                                        "(foo")]
     (def edit-result edit-result))
+
+  ;; Test validation - these should fail with proper error messages
+  (apply-form-edit-by-line-with-text-targeting
+   "/some/file.clj"
+   10
+   "; This is a comment line"  ; ← This should fail
+   "(defn new-fn [])")
+
+  (apply-form-edit-by-line-with-text-targeting
+   "/some/file.clj"
+   10
+   "(defn old-fn [])"
+   "; This is a comment replacement")  ; ← This should fail
+
+  ;; This should succeed
+  (apply-form-edit-by-line-with-text-targeting
+   "/some/file.clj"
+   10
+   "(defn old-fn [])"
+   "(defn new-fn [])")
 
   :rcf)
