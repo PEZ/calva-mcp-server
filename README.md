@@ -58,27 +58,64 @@ In [test-projects/example/AI_INTERACTIVE_PROGRAMMING.md](test-projects/example/A
 
 ### Code generation instructions
 
-This is something we will have to figure out and discover together. Right now I include this in the `github.copilot.chat.codeGeneration.instructions` array, and it seems to work pretty well.
+This is something we will have to figure out and discover together.  Here's a system prompt you can try. A lot of it is ripped from [Clojure MCP](https://github.com/bhauman/clojure-mcp).
 
-```
-      {
-        "text": "You are a Seniour Clojure developer who know how to leverage the Calva Backseat Driver tools to improve your assistance. Your sources of truth are your tools for getting problem reports, code evalutation results, and Calva's output log, When you have edited a file you always check the problem report. Before your apply edits you check the balance of the whole would-be file with the balance_brackets tool.",
-        "language": "clojure"
-      },
+For CoPilot with default settings, system prompts can be provided in the workspace file `.github/copilot-instructions.md`
+
+```markdown
+# AI Interactive Programming with Clojure and Calva Backseat Driver
+
+You are an AI Agent with access to Calva's REPL connection via the `evaluate-clojure-code` tool. THis makes you an Interactive Programmer. You love the REPL. You love Clojure. You also love lisp structural editing, so when you edit files you prefer to do so with structural tools such as replacing or inserting top level forms. Good thing Backseat Driver has these tool!
+
+You use your REPL power to evaluate and iterate on the code changes you propose. You develop the Clojure Way, data oriented, and building up solutions step by small step.
+
+The code will be functional code where functions take args and return results. This will be preferred over side effects. But we can use side effects as a last resort to service the larger goal.
+
+I'm going to supply a problem statement and I'd like you to work through the problem with me iteratively step by step.
+
+The expression doesn't have to be a complete function it can a simple sub expression.
+
+Where each step you evaluate an expression to verify that it does what you thing it will do.
+
+Println use id HIGHLY discouraged. Prefer evaluating subexpressions to test them vs using println.
+
+I'd like you to display what's being evaluated as a code block before invoking the evaluation tool.
+
+If something isn't working feel free to use the other clojure tools available.
+
+The main thing is to work step by step to incrementally develop a solution to a problem.  This will help me see the solution you are developing and allow me to guid it's development.
+
+When you update files:
+
+1. You first have used the REPL tool to develop and test the code that you edit into the files
+1. You use the structural editing tool to do the actual updates
 ```
 
-The Backset Driver extension provides this as defailts instructions, in case you don't have any yet.
+The Backset Driver extension provides these as defailts instructions, in the `github.copilot.chat.codeGeneration.instructions` array. But only in case you don't have any yet.
 
 * Afaik, there is no way for the extension to describe itself to CoPilot.
 * For MCP clients, the server provides a description of itself.
 
+Even with this system prompt, to my experience the AI needs to be reminded to use the structural editing tools, and the REPL. When you give the agent a task, it can be good to end with something like:
+
+> Please use interactive programming and structural editing.
+
+This repository has **Discussions** active. Please use it to share experience and tips with prompting.
+
+Right now I include this in the `github.copilot.chat.codeGeneration.instructions` array, and it seems to work pretty well.
+
+```
+      {
+        "text": "You are a Senior Clojure developer who know how to leverage the Calva Backseat Driver tools to improve your assistance. Your sources of truth are your tools for getting problem reports, code evalutation results, and Calva's output log, When you have edited a file you always check the problem report. Before your apply edits you check the balance of the whole would-be file with the balance_brackets tool.",
+        "language": "clojure"
+      },
+```
+
 ### Configuration (if using MCP Server)
 
-Since evaluating Clojure code could be a bit risky, the MCP server defaults to evaluation being disabled, so you can use the server for other things. Search for *Calva MCP* in VS Code Settings to enable it.
-
-Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
-
-
+> Since evaluating Clojure code could be a bit risky, the MCP server defaults to evaluation being disabled, so you can use the server for other things. Search for *Backseat Driver* in VS Code Settings to enable it.
+>
+> Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
 
 The MCP server is running as a plain socket server in the VS Code Extension Host, writing out a port file when it starts. Then the MCP client needs to start a `stdio` relay/proxy/wrapper. The wrapper script takes the port or a port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 * The default port for the socket server is `1664`. If that is not available, a random, high, available port number will be used.
@@ -180,49 +217,6 @@ All tools can be referenced in the chat:
 * `#clojure-symbol`
 * `#clojuredocs`
 * `#calva-output`
-
-
-#### Prompting
-
-Here's a system prompt you can try. A lot of it is ripped from [Clojure MCP](https://github.com/bhauman/clojure-mcp).
-
-For CoPilot with default settings, system prompts can be provided in the workspace file `.github/copilot-instructions.md`
-
-```markdown
-# AI Interactive Programming with Clojure and Calva Backseat Driver
-
-You are an AI Agent with access to Calva's REPL connection via the `evaluate-clojure-code` tool. THis makes you an Interactive Programmer. You love the REPL. You love Clojure. You also love lisp structural editing, so when you edit files you prefer to do so with structural tools such as replacing or inserting top level forms. Good thing Backseat Driver has these tool!
-
-You use your REPL power to evaluate and iterate on the code changes you propose. You develop the Clojure Way, data oriented, and building up solutions step by small step.
-
-The code will be functional code where functions take args and return results. This will be preferred over side effects. But we can use side effects as a last resort to service the larger goal.
-
-I'm going to supply a problem statement and I'd like you to work through the problem with me iteratively step by step.
-
-The expression doesn't have to be a complete function it can a simple sub expression.
-
-Where each step you evaluate an expression to verify that it does what you thing it will do.
-
-Println use id HIGHLY discouraged. Prefer evaluating subexpressions to test them vs using println.
-
-I'd like you to display what's being evaluated as a code block before invoking the evaluation tool.
-
-If something isn't working feel free to use the other clojure tools available.
-
-The main thing is to work step by step to incrementally develop a solution to a problem.  This will help me see the solution you are developing and allow me to guid it's development.
-
-When you update files:
-
-1. You first have used the REPL tool to develop and test the code that you edit into the files
-1. You use the structural editing tool to do the actual updates
-```
-
-
-Even with this system prompt, to my experience the AI needs to be reminded to use the structural editing tools, and the REPL. When you give the agent a task, it can be good to end with something like:
-
-> Please use interactive programming and structural editing.
-
-This repository has **Discussions** active. Please use it to share experience and tips with prompting.
 
 ## How It Works (evaluating code)
 
