@@ -8,7 +8,9 @@ This document describes the implemented form-aware editing tool that leverages C
 
 ## Current Implementation Status
 
-**✅ IMPLEMENTED**: The `replace_top_level_form` tool is fully implemented and available in both VS Code Language Model integration and MCP server.
+**✅ VS CODE**: The `replace_top_level_form` tool is fully implemented and available in VS Code Language Model integration.
+
+**❌ MCP SERVER**: The `replace_top_level_form` tool is not yet implemented in the MCP server.
 
 **⚠️ LIMITATION IDENTIFIED**: Line comments are not structural forms, causing issues when AI agents try to add or modify top-level comments using the form-aware tool. A dedicated `insert_top_level_comment` tool is needed.
 

@@ -12,7 +12,7 @@
 
     [:calva/fx.subscribe-to-output on-output]
     (let [disposable (calva-features/subscribe-to-output {:ex/dispatch! #(dispatch! context [%])
-                                                 :calva/on-output on-output})]
+                                                          :calva/on-output on-output})]
       (.push (.-subscriptions context) disposable))
 
     :else

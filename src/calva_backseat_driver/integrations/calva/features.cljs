@@ -1,6 +1,5 @@
 (ns calva-backseat-driver.integrations.calva.features
   (:require
-   ["parinfer" :as parinfer]
    ["vscode" :as vscode]
    [calva-backseat-driver.integrations.calva.api :as calva]
    [promesa.core :as p]))
