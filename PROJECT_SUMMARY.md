@@ -9,11 +9,12 @@ Calva Backseat Driver is a VS Code extension that transforms AI coding assistant
 ## Key Features
 
 - **REPL Evaluation Tool** (opt-in): AI can execute Clojure/ClojureScript code in your connected REPL
-- **Form-Aware Editing Tool**: Semantic Clojure code editing that respects form boundaries with automatic bracket balancing
+- **Form-Aware Editing Tools**: Two structural editing tools (`replace_top_level_form` and `insert_top_level_form`) that respect form boundaries with automatic bracket balancing and text targeting for precise edits
 - **Bracket Balancer**: Powered by Parinfer to help AI generate properly balanced Clojure code
 - **Symbol Info Lookup**: Access to Clojure symbol documentation, argument lists, and metadata
 - **ClojureDocs.org Integration**: Examples, usage patterns, and "see also" references for Clojure core symbols
 - **REPL Output Log Access**: AI can monitor application output for debugging and understanding
+- **MCP Inspector Testing**: Built-in Babashka tasks for testing MCP server functionality with the MCP inspector
 - **Dual Interface**: Works with VS Code CoPilot (Language Model API) and any MCP-compliant AI client
 
 ## Architecture Overview
