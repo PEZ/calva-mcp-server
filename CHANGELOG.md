@@ -4,6 +4,8 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+## [v0.0.13] - 2025-05-28
+
 - [Add replace-top-level-form structural editing tool](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/12)
 - [Add insert-top-level-form structural editing tool](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/12)
 - [Enable REPL Tool for CoPilot by default (keep disabled default for MCP)](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/14)
