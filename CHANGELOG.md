@@ -4,6 +4,9 @@ Changes to Calva Backseat Driver
 
 ## [Unreleased]
 
+- [Add replace-top-level-form structural editing tool](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/12)
+- [Add insert-top-level-form structural editing tool](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/12)
+
 ## [v0.0.12] - 2025-05-22
 
 - [Add `requests/list` MCP op](https://github.com/BetterThanTomorrow/calva-backseat-driver/issues/9)
