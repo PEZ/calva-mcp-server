@@ -91,6 +91,14 @@
   "Validate that neither target-line nor new-form start with comments"
   [target-line new-form]
   (cond
+    (not target-line)
+    {:valid? false
+     :error "No target line text provided. Provide an empty string to target an empty line."}
+
+    (not new-form)
+    {:valid? false
+     :error "No insert/replace text provided."}
+
     (starts-with-comment? target-line)
     {:valid? false
      :error "Target line text cannot start with a comment (;). You can only target forms/sexpressions. (To edit line comments, use your line based editing tools.)"}
@@ -169,7 +177,7 @@
 
   (p/let [edit-result (apply-form-edit-by-line-with-text-targeting "/Users/pez/Projects/calva-mcp-server/test-projects/example/src/mini/playground.clj"
                                                                    214
-                                                                   ""
+                                                                   ";foo"
                                                                    "(foo"
                                                                    :currentTopLevelForm)]
     (def edit-result edit-result))
@@ -190,11 +198,12 @@
    :currentTopLevelForm)  ; ← This should fail
 
   ;; This should succeed
-  (apply-form-edit-by-line-with-text-targeting
-   "/some/file.clj"
-   10
-   "(defn old-fn [])"
-   "(defn new-fn [])"
-   :currentTopLevelForm)
+  (p/let [the-result (apply-form-edit-by-line-with-text-targeting
+                      "/some/file.clj"
+                      10
+                      "(defn old-fn [])"
+                      "(defn new-fn [])"
+                      :currentTopLevelForm)]
+    (def the-result the-result))
 
   :rcf)

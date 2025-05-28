@@ -19,8 +19,8 @@ The current line-based approach with text targeting evolved through several iter
 
 | Tool | VS Code | MCP | Description |
 |------|---------|-----|-------------|
-| `replace_top_level_form` | ✅ | ❌ | Replace structural forms with text targeting |
-| `insert_top_level_form` | ✅ | ❌ | Insert structural forms with text targeting |
+| `replace_top_level_form` | ✅ | ✅ | Replace structural forms with text targeting |
+| `insert_top_level_form` | ✅ | ✅ | Insert structural forms with text targeting |
 
 **Key Limitations**:
 - Non-structural edits (top-level comments) handled via error messages directing AI to use built-in line-oriented tools

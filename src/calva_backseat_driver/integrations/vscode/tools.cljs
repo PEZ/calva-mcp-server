@@ -118,12 +118,12 @@
                                   (calva/replace-top-level-form+ {:ex/dispatch! dispatch!
                                                                   :calva/file-path file-path
                                                                   :calva/line line
-                                                                  :calva/target-line target-line
+                                                                  :calva/target-line-text target-line
                                                                   :calva/new-form new-form})
                                   (calva/insert-top-level-form+ {:ex/dispatch! dispatch!
                                                                  :calva/file-path file-path
                                                                  :calva/line line
-                                                                 :calva/target-line target-line
+                                                                 :calva/target-line-text target-line
                                                                  :calva/new-form new-form}))]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
