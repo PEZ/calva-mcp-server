@@ -2,7 +2,6 @@
   (:require
    ["vscode" :as vscode]
    [calva-backseat-driver.bracket-balance :as balance]
-   [calva-backseat-driver.integrations.calva.editor :as editor]
    [calva-backseat-driver.integrations.calva.features :as calva]
    [promesa.core :as p]))
 
@@ -96,7 +95,7 @@
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify result))])))})
 
-(defn- ReplaceOrInsertTopLevelFormTool [_dispatch! ranges-fn-key confirm-prefix invoked-prefix]
+(defn- ReplaceOrInsertTopLevelFormTool [dispatch! ranges-fn-key confirm-prefix invoked-prefix]
   #js {:prepareInvocation (fn prepareInvocation [^js options _token]
                             (let [file-path (-> options .-input .-filePath)
                                   line (-> options .-input .-line)
@@ -115,7 +114,17 @@
                          line (some-> options .-input .-line)
                          target-line (-> options .-input .-targetLineText)
                          new-form (-> options .-input .-newForm)
-                         result (editor/apply-form-edit-by-line-with-text-targeting file-path line target-line new-form ranges-fn-key)]
+                         result (if (= ranges-fn-key :currentTopLevelForm)
+                                  (calva/replace-top-level-form+ {:ex/dispatch! dispatch!
+                                                                  :calva/file-path file-path
+                                                                  :calva/line line
+                                                                  :calva/target-line target-line
+                                                                  :calva/new-form new-form})
+                                  (calva/insert-top-level-form+ {:ex/dispatch! dispatch!
+                                                                 :calva/file-path file-path
+                                                                 :calva/line line
+                                                                 :calva/target-line target-line
+                                                                 :calva/new-form new-form}))]
                    (vscode/LanguageModelToolResult.
                     #js [(vscode/LanguageModelTextPart.
                           (js/JSON.stringify (clj->js result)))])))})

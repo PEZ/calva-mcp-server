@@ -314,7 +314,7 @@
         ],
         "toolReferenceName": "insert-top-level-form",
         "displayName": "Edit: Insert Top Level Form",
-        "modelDescription": "Structural editing. Edit Clojure files by inserting top level form(s).\n\n* Use 1-based, line numbers.\n* The new form code should be properly indented.\n* This tool is only for inserting Clojure forms/sexpressions. For inserting top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` are considered as if they were top-level forms.\n\nImportant: Only structrual forms/sexpressions should be provided for insertion.",
+        "modelDescription": "Structural editing. Edit Clojure files by inserting top level form(s).\n\n* Always target the top level of the code.\n* Use 1-based, line numbers.\n* The new form code should be properly indented.\n* This tool is only for inserting Clojure forms/sexpressions. For inserting top level line comments (which are not strucural), use your built in edit tools (which are line oriented/not structural).\n\n**Rich Comment Forms**: \n* Forms immediately enclosed within `(comment ...)` are considered as if they were top-level forms.\n\nImportant: Only structrual forms/sexpressions should be provided for insertion.",
         "userDescription": "Edit Clojure files by replacing top level forms",
         "canBeReferencedInPrompt": true,
         "icon": "$(edit)",

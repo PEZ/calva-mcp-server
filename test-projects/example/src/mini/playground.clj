@@ -84,9 +84,10 @@
         (.fillRect g (* (:x food) cell-size) (* (:y food) cell-size) cell-size cell-size)
 
         ;; Draw snake
-        (.setColor g Color/GREEN)
-        (doseq [segment snake]
-          (.fillRect g (* (:x segment) cell-size) (* (:y segment) cell-size) cell-size cell-size))
+        (let [custom-color (.getClientProperty this "snake-color")]
+          (.setColor g (or custom-color Color/GREEN))
+          (doseq [segment snake]
+            (.fillRect g (* (:x segment) cell-size) (* (:y segment) cell-size) cell-size cell-size)))
 
         ;; Draw score
         (.setColor g Color/WHITE)
@@ -130,6 +131,29 @@
     (keyTyped [e])))
 
 ;; Create and show the game window
+(defn pause-game [game]
+  (when game
+    (.stop (:timer game))))
+
+(defn toggle-pause [game]
+  (when game
+    (let [timer (:timer game)]
+      (if (.isRunning timer)
+        (.stop timer)
+        (.start timer))
+      game)))
+
+(defn resume-game [game]
+  (when game
+    (.start (:timer game))))
+
+(defn set-snake-color [game color]
+  (when game
+    (let [panel (:panel game)]
+      ;; Store the color in the panel's client properties
+      (.putClientProperty panel "snake-color" color)
+      game)))
+
 (defn start-game []
   (let [frame (JFrame. "Clojure Snake Game")
         panel (game-panel)
