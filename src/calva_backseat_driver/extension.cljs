@@ -31,7 +31,7 @@
   (some-> vscode
           .-workspace
           (.getConfiguration "calva-backseat-driver")
-          (.get "enableREPLEvaluation"))
+          (.get "enableMcpREPLEvaluation"))
   :rcf)
 
 (defn ^:export deactivate []

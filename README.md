@@ -16,7 +16,7 @@ This extension exposes the AI tools both to CoPilot directly, using the VS Code 
 
 ## Features
 
-* Tool: **Evaluate Code** (disabled by default), access to the Clojure REPL to evaluate code at will
+* Tool: **Evaluate Code** Access to the Clojure REPL to evaluate code at will
 * Tool: **Replace top level form** Structural editing, including formatting, bracket balancing and linting
 * Tool: **Insert top level form** Structural editing, including formatting, bracket balancing and linting
 * Tool: **Bracket Balancer** Helps the model get the bracket balance right (powered by [Parinfer](https://github.com/parinfer/parinfer.js))
@@ -24,12 +24,6 @@ This extension exposes the AI tools both to CoPilot directly, using the VS Code 
 * Tool: **clojuredocs.org lookup**, docs, examples, and *see also* information on Clojure core-ish symbols
 * Resource: **Symbol info lookup**, (a bit experimental) same as the tool
 * Resource: **clojuredocs.org lookup**, (a bit experimental) same as the tool
-
-### Evaluation power is opt-in
-
-Since evaluating Clojure code could be a bit risky, the server defaults to this being disabled, so you can use the server for other things. Search for *Calva MCP* in VS Code Settings to enable it.
-
-Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
 
 ## Why Calva Backseat Driver?
 
@@ -79,6 +73,12 @@ The Backset Driver extension provides this as defailts instructions, in case you
 * For MCP clients, the server provides a description of itself.
 
 ### Configuration (if using MCP Server)
+
+Since evaluating Clojure code could be a bit risky, the MCP server defaults to evaluation being disabled, so you can use the server for other things. Search for *Calva MCP* in VS Code Settings to enable it.
+
+Note that there are several layers to the security model here. This server starts with evaluation powers disables, and compliant MCP servers will default to low trust mode and ask for your confirmation every time the LLM wants to use the tool. Full YOLO mode is enabled if you enable the tool in the Calva MCP settings, and configure your AI client to be allowed to use it without asking.
+
+
 
 The MCP server is running as a plain socket server in the VS Code Extension Host, writing out a port file when it starts. Then the MCP client needs to start a `stdio` relay/proxy/wrapper. The wrapper script takes the port or a port file as an argument. Because of these and other reasons, there will be one Calva Backseat Driver per workspace, and the port file will be written to the `.calva` directory in the workspace root.
 * The default port for the socket server is `1664`. If that is not available, a random, high, available port number will be used.

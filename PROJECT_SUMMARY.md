@@ -148,7 +148,7 @@ The tools are exposed as VS Code Language ModelAPI (for CoPilot) and MCP (for ex
 ### Configuration Access
 ```clojure
 ;; Access VS Code configuration through explicit context passing
-:vscode/config.enableReplEvaluation  ; -> boolean value from settings
+:vscode/config.enableMcpReplEvaluation  ; -> boolean value from settings
 :vscode/config.mcpSocketServerPort   ; -> port number from settings
 ```
 
